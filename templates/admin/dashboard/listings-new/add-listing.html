@@ -3,8 +3,7 @@
 {% load dashboard_extra %}
 {% block title %}{{title}}{% endblock %}
 {% block styles %}
-    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.7.14/css/bootstrap-datetimepicker.min.css"> -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.37/css/bootstrap-datetimepicker.min.css">
+    
     <!-- <link rel="stylesheet" href="{% static 'admin/css/chosen.css' %}"> -->
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-tour/0.11.0/css/bootstrap-tour.css">
   
@@ -31,11 +30,18 @@
             </span>
           </h4>
         </div><!-- End .block -->
+        <div class="block">
+          {% if property_details.seller_status == 29%}
+            <h6 class="retn">
+              Return Reason: {{property_details.seller_property_return_reason|default:""}}
+            </h6>
+          {% endif %}
+        </div>
       </div><!-- End .item -->
     </div>
-
   </div>
 </div><!-- End .asset-detail-top -->
+
 {% endif %}
 <div class="dashboard-body">
   <form name="property_info_frm" id="property_info_frm" method="post" autocomplete="off">
@@ -111,7 +117,7 @@
                                     <div class="row position-relative">
                                       <div class="col-md-12">
                                         <h6>
-                                          Owner
+                                          Owner #<span class="owner_count">{{ forloop.counter }}</span> 
                                         </h6>
                                       </div>
                                       <div class="col-lg-6 col-md-6">
@@ -181,6 +187,11 @@
                               {% else %}
                                 <div class="child_owner" id="child_owner_0">
                                   <div class="row">
+                                    <div class="col-md-12">
+                                      <h6>
+                                        Owner #<span class="owner_count">1</span>
+                                      </h6>
+                                    </div>
                                     <div class="col-lg-6 col-md-6">
                                       <div class="form-group">
                                         <label for="owner_name">Owner <span class="text-danger">*</span></label>
@@ -297,7 +308,7 @@
                             </div><!-- End .col-md-6 -->
                             <div class="col-lg-6 col-md-6">
                               <div class="form-group">
-                                <label for="project">Project <span class="text-danger">*</span></label>
+                                <label for="project">Project</label>
                                 <select class="project form-control select" aria-label="Project" name="project" id="project">
                                   <option value="">Select Project</option>
                                   {% for proj in project %}
@@ -320,7 +331,7 @@
                             </div>
                             <div class="col-lg-6 col-md-6">
                               <div class="form-group">
-                                <label for="property_type">Property Type </label>
+                                <label for="property_type">Property Type <span class="text-danger">*</span></label>
                                 <select class="property_type form-control select" aria-label="Property Type" name="property_type" id="property_type">
                                   <option value="">Select Property Type</option>
                                   {% for prop_type in property_type %}
@@ -412,14 +423,17 @@
                                   <label for="vacancy" class="radio-label">Vacant</label>
                                 </div>
                               </div>
+
+                              <div class="rental_till_parent" {% if property_details.vacancy == 2 %} style="display: none;" {% else %} style="display: block;" {% endif %}>
+                                <div class="form-group">
+                                  <label for="rental_till" class="rental_till_class">Rented Till <span class="text-danger">*</span></label>
+                                  <input type="text" name="rental_till" class="form-control" id="rental_till" value="{{property_details.rental_till|default:""}}" />
+                                </div>
+                              </div><!-- End .col-md-6 -->
+
                             </div><!-- End .col-md-6 -->
 
-                            <div class="col-md-6 col-sm-6 rental_till_parent" {% if property_details.vacancy == 2 %} style="display: none;" {% else %} style="display: block;" {% endif %}>
-                              <div class="form-group">
-                                <label for="rental_till" class="rental_till_class">Rented Till <span class="text-danger">*</span></label>
-                                <input type="text" name="rental_till" class="form-control" id="rental_till" value="{{property_details.rental_till|default:""}}" />
-                              </div>
-                            </div><!-- End .col-md-6 -->
+                            
 
                             <div class="col-md-6 col-sm-6">
                               <div class="form-group">
@@ -433,7 +447,7 @@
                               </div>
                             </div><!-- End .col-md-6 -->
 
-                            <div class="col-md-6 col-sm-6">
+                            <div class="col-md-12 col-sm-12">
                               <div class="form-group">
                                 <label for="amenities">Amenities <span class="text-danger">*</span></label>
                                 <select name="property_amenities" aria-label="property_amenities" id="property_amenities" class="select form-control new_feature_dropdown" data-placeholder="Select" multiple>
@@ -447,7 +461,7 @@
                               </div>
                             </div><!-- End .col-md-6 -->
 
-                            <div class="col-md-6 col-sm-6">
+                            <div class="col-md-12 col-sm-12">
                               <div class="form-group">
                                 <label for="amenities">Property Tags <span class="text-danger">*</span></label>
                                 <select name="property_tags" aria-label="Property Tags" id="property_tags" class="select form-control new_feature_dropdown" data-placeholder="Select" multiple>
@@ -460,7 +474,7 @@
                               </div>
                             </div><!-- End .col-md-6 -->
 
-                            <div class="col-md-6 col-sm-6">
+                            <div class="col-md-12 col-sm-12">
                               <div class="form-group">
                                 <label for="description">Description <span class="text-danger">*</span></label>
                                 <textarea name="description" class="form-control" id="Description" placeholder="Property Description">{{property_details.description|default:""}}</textarea>

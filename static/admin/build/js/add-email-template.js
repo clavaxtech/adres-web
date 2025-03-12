@@ -3,7 +3,7 @@ $(function() {
 
     // init tinymce to  email_content
     tinymce.init({
-        selector: '.email_content',
+        selector: '.email_content, .notification_text',
         height: 350,
         menubar: 'file edit view insert format tools table help',
         plugins: [

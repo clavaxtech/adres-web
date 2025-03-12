@@ -3,6 +3,21 @@ var currpage = 1;
 var recordPerpage = 10;
 $(document).ready(function(){
     $('.select').chosen();
+
+    $('.convert_to_local_date_time').each(function(){
+        try{
+            var added_on = $(this).attr('data-value');
+            if(added_on.trim() != "" && added_on.trim() != "None"){
+                var local_date = getLocalDateFromUTC(added_on.trim(), 'mm-dd-yyyy','ampm');
+                $(this).html(local_date);
+            }else{
+                $(this).html('-');
+            }
+        }catch(ex){
+            //console.log(ex);
+        }
+    });
+
     bidder_doc_params = {
         url: '/admin/save-bidder-document/',
         field_name: 'bidder_document',
@@ -288,19 +303,13 @@ function bidderListingSearch(current_page, filter_listing){
             $('.overlay').hide();
             if(response.error == 0){
                 $("#bid_listing_pagination_list").empty();
-                /*if(response.total && parseInt(response.total) > 0){
-                    var ttl = response.total.toString();
-                    var blog_ttl_html = ttl+ ' Search results';
-
-                    $(".ttl_blog").html(blog_ttl_html);
-                    $(".ttl_blog").show();
-                }*/
                 if(response.asset_type == 1){
                     $("#land_bidder_list").empty();
                     pre_bidder_listing = 'land-list';
                     $("#land_bidder_list").html(response.bidder_listing_html);
 
-                    var tab_id = $('#land_list').attr('data-tab');
+                    // var tab_id = $('#land_list').attr('data-tab');
+                    var tab_id = "all-list";
                     $('ul.tabs li').removeClass('current');
                     $('.tab-content').removeClass('current');
 
@@ -312,7 +321,8 @@ function bidderListingSearch(current_page, filter_listing){
                     pre_bidder_listing = 'commercial-list';
                     $("#comm_bidder_list").html(response.bidder_listing_html);
 
-                    var tab_id = $('#commercial_list').attr('data-tab');
+                    // var tab_id = $('#commercial_list').attr('data-tab');
+                    var tab_id = "all-list";
                     $('ul.tabs li').removeClass('current');
                     $('.tab-content').removeClass('current');
 
@@ -323,7 +333,8 @@ function bidderListingSearch(current_page, filter_listing){
                     pre_bidder_listing = 'residential-list';
                     $("#res_bidder_list").html(response.bidder_listing_html);
 
-                    var tab_id = $('#residential_list').attr('data-tab');
+                    // var tab_id = $('#residential_list').attr('data-tab');
+                    var tab_id = "all-list";
                     $('ul.tabs li').removeClass('current');
                     $('.tab-content').removeClass('current');
 
@@ -334,7 +345,8 @@ function bidderListingSearch(current_page, filter_listing){
                     $("#all_bidder_list").empty();
                     $("#all_bidder_list").html(response.bidder_listing_html);
 
-                    var tab_id = $('#all_list').attr('data-tab');
+                    // var tab_id = $('#all_list').attr('data-tab');
+                    var tab_id = "all-list";
                     $('ul.tabs li').removeClass('current');
                     $('.tab-content').removeClass('current');
 

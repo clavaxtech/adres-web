@@ -330,6 +330,14 @@
                     width: 40%;
                 }
 
+                .retn {
+                    margin-bottom: 0;
+                    font-weight: $semibold;
+                    color: #e03131;
+                    font-size: $fontLarge;
+                    text-align: right;
+                }
+
                 h4 {
                     font-weight: 400;
                     color: $black;
@@ -649,7 +657,9 @@
                     font-size: $fontLarge;
                     margin-left: 10px;
                     @include border-radius (5px);
-
+                    @include breakpoint(lg) {
+                        font-size: $fontSmall;
+                    }
                     a {
                         border: 1px solid $black;
                         padding: 2px 5px;
@@ -3245,6 +3255,7 @@ ul.tabs {
     &.customscroll {
         max-height: 500px;
         overflow-y: auto;
+        padding-right: 10px;
 
         @include breakpoint(xs) {
             max-height: inherit;
@@ -3308,7 +3319,7 @@ ul.tabs {
                         color: $black;
 
                         .icon {
-                            transform: rotate(-180deg);
+                            transform: inherit;
                         }
                     }
 
@@ -3318,6 +3329,7 @@ ul.tabs {
                         display: inline-block;
                         background-image: url(../images/accordian-arrow-up.svg);
                         background-repeat: no-repeat;
+                        transform: rotate(-180deg);
                     }
                 }
             }
@@ -3400,6 +3412,10 @@ ul.tabs {
                     font-weight: 500;
                     @include border-radius (16px 0 0 16px);
                 }
+                .error {
+                    padding-top: 0;
+                    bottom: -20px;
+                }
 
                 .chosen-container {
                     width: calc(100% - 50px);
@@ -3423,6 +3439,34 @@ ul.tabs {
                 }
             }
 
+            .full-price {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            hr {
+                margin: 20px 0;
+                opacity: 1;
+                height: 4px;
+                background-color: #e9e9e9;
+                width: 100%;
+            }
+            .enable-text {
+                color: #5b767f;
+                line-height: 1.8;
+            }
+
+            
+            
+            .agrement-text {
+                .term_agreement{
+                    position: relative;
+                }
+                p.error {
+                    bottom: -20px;
+                }
+            }
         }
     }
 
@@ -4339,6 +4383,9 @@ ul.tabs {
                                     color: $black;
                                     font-family: "Font Awesome 6 Pro";
                                     font-weight: 900;
+                                    @include breakpoint(lg) {
+                                        font-size: $fontSmall;
+                                    }
                                 }
                             }
                         }
@@ -4516,10 +4563,10 @@ ul.tabs {
             &.chosen-container-single {
                 .chosen-single {
                     padding: 0 30px 0 10px !important;
-                    line-height: 32px;
+                    line-height: 33px;
                     font-size: $font14;
                     color: $black;
-                    @include border-radius (5px);
+                    @include border-radius (8px);
 
                     @include breakpoint(lg) {
                         font-size: $fontSmall;
@@ -4911,7 +4958,96 @@ ul.tabs {
     }
 }
 
+.transactionlisttable {
+    .block {
+        min-width: 1300px;
 
+        @media (max-width: 1366px) {
+            min-width: 1200px;
+        }
+
+        @include breakpoint(xs) {
+            min-width: 1100px;
+        }
+
+        @include breakpoint(xxs) {
+            min-width: 1000px;
+        }
+
+        .item {
+            width: 9%;
+            display: inline-block;
+            box-sizing: border-box;
+
+            &:first-child {
+                width: 3%;
+                padding-right: 0;
+            }
+
+            &:nth-child(2) {
+                width: 12%;
+            }
+
+            &:nth-child(3) {
+                width: 20%;
+            }
+
+            &:nth-child(4) {
+                width: 10%;
+            }
+
+            &:nth-child(5) {
+                width: 10%;
+            }
+            &:nth-child(6) {
+                width: 12%;
+            }
+            &:nth-child(7) {
+                width: 9%;
+            }
+
+            &:nth-child(8) {
+                width: 9%;
+            }
+
+            &:nth-child(9) {
+                width: 10%;
+            }
+
+            &:nth-child(8) {
+                width: 10%;
+            }
+
+            &:last-child {
+                width: 6%;
+            }
+
+            &.fullwidth {
+                width: 100%;
+
+                .custom_error {
+                    position: relative;
+                }
+            }
+        }
+
+        .block-item {
+            min-width: 1200px;
+
+            @media (max-width: 1366px) {
+                min-width: 1100px;
+            }
+
+            @include breakpoint(xs) {
+                min-width: 1000px;
+            }
+
+            @include breakpoint(xxs) {
+                min-width: 900px;
+            }
+        }
+    }
+}
 
 .auctionbidderlisttable {
     .block {
@@ -5836,7 +5972,7 @@ ul.tabs {
         }
     }
 }
-
+#property_favourite_model,
 #bidderlistModal,
 #bidderrecordModal,
 #insiderbidderrecordModal,
@@ -5858,6 +5994,7 @@ ul.tabs {
 
             img {
                 max-width: 100%;
+                width: 100%;
                 height: 100%;
                 @include border-radius(4px);
             }
@@ -5925,6 +6062,14 @@ ul.tabs {
                 font-size: $font14;
                 font-weight: 300;
 
+                @include breakpoint(lg) {
+                    min-width: 125px;
+                }
+
+                @include breakpoint(xs) {
+                    min-width: inherit;
+                }
+
                 +.block {
                     padding-left: 10px;
                     padding-bottom: 0px;
@@ -5934,22 +6079,14 @@ ul.tabs {
                     }
                 }
 
-                &:nth-child(2) {
-                    width: 200px;
+                // &:nth-child(2) {
+                //     width: 200px;
 
-                    @include breakpoint(xxs) {
-                        width: auto;
-                    }
-                }
-
-                @include breakpoint(lg) {
-                    min-width: 125px;
-                }
-
-                @include breakpoint(xs) {
-                    min-width: inherit;
-                }
-
+                //     @include breakpoint(xxs) {
+                //         width: auto;
+                //     }
+                // }
+                
                 &.last {
                     width: auto;
                 }
@@ -5976,6 +6113,7 @@ ul.tabs {
                 .search-field {
                     display: flex;
                     align-items: center;
+                    justify-content: space-between;
                     position: relative;
 
                     .search-icon {
@@ -5992,15 +6130,15 @@ ul.tabs {
                     }
 
                     .form-control {
-                        font-weight: 300;
+                        font-weight: 400;
                         font-size: $fontMedium;
                         width: 80%;
-                        line-height: 34px;
-                        height: 34px;
+                        line-height: 35px;
+                        height: 35px;
                         padding: 0 20px 0 50px;
-                        border: none;
                         vertical-align: top;
                         background: $white;
+                        margin-right: 10px;
 
                         @include breakpoint(laptop) {
                             font-size: $fontMiddle;
@@ -6017,7 +6155,6 @@ ul.tabs {
 
                         &:focus {
                             outline: none;
-                            border: none;
                         }
                     }
                 }
@@ -8208,7 +8345,11 @@ ul.tabs {
 
                 .approval-status {
                     display: flex;
-                    justify-content: space-between;
+                    // justify-content: space-between;
+
+                    strong {
+                        padding-right: 10px;
+                    }
 
                     .change_approval,
                     .approval_status {
@@ -8448,7 +8589,9 @@ ul.tabs {
                                 min-height: 1em;
                                 padding: 10px 10px 10px 35px;
                                 vertical-align: top;
-
+                                @include breakpoint(lg) {
+                                    font-size: $fontSmall;
+                                }
                                 &:hover {
                                     background: $lightpink;
                                     color: $black;
@@ -8518,6 +8661,16 @@ ul.tabs {
                             @include border-radius (0 5px 5px 0);
                         }
 
+                        &.retn {
+                            background-color: #f2f2f2;
+                            max-width: 200px;
+                            word-break: break-all;
+
+                            a {
+                                font-weight: $semibold
+                            }
+                        }
+
                         &.put_it_auction {
                             background-color: transparent;
                         }
@@ -8546,6 +8699,9 @@ ul.tabs {
                             margin-bottom: 0;
                             font-size: $font14;
                             font-weight: $medium;
+                            @include breakpoint(lg) {
+                                font-size: $fontSmall;
+                            }
                         }
 
                         h4 {
@@ -10282,7 +10438,9 @@ ul.tabs {
                 margin-top: 20px;
                 position: relative;
                 font-size: $font14;
-
+                @include breakpoint(lg) {
+                    font-size: $fontSmall;
+                }
                 .actve {
                     position: relative;
                     padding-left: 10px;
@@ -10396,8 +10554,6 @@ ul.tabs {
         padding: 0 10px 10px;
     }
 }
-
-
 
 .parcel-portfolio-list {
     display: flex;
@@ -10774,3 +10930,6 @@ ul.tabs {
     }
 
 }
+
+
+

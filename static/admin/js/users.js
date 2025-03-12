@@ -458,29 +458,29 @@ $(document).ready(function(){
                 },
                 user_phone_no:{
                     required:true,
-                    remote:{
-                        type: 'post',
-                        url: '/admin/check-user-exists/',
-                        dataType: 'json',
-                        async:false,
-                        data: {
-                            check_type: function() {
-                                return "main";
-                            },
-                            user_id: function(){
-                                return $('#update_user_frm #update_user_id').val();
-                            }
-                        },
-                        dataFilter: function(data) {
-                            var response = JSON.parse(data);
-                            if(response.error == 0 && typeof(response.data.exists) != 'undefined'&& response.data.exists === true){
-                                return false;
-                            }else{
-                                return true;
-                            }
+                    // remote:{
+                    //     type: 'post',
+                    //     url: '/admin/check-user-exists/',
+                    //     dataType: 'json',
+                    //     async:false,
+                    //     data: {
+                    //         check_type: function() {
+                    //             return "main";
+                    //         },
+                    //         user_id: function(){
+                    //             return $('#update_user_frm #update_user_id').val();
+                    //         }
+                    //     },
+                    //     dataFilter: function(data) {
+                    //         var response = JSON.parse(data);
+                    //         if(response.error == 0 && typeof(response.data.exists) != 'undefined'&& response.data.exists === true){
+                    //             return false;
+                    //         }else{
+                    //             return true;
+                    //         }
 
-                        }
-                    },
+                    //     }
+                    // },
                     phoneminlength: 10,
                     phonemaxlength: 10,
                 },

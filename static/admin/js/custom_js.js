@@ -387,6 +387,7 @@ $(document).ready(function(){
             var image_id = $(this).attr('data-image-id');
             var image_name = $(this).attr('data-image-name');
             var delete_for = $(this).attr('data-delete-for');
+            var ref = $(this).attr('data-ref');
             if($(this).attr('data-count')){
                 data_count = $(this).attr('data-count');
             }
@@ -405,6 +406,7 @@ $(document).ready(function(){
             $('#confirmImageDeleteModal #popup_user_id').val(user_id);
             $('#confirmImageDeleteModal #loggedin_user_id').val(loggedin_user_id);
             $('#confirmImageDeleteModal #delete_for').val(delete_for);
+            $('#confirmImageDeleteModal #ref').val(ref);
             if($('#personalModal').hasClass('in') === true){
                 $('#confirmImageDeleteModal #request_from').val('personalModal');
             }else if(window.location.href.indexOf('business-info') >= 0){
@@ -437,6 +439,7 @@ $(document).ready(function(){
             var popup_user_id = $('#confirmImageDeleteModal #popup_user_id').val();
             var loggedin_user_id = $('#confirmImageDeleteModal #loggedin_user_id').val();
             var delete_for = $('#confirmImageDeleteModal #delete_for').val();
+            var ref = $('#confirmImageDeleteModal #ref').val();
             var request_from = $('#confirmImageDeleteModal #request_from').val();
             del_params = {
                 article_id: article_id,
@@ -448,7 +451,8 @@ $(document).ready(function(){
                 popup_user_id: popup_user_id,
                 loggedin_user_id: loggedin_user_id,
                 request_from: request_from,
-                delete_for: delete_for
+                delete_for: delete_for,
+                ref: ref,
             }
             // console.log(del_params);
             delete_image(del_params);

@@ -71,6 +71,9 @@
         rejectUnauthorized: false,
         requestCert: false,
     });
+    // socket.on("connect", () => {
+    //     console.log("Connected to Node.js socket server");
+    // });
     var user_id = '{{ request.session.user_id }}';
     var is_broker = '{{request.session.is_broker}}';
 

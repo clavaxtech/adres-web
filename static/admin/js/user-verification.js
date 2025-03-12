@@ -55,6 +55,10 @@ function save_data(element){
                 window.setTimeout(function () {
                     window.location.reload();
                 }, 2000);
+                custom_response = {
+                    'user_id': response.data.user_id,
+                };
+                customCallBackFunc(update_notification_socket, [custom_response]);
             }else{
                 $.growl.error({title: "Verification ", message: response.msg, size: 'large'});
                 window.setTimeout(function () {
@@ -63,4 +67,8 @@ function save_data(element){
             }
         }
     });
+}
+
+function update_notification_socket(response){
+    socket.emit("getNotifications", {"user_id": response.user_id});
 }

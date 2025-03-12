@@ -11,7 +11,7 @@
                     {% define_var 0 as second_row %}
                   {% endif %}
                 {% for project in project_list %}
-                <div class="new-listing_blocks {% if first_row > 0 and second_row > 0 %}{% if forloop.counter == first_row or forloop.counter == second_row %}last-row{% endif %}{% endif %}" data-auction-type="{{ project.sale_by_type }}" data-property="{{ project.id }}" data-index="{{ forloop.counter0|add:sno }}" rel_id="{{ project.id }}" row_id="row_id_{{ project.id }}">
+                <div class="new-listing_blocks {% if first_row > 0 and second_row > 0 %}{% if forloop.counter == first_row or forloop.counter == second_row %}last-row{% endif %}{% endif %}" data-auction-type="{{ project.sale_by_type }}" data-property="{{ project.id }}" data-index="{{ forloop.counter0|add:sno }}" rel_id="{{ project.id }}" row_id="row_id_{{ project.id }}" id="row_id_{{ project.id }}">
                   <ul class="bottom">
                     <li>
                       Developer Name :  {{ project.developer_name }}
@@ -42,20 +42,28 @@
                       <figcaption>
                         <div class="block-status">
                           <div class="item">
-                            <div class="{% if request.session.is_broker %}display_status{% endif %}" id="display_status_{{ project.id }}">
-                              <span class="badge {% if project.status_id == 1 %} badge-success{% elif project.status_id == 2 %} badge-danger{% else %}badge-danger{% endif %}" style="cursor:pointer;">
-                                {{ project.status }}
-                              </span>
-                            </div>
-                            <div class="{% if request.session.is_broker %}change_status{% endif %}" id="change_status_{{ project.id }}" style="display:none;">
-                              <select class="select form-control listing_change_status" aria-label="Status" name="listing_change_status" id="listing_change_status_{{ project.id }}" onchange="change_project_status({{ project.id }},this)">
-                                {% if status_list %}
-                                {% for item in status_list %}
-                                  <option value="{{ item.id }}" {% if item.id == project.status_id %}selected{% endif %}>{{ item.status_name }}</option>
-                                {% endfor %}
-                                {% endif %}
-                              </select>
-                            </div>
+                            {% if request.session.is_broker or request.session.user_type == 4 %}
+                              <div class="{% if request.session.is_broker or request.session.user_type == 4%}display_status{% endif %}" id="display_status_{{ project.id }}">
+                                <span class="badge {% if project.status_id == 1 %} badge-success{% elif project.status_id == 2 %} badge-danger{% else %}badge-danger{% endif %}" style="cursor:pointer;">
+                                  {{ project.status }}
+                                </span>
+                              </div>
+                              <div class="{% if request.session.is_broker or request.session.user_type == 4%}change_status{% endif %}" id="change_status_{{ project.id }}" style="display:none;">
+                                <select class="select form-control listing_change_status" aria-label="Status" name="listing_change_status" id="listing_change_status_{{ project.id }}" onchange="change_project_status({{ project.id }},this)">
+                                  {% if status_list %}
+                                  {% for item in status_list %}
+                                    <option value="{{ item.id }}" {% if item.id == project.status_id %}selected{% endif %}>{{ item.status_name }}</option>
+                                  {% endfor %}
+                                  {% endif %}
+                                </select>
+                              </div>
+                            {% else %}  
+                              <div class="" id="display_status_{{ project.id }}">
+                                <span class="badge {% if project.status_id == 1 %} badge-success{% elif project.status_id == 2 %} badge-danger{% else %}badge-danger{% endif %}" style="cursor:pointer;">
+                                  {{ project.status }}
+                                </span>
+                              </div>
+                            {% endif %}
                           </div>
                           <div class="item">
                             <span class="badge badge-info">
@@ -74,15 +82,15 @@
                           <i class="fas fa-map-marker-alt" aria-hidden="true" role="presentation"></i> {{ project.project_location }}
                         </p>
                         <div class="approval-status">
-                          {% if request.session.is_broker %}
+                          {% if request.session.is_broker or request.session.user_type == 4 %}
                             <div class="bdr">
                               <strong><label for="">Approval Status</label></strong>
-                              <div class="{% if request.session.is_broker %}approval_status{% endif %}" id="approval_status_{{ project.id }}">
+                              <div class="{% if request.session.is_broker or request.session.user_type == 4 %}approval_status{% endif %}" id="approval_status_{{ project.id }}">
                                 <span class="badge {% if project.is_approved %} badge-success{% else %}badge-warning{% endif %}" style="cursor:pointer;">
                                   {{ project.approval }}
                                 </span>
                               </div>
-                              <div class="{% if request.session.is_broker %}change_approval{% endif %}" id="change_approval_{{ project.id }}" style="display:none;">
+                              <div class="{% if request.session.is_broker or request.session.user_type == 4 %}change_approval{% endif %}" id="change_approval_{{ project.id }}" style="display:none;">
                                 <select class="select form-control listing_change_approval" name="listing_change_approval" id="listing_change_approval_{{ property.id }}" onchange="change_apporval_status({{ property.id }}, this)">
                                     <option value="1" {% if project.is_approved == True %}selected{% endif %}>Approved</option>
                                     <option value="0" {% if project.is_approved == False %}selected{% endif %}>Not Approved</option>
@@ -90,14 +98,14 @@
                               </div>
                             </div>
                           {% else %} 
-                          <div class="bdr">
-                            <strong><label for="">Approval Status</label></strong>
-                            <div class="{% if request.session.is_broker %}approval_status{% endif %}" id="approval_status_{{ project.id }}">
-                              <span class="badge {% if project.is_approved %} badge-success{% else %}badge-warning{% endif %}" style="cursor:pointer;">
-                                {{ project.approval }}
-                              </span>
-                            </div>
-                          </div> 
+                            <div class="bdr">
+                              <strong><label for="">Approval Status</label></strong>
+                              <div class="{% if request.session.is_broker %}approval_status{% endif %}" id="approval_status_{{ project.id }}">
+                                <span class="badge {% if project.is_approved %} badge-success{% else %}badge-warning{% endif %}" style="cursor:pointer;">
+                                  {{ project.approval }}
+                                </span>
+                              </div>
+                            </div> 
                           {% endif %}
                         </div>
                       </figcaption>
@@ -110,6 +118,9 @@
                             <li>
                               <a href="/admin/add-project-info/?project_id={{ project.id }}"><i class="far fa-edit" aria-hidden="true" role="presentation"></i> Edit Project</a>
                             </li>
+                            <li>
+                              <a href="javascript:void(0)" onclick="project_delete_confirmation({{ project.id }});"><i class="fas fa-trash" aria-hidden="true" role="presentation"></i> Delete Project</a>
+                            </li>
                           </ul>
                         </span>
                       </div>
@@ -117,8 +128,8 @@
                         <li>
                           <div class="icon"><img src="{% static 'admin/images/views-icon.svg' %}" alt="real estate sales"></div>
                           <h4 class="view-btn">
-<!--                            {{ property.no_view }}-->
-                            0
+                            {{ project.no_of_property|default:0}}
+                            
                           </h4>
                           <h6>
                             Properties

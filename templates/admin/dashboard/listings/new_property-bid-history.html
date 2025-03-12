@@ -58,7 +58,7 @@
         {{bids.ip_address|default:'-'}}
         </td>
         {% endcomment %}
-        <td class="convert_to_local_date_time_milis" data-value="{{ bids.bid_time|default:'' }}">
+        <td class="convert_to_local_date_time" data-value="{{ bids.bid_time|default:'' }}">
         {{bids.bid_time}}
         </td>
         {% comment %}
@@ -69,5 +69,5 @@
 {% endfor %}
 {% endif %}
 {% block js_content %}
-<script type="text/javascript" src="{% static 'admin/js/custom_js.js' %}?v=6.3"></script>
+<script type="text/javascript" src="{% static 'admin/js/listing.js' %}?v=1.1"></script>
 {% endblock %}

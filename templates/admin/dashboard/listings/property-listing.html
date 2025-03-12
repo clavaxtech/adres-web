@@ -49,23 +49,6 @@
                   {% endfor %}
                 </select>
               </div>
-
-              {% comment %} <div class="block" >
-                <select class="select form-control" aria-label="All Agents" tabindex="7" name="filter_agent" id="filter_agent" onchange="propertyListingSearch(1);">
-                  <option value="">All Agents</option>
-                  {% for agent in agent_list %}
-                  <option value="{{ agent.id }}">{{ agent.first_name }}&nbsp;{{agent.last_name}}</option>
-                  {% endfor %}
-                </select>
-              </div> {% endcomment %}
-              {% comment %} <div class="block auction-typee">
-                <select class="select form-control" aria-label="All Listing" tabindex="8" name="filter_auction_type" id="filter_auction_type" onchange="propertyListingSearch(1);">
-                  <option value="">All Listing</option>
-                  {% for item in auction_type_list %}
-                    <option value="{{ item.id }}" {% if auction_id == item.id %}selected{% endif %}>{{ item.auction_type }}</option>
-                  {% endfor %}
-                </select>
-              </div> {% endcomment %}
               <div class="block">
                 <select class="select" name="filter_property_type" id="filter_property_type" onchange="propertyListingSearch(1);">
                   <option value="">All Property Type</option>
@@ -74,14 +57,6 @@
                   {% endfor %}
                 </select>
               </div>
-              {% comment %} <div class="block">
-                <select class="select form-control" aria-label="All Asset Type" tabindex="9" name="filter_asset_type" id="filter_asset_type" onchange="filter_property_asset_type(this, 1);">
-                  <option value="">All Asset Type</option>
-                  {% for asset in asset_listing %}
-                  <option value="{{ asset.id }}" {% if asset_type_id == asset.id %}selected{% endif %}>{{ asset.name }}</option>
-                  {% endfor %}
-                </select>
-              </div> {% endcomment %}
               <div class="block">
                 <select class="select form-control" aria-label="All Property Approval Status" tabindex="9" name="filter_property_approval" id="filter_property_approval" onchange="propertyListingSearch(1);">
                   <option value="">All Property Approval Status</option>
@@ -142,23 +117,6 @@
                       {% endif %}
                      </li>
                     {% if property.sale_by_type == 4 %}
-                    
-                    {% comment %}
-                   
-                    <li>
-                      {% if property.open_house_start %}
-                      <i class="fa-solid fa-calendar-days" aria-hidden="true" role="presentation"></i> Open House Start Date |
-                      <span class="convert_to_local_date_time_cst" data-value="{{ property.open_house_start|default:'' }}"></span>
-                      {% endif %}
-                    </li>
-                    <li>
-                      {% if property.open_house_end %}&nbsp;
-                      <i class="fa-solid fa-calendar-days" aria-hidden="true" role="presentation"></i> Open House End Date |
-                      <span class="convert_to_local_date_time_cst" data-value="{{ property.open_house_end|default:'' }}"></span>
-                      {% endif %}
-                    </li>
-                   {% endcomment %}
-                    
                     <li>
                       <i class="fa-solid fa-calendar-days" aria-hidden="true" role="presentation"></i> Listing Created |
                       <span class="convert_to_local_date_time_cst" data-value="{{ property.created_date|default:'' }}"></span>
@@ -208,13 +166,13 @@
                         <div class="block-status">
                           <div class="item">
                             <span class="badge badge-info">
-                              {{ property.property_type|default:'' }}
+                              {{ property.property_type_name|default:'' }}
                             </span>
                           </div>
                           <div class="item">
                             <!-- <strong><label for="">Property Status</label></strong><br> -->
                             <div class="{% if is_broker == 1 %}display_status{% endif %}" id="display_status_{{ property.id }}">
-                              <span class="badge {% if property.status_id == 2 %} badge-danger{% elif property.status_id == 4 %} badge-danger{% else %}badge-danger{% endif %}" style="cursor:pointer;">
+                              <span class="badge {% if property.status_id == 2 %} badge-danger{% elif property.status_id == 4 %} badge-danger{% else %}badge-success{% endif %}" style="cursor:pointer;">
                                 {{ property.status }}
                               </span>
                             </div>
@@ -230,87 +188,54 @@
                           </div>
                         </div>
                         <h6>
-                          <a href="/asset-details/?property_id={{ property.id }}" target="_blank">
-                            {{ property.auction_type|default:'' }}
+                          <a href="/admin/add-listing/?property_id={{ property.id }}">
                             {% if property.property_name %}<span>{{property.property_name}}</span>{% endif %}
-                            <span class="blue-text" title="{{ property.name }}">{{ property.name }}</span>
                           </a>
                         </h6>
                         <p class="location">
-                          <i class="fas fa-map-marker-alt" aria-hidden="true" role="presentation"></i> {{ property.property_location }}
+                          <i class="fas fa-map-marker-alt" aria-hidden="true" role="presentation"></i> {{ property.state_name }} - {{ property.community }} 
                         </p>
                         <div class="approval-status">
                           {% if is_broker == 1 %}
-                            <div class="bdr">
-                              <strong><label for="">Property Approval Status</label></strong>
-                              <div class="{% if is_broker == 1 %}approval_status{% endif %}" id="approval_status_{{ property.id }}">
-                                <span class="badge {% if property.seller_status == 28 %} badge-success{% else %}badge-warning{% endif %}" style="cursor:pointer;">
-                                  {{ property.approval }}
-                                </span>
-                              </div>
-                              <div class="{% if is_broker == 1 %}change_approval{% endif %}" id="change_approval_{{ property.id }}" style="display:none;">
-                                <!-- <select class="select form-control listing_change_approval" aria-label="Approval" name="listing_change_approval" id="listing_change_approval_{{ property.id }}" onchange="change_apporval_status({{ property.id }}, this)">
-                                    <option value="1" {% if property.is_approved == True %}selected{% endif %}>Approved</option>
-                                    <option value="0" {% if property.is_approved == False %}selected{% endif %}>Not Approved</option>
-                                </select> -->
-                                <select class="select form-control listing_change_approval" aria-label="Approval" name="listing_change_approval" id="listing_change_approval_{{ property.id }}" onchange="check_approval_status({{ property.id }}, this)">
-                                    <option value="24" {% if property.seller_status == 24 %}selected{% endif %}>Under Review</option>
-                                    <option value="28" {% if property.seller_status == 28 %}selected{% endif %}>Ready for Publish</option>
-                                    <option value="29" {% if property.seller_status == 29 %}selected{% endif %}>Returned for Update</option>
-                                </select>
-                              </div>
-                            </div>
-                          {% else %} 
-                          <div class="bdr">
+                            
                             <strong><label for="">Property Approval Status</label></strong>
                             <div class="{% if is_broker == 1 %}approval_status{% endif %}" id="approval_status_{{ property.id }}">
                               <span class="badge {% if property.seller_status == 28 %} badge-success{% else %}badge-warning{% endif %}" style="cursor:pointer;">
                                 {{ property.approval }}
                               </span>
                             </div>
-                          </div> 
+                            <div class="{% if is_broker == 1 %}change_approval{% endif %}" id="change_approval_{{ property.id }}" style="display:none;">
+                              
+                              <select class="select form-control listing_change_approval" aria-label="Approval" name="listing_change_approval" id="listing_change_approval_{{ property.id }}" onchange="check_approval_status({{ property.id }}, this)">
+                                  <option value="24" {% if property.seller_status == 24 %}selected{% endif %}>Under Review</option>
+                                  <option value="28" {% if property.seller_status == 28 %}selected{% endif %}>Ready for Publish</option>
+                                  <option value="29" {% if property.seller_status == 29 %}selected{% endif %}>Returned for Update</option>
+                              </select>
+                            </div>
+                            
+                          {% else %} 
+                          
+                            <strong><label for="">Property Approval Status</label></strong>
+                            <div class="{% if is_broker == 1 %}approval_status{% endif %}" id="approval_status_{{ property.id }}">
+                              <span class="badge {% if property.seller_status == 28 %} badge-success{% else %}badge-warning{% endif %}" style="cursor:pointer;">
+                                {{ property.approval }}
+                              </span>
+                            </div>
+                          
                           {% endif %}
 
                           </div>
                       </figcaption>
                     </li>
-                    <!-- <li>
-                      <div class="approval-status">
-                        {% if is_broker != 1 or property.domain != user_domain %}
-                          <strong><label for="">Approval Status</label></strong><br>
-                          <div class="{% if is_broker == 1 %}approval_status{% endif %}" id="approval_status_{{ property.id }}">
-                            <span class="badge {% if property.is_approved %} badge-success{% else %}badge-warning{% endif %}" style="cursor:pointer;">
-                              {{ property.approval }}
-                            </span>
-                          </div>
-                          <div class="{% if is_broker == 1 %}change_approval{% endif %}" id="change_approval_{{ property.id }}" style="display:none;">
-                            <select class="select form-control listing_change_approval" name="listing_change_approval" id="listing_change_approval_{{ property.id }}" onchange="change_apporval_status({{ property.id }}, this)">
-                                <option value="1" {% if property.is_approved == True %}selected{% endif %}>Approved</option>
-                                <option value="0" {% if property.is_approved == False %}selected{% endif %}>Not Approved</option>
-                            </select>
-                          </div>
-                          {% endif %}
-                      </div>
-                      <div class="block-agent">
-                        <div class="brokr-nme">
-                          <strong><label for="">Listing Agent</label></strong><br>
-                          <span>{{ property.broker_name }}</span> - 
-                          <small class="blue-text"><a href="{{ property.domain_url }}" target="_blank">{{ property.domain_url }}</a></small>
-                        </div>
-                        {% if property.domain != user_domain %}
-                        <div class="connect">
-                          <a href="javascript:void(0)" class="badge badge-success" data-toggle="modal" data-target="#connectchatModal" onclick="agent_chat_detail({{property.agent_id}});"><i class="fa-regular fa-comment"></i> Connect</a>
-                        </div>
-                        {% endif %}
-                      </div>
-                    </li> -->
+                    
                     <li>
                       <div class="action-icon" {% if forloop.first %} id="first_row_listing" {% endif %}>
                         <span class="view-list">
                           <i class="fa-solid fa-ellipsis" aria-hidden="true" role="presentation"></i>
                           <ul>
                             <li>
-                              <a href="/asset-details/?property_id={{ property.id }}" target="_blank"><i class="far fa-eye" aria-hidden="true" role="presentation"></i> View Listing</a>
+                              <!-- <a href="/asset-details/?property_id={{ property.id }}" target="_blank"><i class="far fa-eye" aria-hidden="true" role="presentation"></i> View Listing</a> -->
+                              <!-- <a href="{{site_detail.domain_react_url}}property/detail/{{ property.id }}/{{property.url_decorator}}" target="_blank"><i class="far fa-eye" aria-hidden="true" role="presentation"></i> View Listing</a> -->
                             </li>
                             <li>
                               {% if request.session.is_broker %}
@@ -339,80 +264,41 @@
                           <li class="put_it_auction">
                             <a class="btn btn-secondary btn-sm" href="/admin/auction-detail/?property_id={{property.id}}"   style="cursor:pointer;">Put it on auction</a>
                           </li>
+                        {% elif property.seller_status == 29 %}
+                          <li class="retn">
+                            <a href="#" data-toggle="tooltip" data-placement="top" title="{{property.seller_property_return_reason|default:''}}">Return Reason: {{property.seller_property_return_reason|default:""}}</a>
+                          </li>
                         {% endif %}
-                        {% if property.sale_by_type != 6 %}
+
                         <li>
                           <div class="icon"><img src="{% static 'admin/images/registered-bidders-icon.svg' %}" alt="real estate sales"></div>
-                            {% if property.sale_by_type == 7 %}
-                              <a role="link" tabindex="12" href="{% if property.bidder_offer_count > 0 %}/admin/user-best-offer-list/?id={{ property.id }}{% else %}javascript:void(0);{% endif %}"  style="{% if property.bidder_offer_count > 0 %}cursor:pointer;{% else %}cursor: initial;{% endif %}">
-                            {% elif property.sale_by_type == 4 %}
-                              <a role="link" tabindex="13" href="{% if property.bidder_offer_count > 0 %}/admin/user-traditional-offer-list/?id={{ property.id }}{% else %}javascript:void(0);{% endif %}"  style="{% if property.bidder_offer_count > 0 %}cursor:pointer;{% else %}cursor: initial;{% endif %}">
-                            {% else %}
-                              <a role="link" tabindex="14" href="javascript:void(0)"  onclick="propertyBidderListingSearch({{ property.id }} ,1, '')" style="{% if property.bidder_offer_count > 0 %}cursor:pointer;{% else %}cursor: initial;{% endif %}">
-                            {% endif %}
-                              <h4 class=" {% if property.sale_by_type == 7 or property.sale_by_type == 4 %}badge-warning{% else %}badge-info{% endif %} bidder-badge" ><span class="total-bidder">{{ property.bidder_offer_count|default:'0' }}</span></h4>
+                            <a role="link" tabindex="14" href="javascript:void(0)"  onclick="propertyBidderListingSearch({{ property.id }} ,1, '')" style="{% if property.total_transaction > 0 %}cursor:pointer;{% else %}cursor: initial;{% endif %}">
+                              <h4 class="badge-info bidder-badge" ><span class="total-bidder">{{ property.total_transaction|default:'0' }}</span></h4>
                             </a>
                             <h6>
-                              {% if property.sale_by_type == 4 or property.sale_by_type == 7 %}Review Offers{% else %}Registered Bidders{% endif %}
+                              Transaction
                             </h6>
                         </li>
-                        {% endif %}
-                        {% comment %}
+                        
                         <li>
-                          {% if property.sale_by_type == 4 or property.sale_by_type == 6 or property.sale_by_type == 7 %}
-                          {% else %}
                           <div class="icon"><img src="{% static 'admin/images/bid-placed-icon.svg' %}" alt="real estate sales"></div>
-                            {% if property.sale_by_type == 4 %}
-                              <h4 class="bids-limit">0</h4>
-                            {% elif property.sale_by_type == 2 %}
-                              <h4 class="bids-limit" tabindex="15" role="link" onclick="propertyInsiderBidHistorySearch({{ property.id }} ,1, 'dutch')">{{ property.bids }}</h4>
-                            {% else %}
-                              <h4 class="bids-limit" tabindex="16" role="link" onclick="propertyBidHistorySearch({{ property.id }} ,1)">{{ property.bids }}</h4>
-                            {% endif %}
-                          
-                          {% endif %}
-                            {% if property.sale_by_type == 4 or property.sale_by_type == 6 or property.sale_by_type == 7 %}
-                              {% else %}
-                              <h6>
-                                Bids Placed
-                              </h6>
-                            {% endif %}
-                        </li>
-                        {% endcomment %}
-                        {% if property.sale_by_type != 4 and property.sale_by_type != 6 and property.sale_by_type != 7 %}
-                          <li>
-                            <div class="icon"><img src="{% static 'admin/images/bid-placed-icon.svg' %}" alt="real estate sales"></div>
-                              {% if property.sale_by_type == 4 %}
-                                <h4 class="circle bids-limit">0</h4>
-                              {% elif property.sale_by_type == 2 %}
-                                <h4 class="circle bids-limit" tabindex="17" role="link" onclick="propertyInsiderBidHistorySearch({{ property.id }} ,1, 'dutch')">{{ property.bids }}</h4>
-                              {% else %}
-                                <h4 class="circle bids-limit" tabindex="18" role="link" onclick="propertyBidHistorySearch({{ property.id }} ,1)">{{ property.bids }}</h4>
-                              {% endif %}
-                            
+                            <h4 class="circle bids-limit" tabindex="18" role="link" onclick="propertyBidHistorySearch({{ property.id }} ,1)">{{ property.bids }}</h4>
                             <h6>
                               Bids Placed
                             </h6>
-                          </li>
-                        {% endif %}
-                        {% comment %}
-                        {% if property.sale_by_type == 1 or property.sale_by_type == 2 or property.sale_by_type == 4 %}
-                        {% endcomment %}
+                        </li>
+                        
                         <li>
                           <div class="icon"><img src="{% static 'admin/images/watches-icon.svg' %}" alt="real estate sales"></div>
-                          <h4 class="bids-limit" role="link" tabindex="19" onclick="totalPropertyWatcherSearch({{ property.id }} ,1)">
-                            {{ property.no_watcher }}
+                          <h4 class="bids-limit" role="link" tabindex="19" onclick="totalPropertyFavouriteSearch({{ property.id }} ,1)">
+                            {{ property.total_favourite }}
                           </h4>
                           <h6>
-                            Watchers
+                            Favourite
                           </h6>
                         </li>
-                        {% comment %}
-                        {% endif %}
-                        {% endcomment %}
+                        
                         <li>
-                          <!-- <div class="circle">{{ property.no_view }}</div>-->
-                          <!-- <div class="circle bids-limit" onclick="totalPropertyViewSearch({{ property.id }} ,1)">{{ property.no_view }}</div>-->
                           <div class="icon"><img src="{% static 'admin/images/views-icon.svg' %}" alt="real estate sales"></div>
                           <h4 class="view-btn">
                             {{ property.no_view }}
@@ -465,7 +351,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="center mb0">
-            Bidders List
+            Transaction List
           </h5>
           <div class="bidderrecord-top">
             <figure>
@@ -473,7 +359,7 @@
             </figure>
             
             <figcaption>
-              <a href="" id="propertyLink" target="_blank"></a>
+              <a href="" id="propertyLink" target="_blank">
                 <h6 id="popup_property_address">
                   M&T Bank Building
                   <span><i class="fas fa-map-marker-alt" aria-hidden="true" role="presentation"></i> Altoona, Pennsylvania</span>
@@ -486,10 +372,10 @@
                 <input type="hidden" name="popup_property_id" id="popup_property_id" value=""/>
                 <form action="" class="search-field">
                   <div class="search-icon"><i class="fas fa-search" aria-hidden="true" role="presentation"></i></div>
-                  <input type="text" class="form-control sugesstion_input" aria-label="Search" name="popup_bidder_popup_search" id="popup_bidder_popup_search" onkeyup="bidder_popup_search_suggesstion(this, event)"><button type="button" role="button" onclick="propertyBidderListingSearch($('#popup_property_id').val() ,1, '')" class="btn btn-primary btn-sm pl20">Search</button>
+                  <input type="text" class="form-control sugesstion_input" aria-label="Search" name="popup_bidder_popup_search" id="popup_bidder_popup_search" onkeyup="bidder_popup_search_suggesstion(this, event)"><button type="button" role="button" onclick="propertyBidderListingSearch($('#popup_property_id').val() ,1, '')" class="btn btn-primary btn-xs">Search</button>
                 </form> 
               </div>
-              <div class="block">
+              <!-- <div class="block">
                 <select class="select form-control" aria-label="Select Status" name="popup_filter_bidder_status" id="popup_filter_bidder_status" onchange="propertyBidderListingSearch($('#popup_property_id').val() ,1, '')">
                   <option value="">Select</option>
                     <option value="1">Pending Approval</option>
@@ -498,9 +384,9 @@
                     <option value="4">Reviewed</option>
                     <option value="5">Not Reviewed</option>
                 </select>
-              </div>
+              </div> -->
               <div class="block" id="bidder_list_export_btn_section">
-                <button role="button" type="button" aria-label="Export" class="btn btn-primary btn-sm pl20" onClick="window.location.href='/static/admin/export/Bidders_List.xls'"><i class="fas fa-file-export" aria-hidden="true" role="presentation"></i> Export</button>
+                <button role="button" type="button" aria-label="Export" class="btn btn-primary btn-xs" onClick="window.location.href='/static/admin/export/Bidders_List.xls'"><i class="fas fa-file-export" aria-hidden="true" role="presentation"></i> Export</button>
               </div>
             </div>
           </div>
@@ -510,7 +396,7 @@
         </div>
         <div class="modal-body">
           <div class="table-responsive">
-            <div class="default-table bidderlisttable">
+            <div class="default-table transactionlisttable mb0">
               <div class="block">
                 <div class="item">
                   ID
@@ -519,43 +405,28 @@
                   Buyer Name
                 </div>
                 <div class="item">
-                  Buyer Type
-                </div>
-
-                {% comment %} <div class="item">
-                  Company
-                </div> {% endcomment %}
-                <div class="item">
                   Email
                 </div>
                 <div class="item">
                   Phone
                 </div>
                 <div class="item">
-                  Review Status
+                  Amount
                 </div>
                 <div class="item">
                   Approval Status
                 </div>
-<!--                <div class="item">-->
-<!--                  Status-->
-<!--                </div>-->
                 <div class="item">
                   IP Address
                 </div>
                 <div class="item">
-                  Registration Date
-                </div>
-                <div class="item">
-                  Last Updated
+                  Txn Date
                 </div>
                 <div class="item">
                   Action
                 </div>
               </div>
               <div class="block sscroll" id="popup_bidder_list">
-
-
               </div>
             </div>
             <div class="pagination" id="bid_listing_pagination">
@@ -576,7 +447,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="center mb0">
-            Bidding Records test
+            Bidding Records
           </h5>
           <div class="bidderrecord-top">
             <figure>
@@ -587,27 +458,27 @@
                 Loading...
               </h6>
               <ul>
-                <li>
+                <!-- <li>
                   <span>Auction Type: </span><label id="bidHistoryAuctiontype" style="margin-bottom: 0; font-weight: normal;">-</label>
                 </li>
                 <li>
                   <span>Bid Increment: </span><label id="bidHistoryBidIncrement" style="margin-bottom: 0; font-weight: normal;">-</label>
-                </li>
+                </li> -->
               </ul>
-              <strong>Property Type: </strong><label id="bidHistoryPropertyType" style="margin-bottom: 0; font-weight: normal;">-</label>
+              <!-- <strong>Property Type: </strong><label id="bidHistoryPropertyType" style="margin-bottom: 0; font-weight: normal;">-</label> -->
             </figcaption>
             <div class="listing-bottom" id="bid_history_search_section">
               <div class="block right">
                 <form action="" class="search-field">
                   <div class="search-icon"><i class="fas fa-search" aria-hidden="true" role="presentation"></i></div>
-                  <input type="text" name="search_bid_history" aria-label="Radio" id="search_bid_history" class="form-control"><button type="button" id="bid_history_search_btn" class="btn btn-primary btn-sm pl20">Search</button>
+                  <input type="text" name="search_bid_history" aria-label="Radio" id="search_bid_history" class="form-control"><button type="button" id="bid_history_search_btn" class="btn btn-primary btn-xs">Search</button>
                 </form>
               </div>
               <div class="block">
-                <button type="button" role="button" class="btn btn-primary btn-sm pl20" onClick="window.location.href='/static/admin/export/Bidders_List.xls'"><i class="fas fa-file-export" aria-hidden="true" role="presentation"></i> Export</button>
+                <button type="button" role="button" class="btn btn-primary btn-xs" onClick="window.location.href='/static/admin/export/Bidders_List.xls'"><i class="fas fa-file-export" aria-hidden="true" role="presentation"></i> Export</button>
               </div>
               <div class="block highest_bid_btn">
-                <button type="button" role="button" class="btn btn-primary btn-sm pl20"><i class="fas fa-trash-alt" aria-hidden="true" role="presentation"></i> Highest Bid</button>
+                <button type="button" role="button" class="btn btn-primary btn-xs"><i class="fas fa-trash-alt" aria-hidden="true" role="presentation"></i> Highest Bid</button>
               </div>
             </div>
           </div>
@@ -690,14 +561,14 @@
               <div class="block right">
                 <form action="" class="search-field">
                   <div class="search-icon"><i class="fas fa-search" aria-hidden="true" role="presentation"></i></div>
-                  <input type="text" name="search_bid_history" aria-label="Radio" id="tempsearch_bid_history" class="form-control"><button type="button" id="tempbid_history_search_btn" class="btn btn-primary btn-sm pl20">Search</button>
+                  <input type="text" name="search_bid_history" aria-label="Radio" id="tempsearch_bid_history" class="form-control"><button type="button" id="tempbid_history_search_btn" class="btn btn-primary btn-xs">Search</button>
                 </form>
               </div>
               <div class="block">
-                <button type="button" role="button" class="btn btn-primary btn-sm pl20" onClick="window.location.href='/static/admin/export/Bidders_List.xls'"><i class="fas fa-file-export" aria-hidden="true" role="presentation"></i> Export</button>
+                <button type="button" role="button" class="btn btn-primary btn-xs" onClick="window.location.href='/static/admin/export/Bidders_List.xls'"><i class="fas fa-file-export" aria-hidden="true" role="presentation"></i> Export</button>
               </div>
               <div class="block highest_bid_btn">
-                <button type="button" role="button" class="btn btn-primary btn-sm pl20"><i class="fas fa-trash-alt" aria-hidden="true" role="presentation"></i> Highest Bid</button>
+                <button type="button" role="button" class="btn btn-primary btn-xs"><i class="fas fa-trash-alt" aria-hidden="true" role="presentation"></i> Highest Bid</button>
               </div>
             </div>
           </div>
@@ -779,11 +650,11 @@
               <div class="block right">
                 <form action="" class="search-field">
                   <div class="search-icon"><i class="fas fa-search" aria-hidden="true" role="presentation"></i></div>
-                  <input type="text" name="search_bid_history" aria-label="Search" id="search_property_total_view" class="form-control"><button type="button" id="property_total_view_search_btn" class="btn btn-primary btn-sm pl20">Search</button>
+                  <input type="text" name="search_bid_history" aria-label="Search" id="search_property_total_view" class="form-control"><button type="button" id="property_total_view_search_btn" class="btn btn-primary btn-xs">Search</button>
                 </form>
               </div>
               <div class="block last">
-                <button type="button" class="btn btn-primary btn-sm pl20" onClick="window.location.href='/static/admin/export/Bidders_List.xls'"><i class="fas fa-file-export" aria-hidden="true" role="presentation"></i> Export</button>
+                <button type="button" class="btn btn-primary btn-xs" onClick="window.location.href='/static/admin/export/Bidders_List.xls'"><i class="fas fa-file-export" aria-hidden="true" role="presentation"></i> Export</button>
               </div>
               
             </div>
@@ -831,40 +702,32 @@
     </div>
   </div><!-- End .bidderrecordModal -->
 
-  <div id="property_total_watcher_model" class="modal centered-modal personalModalwrap" tabindex="-1" role="dialog">
+  <div id="property_favourite_model" class="modal centered-modal personalModalwrap" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-laptop" role="document">
     <input type="hidden" name="propertyTotalWatcher" id="propertyTotalWatcher" value=""/>
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="center mb0">
-            Property Watcher Records
+            Property Favourite Records
           </h5>
           <div class="bidderrecord-top">
             <figure>
-              <img src="{% static 'theme-2/images/default-img.png' %}" alt="real estate sales" id="propertyTotalWatcherImage">
+              <img src="{% static 'theme-2/images/default-img.png' %}" alt="real estate sales" id="propertyTotalFavouriteImage">
             </figure>
             <figcaption>
-              <h6 id="propertyTotalWatcherName">
+              <h6 id="propertyTotalFavouriteName">
                 Loading...
               </h6>
-              <ul>
-                <li>
-                  <span>Auction Type:</span><label id="propertyTotalWatcherAuctiontype" style="font-weight: normal; margin-bottom: 0;">-</label>
-                </li>
-                <li class="bid_increment_label">
-                  <span>Bid Increment:</span><label id="propertyTotalWatcherBidIncrement" style="font-weight: normal; margin-bottom: 0;">-</label>
-                </li>
-              </ul>
             </figcaption>
-            <div class="listing-bottom" id="property_total_watcher_search_section">
+            <div class="listing-bottom" id="property_total_favourite_section">
               <div class="block right">
                 <form action="" class="search-field">
                   <div class="search-icon"><i class="fas fa-search" aria-hidden="true" role="presentation"></i></div>
-                  <input type="text" name="search_bid_history" aria-label="Search" id="search_property_total_watcher" class="form-control"><button type="button" id="property_total_watcher_search_btn" class="btn btn-primary btn-sm pl20">Search</button>
+                  <input type="text" name="search_property_favourite" aria-label="Search" id="search_property_favourite" class="form-control input-sm"><button type="button" id="property_total_watcher_search_btn" class="btn btn-primary btn-xs">Search</button>
                 </form>
               </div>
               <div class="block last">
-                <button type="button" class="btn btn-primary btn-sm pl20" onClick="window.location.href='/static/admin/export/Bidders_List.xls'"><i class="fas fa-file-export" aria-hidden="true" role="presentation"></i> Export</button>
+                <button type="button" class="btn btn-primary btn-xs" onClick="window.location.href='/static/admin/export/Bidders_List.xls'"><i class="fas fa-file-export" aria-hidden="true" role="presentation"></i> Export</button>
               </div>
               
             </div>
@@ -896,13 +759,13 @@
                   </th>
                 </tr>
               </thead>
-              <tbody id="propertyTotalWatcherPaginationListList">
+              <tbody id="propertyTotalFavouritePaginationListList">
               </tbody>
             </table>
           </div>
 
-          <div class="pagination" id="propertyTotalWatcherPagination">
-              <ul id="propertyTotalWatcherPaginationList">
+          <div class="pagination" id="propertyTotalFavouritePagination">
+              <ul id="propertyTotalFavouritePaginationList">
                 {{ pagination_html }}
               </ul>
           </div><!-- End .pagination -->
@@ -910,7 +773,7 @@
         </div>
       </div>
     </div>
-  </div><!-- End .AllWatcherModal -->
+  </div><!-- End .AllFavouriteModal -->
 
   <div id="emailRecordModalEmail" class="modal centered-modal personalModalwrap" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-sm" role="document">
@@ -958,22 +821,22 @@
     </div>
   </div><!-- End .stopbiddingModal -->
 
-  <div id="emailRecordModalEmailWatcher" class="modal centered-modal personalModalwrap" tabindex="-1" role="dialog">
+  <div id="emailRecordModalEmailFavourite" class="modal centered-modal personalModalwrap" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-sm" role="document">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="center mb0">
-            Email All <span class="object-name-string" >Watchers</span>
+            Email All <span class="object-name-string" >Favourite User</span>
           </h5>
           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
         <div class="modal-body">
-          <form action="" id="emailAllUsersFormWatcher">
+          <form action="" id="emailAllUsersFormFavourite">
           {% csrf_token %}
-          <input type="hidden" id="emailPropertyidWatcher" name="property_id" value="">
-          <input type="hidden" id="emailForObjectWatcher" name="email_for" value="watching">
+          <input type="hidden" id="emailPropertyidFavourite" name="property_id" value="">
+          <input type="hidden" id="emailForObjectFavourite" name="email_for" value="favourite">
           <ul class="email-bidder">
             <li>
               Email
@@ -985,18 +848,18 @@
               Subject
             </li>
             <li>
-              <input type="text" id="subjectWatcher" aria-label="Enter email subject" placeholder="Enter email subject" name="subjectWatcher" class="form-control" onkeyup="enable_disable_email_all_button_watcher()">
+              <input type="text" id="subjectFavourite" aria-label="Enter email subject" placeholder="Enter email subject" name="subjectFavourite" class="form-control" onkeyup="enable_disable_email_all_button_favourite()">
             </li>
             <li>
               Message
             </li>
             <li>
-              <textarea name="message" id="messageWatcher" placeholder="Enter message here..." rows="5" class="form-control" onkeyup="enable_disable_email_all_button_watcher()"></textarea>
+              <textarea name="messageFavourite" id="messageFavourite" placeholder="Enter message here..." rows="5" class="form-control" onkeyup="enable_disable_email_all_button_favourite()"></textarea>
             </li>
           </ul>
 
           <div class="clearfix pt20 right">
-            <button class="btn btn-primary" id="emailAllSubmitWatcher" disabled="disabled" onclick="emailPropertyTotalWatcher()">Send</button>
+            <button type="button" class="btn btn-primary" id="emailAllSubmitFavourite" disabled="disabled" onclick="emailPropertyTotalFavourite()">Send</button>
           </div>
           </form>
         </div>
@@ -1081,11 +944,11 @@
               <div class="block right">
                 <form action="" class="search-field">
                   <div class="search-icon"><i class="fas fa-search" aria-hidden="true" role="presentation"></i></div>
-                  <input type="text" name="search_bid_history" aria-label="Search" id="search_property_total_watcher" class="form-control"><button type="button" id="property_total_watcher_search_btn" class="btn btn-primary btn-sm pl20">Search</button>
+                  <input type="text" name="search_bid_history" aria-label="Search" id="search_property_total_watcher" class="form-control"><button type="button" id="property_total_watcher_search_btn" class="btn btn-primary btn-xs">Search</button>
                 </form>
               </div>
               <div class="block last">
-                <button type="button" class="btn btn-primary btn-sm pl20" onClick="window.location.href='/static/admin/export/Bidders_List.xls'"><i class="fas fa-file-export" aria-hidden="true" role="presentation"></i> Export</button>
+                <button type="button" class="btn btn-primary btn-xs" onClick="window.location.href='/static/admin/export/Bidders_List.xls'"><i class="fas fa-file-export" aria-hidden="true" role="presentation"></i> Export</button>
               </div>
               
             </div>
@@ -1305,6 +1168,39 @@
                     <div class="tagline">Minutes</div>
                   </div>
                 </div>
+
+                <div class="col-md-6 col-sm-5"> 
+                  <div class="form-group"> 
+                    <label for="" class="">
+                      Service Fee(%) <span class="text-danger">*</span>
+                      <div class="tooltipp"><i class="fas fa-question-circle" aria-hidden="true" role="presentation"></i>
+                        <span class="tooltipp__content right banner-tool">Help text</span>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+                <div class="col-md-6 col-sm-7">
+                  <div class="form-group timer">
+                    <input type="number" class="form-control" name="service_fee" id="service_fee" placeholder="Service Fee" value="" onkeypress="validatePercentage(event, this, 100);">
+                  </div>
+                </div>
+
+                <div class="col-md-6 col-sm-5"> 
+                  <div class="form-group"> 
+                    <label for="" class="">
+                      Auction Fee <span class="text-danger">*</span>
+                      <div class="tooltipp"><i class="fas fa-question-circle" aria-hidden="true" role="presentation"></i>
+                        <span class="tooltipp__content right banner-tool">Help text</span>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+                <div class="col-md-6 col-sm-7">
+                  <div class="form-group timer">
+                    <input type="number" min="1" class="form-control" name="auction_fee" id="auction_fee" placeholder="Auction Fee" value="" maxlength="15" onkeypress="validateInput(event, this, 15);">
+                  </div>
+                </div>
+
                 <div class="clearfix"></div>
                 <div class="col-md-6 col-sm-5 bid_limit_section">
                   <div class="form-group">
@@ -1444,7 +1340,8 @@
               </h5>
               <div class="bidderrecord-top">
                 <figure>
-                  <img src="images/upload-banner-1.png" alt="real estate sales">
+                  <!-- <img src="images/upload-banner-1.png" alt="real estate sales"> -->
+                  <img src="{% static 'admin/images/upload-banner-1.png' %}" alt="real estate sales">
                 </figure>
                 <figcaption>
                   <h6>
@@ -1788,7 +1685,8 @@
           </h5>
           <div class="bidderrecord-top">
             <figure>
-              <img src="images/upload-banner-1.png" alt="real estate sales" id="insiderBidHistoryPropertyImage">
+              <img src="{% static 'admin/images/upload-banner-1.png' %}" alt="real estate sales" id="insiderBidHistoryPropertyImage">
+              <!-- <img src="images/upload-banner-1.png" alt="real estate sales" id="insiderBidHistoryPropertyImage"> -->
             </figure>
             <figcaption>
               <h6 id="insiderBidHistoryPropertyName">
@@ -1808,11 +1706,11 @@
               <div class="block right">
                 <form action="" class="search-field">
                   <div class="search-icon"><i class="fas fa-search" aria-hidden="true" role="presentation"></i></div>
-                  <input type="text" class="form-control" aria-label="Search" name="insider_search_bid_history" id="insider_search_bid_history"><button class="btn btn-primary btn-sm pl20">Search</button>
+                  <input type="text" class="form-control" aria-label="Search" name="insider_search_bid_history" id="insider_search_bid_history"><button class="btn btn-primary btn-xs">Search</button>
                 </form>
               </div>
               <div class="block last">
-                <button class="btn btn-secondary btn-sm pl20"><i class="fas fa-file-export" aria-hidden="true" role="presentation"></i> Export</button>
+                <button class="btn btn-secondary btn-xs"><i class="fas fa-file-export" aria-hidden="true" role="presentation"></i> Export</button>
               </div>
             </div>
           </div>
@@ -2062,26 +1960,24 @@
             </div>
 {% endblock %}
 {% block js_content %}
-<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-<script type="text/javascript" src="{% static 'admin/js/tableHeadFixer.js' %}?v=1.1"></script>
-    <script type="text/javascript" src="{% static 'admin/js/mask_input.js' %}"></script>
-    <script type="text/javascript" src="{% static 'admin/js/custom.js' %}?v=1.1"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.1/jquery.validate.min.js"></script>
-    <script type="text/javascript" src="{% static 'admin/js/jquery.blockUI.js' %}"></script>
-    <script type="text/javascript" src="{% static 'admin/js/custom_validator.js' %}?v=2.3"></script>
-    <script type="text/javascript" src="{% static 'admin/js/jquery.growl.js' %}"></script>
-    <script type="text/javascript" src="{% static 'admin/js/pagination.js' %}?v=1.0"></script>
-    <script type="text/javascript" src="{% static 'admin/js/autosuggestion.js' %}?v=2.0"></script>
-    <script type="text/javascript" src="{% static 'admin/js/custom_js.js' %}?v=6.2"></script>
-<script type="text/javascript" src="{% static 'admin/js/properties.js' %}?v=6.4"></script>
-<script type="text/javascript" src="{% static 'admin/js/dropzone.js' %}"></script>
-<script type="text/javascript" src="{% static 'admin/js/custom_dropzone.js' %}?v=3.1"></script>
-<!-- <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script> -->
-<script src="https://code.jquery.com/ui/1.14.0/jquery-ui.min.js"></script>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-tour/0.11.0/js/bootstrap-tour.js"></script>
-<script type="text/javascript" src="{% static 'admin/js/listing_tour.js' %}?v=3.1"></script>
-
+<script type="text/javascript" src="{% static 'admin/js/moment.js' %}"></script>
+<!-- <script type="text/javascript" src="{% static 'admin/js/datetimepicker.js' %}?v=4.17.37"></script> -->
+<!-- <script type="text/javascript" src="{% static 'admin/js/ckeditor/ckeditor.js' %}"></script> -->
+<!-- <script type="text/javascript" src="{% static 'admin/js/tableHeadFixer.js' %}?v=1.1"></script> -->
+<script type="text/javascript" src="{% static 'admin/js/mask_input.js' %}"></script>
+<!-- <script type="text/javascript" src="{% static 'admin/js/custom.js' %}?v=1.1"></script> -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.1/jquery.validate.min.js"></script>
+<script type="text/javascript" src="{% static 'admin/js/jquery.blockUI.js' %}"></script>
+<script type="text/javascript" src="{% static 'admin/js/custom_validator.js' %}?v=2.3"></script>
+<script type="text/javascript" src="{% static 'admin/js/jquery.growl.js' %}"></script>
+<script type="text/javascript" src="{% static 'admin/js/pagination.js' %}?v=1.0"></script>
+<script type="text/javascript" src="{% static 'admin/js/autosuggestion.js' %}?v=2.0"></script>
+<!-- <script type="text/javascript" src="{% static 'admin/js/custom_js.js' %}?v=7.3"></script> -->
+<!-- <script type="text/javascript" src="{% static 'admin/js/properties.js' %}?v=6.4"></script> -->
+<!-- <script src="https://code.jquery.com/ui/1.14.0/jquery-ui.min.js"></script> -->
+<script type="text/javascript" src="{% static 'admin/js/custom-date-time.js' %}?v=1.1"></script>
+<script type="text/javascript" src="{% static 'admin/js/listing.js' %}?v=1.1"></script>
+ 
 <script>
     var is_first_login = {{request.session.is_first_admin_login}};
     //getresult('prop_listing', 1, '', '', '');

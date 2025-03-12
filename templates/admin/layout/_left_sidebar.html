@@ -24,7 +24,7 @@
               <span class="menu-icon">
                 <i class="fa-solid fa-gear" aria-hidden="true" role="img" aria-label="Settings"></i>
               </span>
-              <span class="menu-title">Settings</span>
+              <span class="menu-title">Business Info</span>
             </a>
             <div class="sub-menu-list">
               <ul>
@@ -36,11 +36,11 @@
                 </li>
                 {% endif %}
                 {% if 3 in access_permission_list %}
-                <li class="menu-item">
+                {% comment %} <li class="menu-item">
                   <a role="link" href="/admin/website/" class="{% if active_submenu == 'website'%}active{% endif%}">
                     <span class="menu-title">Website</span>
                   </a>
-                </li>
+                </li> {% endcomment %}
                 {% endif %}
               </ul>
             </div>

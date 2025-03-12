@@ -21,6 +21,19 @@ function set_datepicker(element){
 
 }
 
+function set_datepicker_past(element){
+    try{
+        $(element).datetimepicker({
+              format: 'YYYY-MM-DD',
+              widgetPositioning: { horizontal: 'left', vertical: 'bottom'},
+              maxDate: moment(),
+        });
+    }catch(ex){
+
+    }
+
+}
+
 function convertToUTC(dateStr) {
     // Step 1: Convert "MM-DD-YYYY hh:mm AM/PM" to a proper format for JavaScript
     let parsedDate = new Date(
@@ -57,19 +70,6 @@ function formatToLocalTime(utcDateStr) {
     return "";
 }
 
-function convertLocalToUTCOLD(localDateTime) {
-    // Step 1: Create a Date object from the input (assumes input is in the local browser timezone)
-    let localDate = new Date(localDateTime);
-    if (isNaN(localDate.getTime())) {
-        console.error("Invalid date format!");
-        return null;
-    }
-    // Step 2: Convert to UTC by adjusting for the timezone offset
-    let utcDate = new Date(localDate.getTime() - localDate.getTimezoneOffset() * 60000);
-    // Step 3: Return UTC datetime in ISO format
-    return utcDate.toISOString();
-}
-
 function convertLocalToUTC(localDateTime) {
     var browserDate = new Date(localDateTime);
     var utcDate = moment(browserDate).utc().format();
@@ -91,6 +91,55 @@ function randerAddListingUtcToLocal(fromField, toField){
         datetime_value = formatToLocalTime(datetime_value);
         $(toField).val(datetime_value);
     }
+}
+
+
+function getLocalDateFromUTC(myTimeStamp, dateformat, timeformat){
+    var dateX = new Date(myTimeStamp);
+    date = new Date(dateX.getTime());
+    
+    var fullyear = date.getFullYear();
+    var halfYear = parseInt(date.getFullYear().toString().substr(2,2), 10);
+    var mts = date.getMonth()+1;
+    var short_month_name = date.toLocaleString('default', { month: 'short' })
+    var long_month_name = date.toLocaleString('default', { month: 'long' })
+    var month_num = (mts < 10)?'0'+mts:mts;
+    var dt = (date.getDate() < 10)?'0'+date.getDate():date.getDate();
+    var hrs = (date.getHours() < 10)?'0'+date.getHours():date.getHours();
+    var mins = (date.getMinutes() < 10)?'0'+date.getMinutes():date.getMinutes();
+    var secs = (date.getSeconds() < 10)?'0'+date.getSeconds():date.getSeconds();
+
+    var timeStp = '';
+    if(dateformat == 'yyyy-mm-dd'){
+        timeStp = fullyear+'-'+month_num+'-'+dt;
+    }else if(dateformat == 'mm-dd-yyyy'){
+        timeStp = month_num+'-'+dt+'-'+fullyear;
+    }else if(dateformat == 'dd-mm-yyyy'){
+        timeStp = dt+'-'+month_num+'-'+fullyear;
+    }else if(dateformat == 'dd-mm-yy'){
+        timeStp = dt+'-'+month_num+'-'+halfYear;
+    }else if(dateformat == 'mm-dd-yy'){
+        timeStp = month_num+'-'+dt+'-'+halfYear;
+    }else if(dateformat == 'yy-mm-dd'){
+        timeStp = halfYear+'-'+month_num+'-'+dt;
+    }else if(dateformat == 'j m, Y'){
+        timeStp = dt+' '+short_month_name+', '+fullyear;
+    }else if(dateformat == 'm j, Y'){
+        timeStp = short_month_name+' '+dt+', '+fullyear;
+    }else if(dateformat == 'M j, Y'){
+        timeStp = long_month_name+' '+dt+'th, '+fullyear;
+    }else if(dateformat == 'j M, Y'){
+        timeStp = dt+' '+long_month_name+', '+fullyear;
+    }
+    if(timeformat =='ampm'){
+        var mer = (parseInt(hrs) >= 12)?'PM':'AM';
+        hrs = parseInt(hrs) % 12;
+        hrs = (hrs)?hrs:12;
+        timeStp = timeStp+" "+hrs+":"+mins+" "+mer;
+    }else{
+        timeStp = timeStp+" "+hrs+":"+mins+":"+secs;
+    }
+    return timeStp;
 }
 
 

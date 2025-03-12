@@ -69,6 +69,11 @@ $(function () {
     $("#total_employee").html(data.total_employee);
     $("#active_employee").html(data.total_active_employee);
     $("#inactive_employee").html(data.total_inactive_employee);
+    $("#under_review_user").html(data.total_under_review_user);
+    $("#verified_user").html(data.total_verified_user);
+    $("#total_developer").html(data.total_developer);
+    $("#active_developer").html(data.total_active_developer);
+    $("#inactive_developer").html(data.total_inactive_developer);
   }
 
   function signup_view_graph(dataset, label=""){
@@ -223,7 +228,7 @@ $(function () {
   // -------------------------Google Map--------------------------
   let map;
   async function initMap(data) {
-    const position = { lat: 37.090240, lng: -95.712891 };
+    const position = { lat: 25.276987, lng: 55.296249 };
     const { Map } = await google.maps.importLibrary("maps");
     const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
 

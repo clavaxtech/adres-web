@@ -395,7 +395,7 @@ def login(request):
             next = request.get_full_path().rsplit('?next=', 1)[-1] if 'next' in request.GET else ''
 
         if 'user_id' in request.session and request.session['user_id']:
-            return redirect('/')
+            return redirect('/admin/dashboard/')
         try:
             site_detail = subdomain_site_details(request)
             site_id = site_detail['site_detail']['site_id']
@@ -426,7 +426,7 @@ def login(request):
                     request.session['first_name'] = response_data['first_name']
                     request.session['user_type'] = response_data['user_type']
                     request.session['is_admin'] = response_data['is_admin']
-                    request.session['is_admin'] = True if int(response_data['user_type']) == 2 or int(response_data['user_type']) == 5 else False
+                    request.session['is_admin'] = True if int(response_data['user_type']) == 2 or int(response_data['user_type']) == 5 or int(response_data['user_type']) == 4 else False
                     request.session['is_broker'] = response_data['is_broker']
                     request.session['profile_image'] = response_data['profile_image']
                     request.session['user_type_name'] = response_data['user_type_name']
@@ -460,6 +460,7 @@ def login(request):
         theme_path = 'home/{}/login.html'.format(templete_dir)
         return render(request, theme_path, context)
     except Exception as exp:
+        print(exp)
         return HttpResponse("Issue in views")
 
 

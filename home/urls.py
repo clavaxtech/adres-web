@@ -3,18 +3,17 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('', views.dashboard, name='home'),
-    # User Authentication
     path('login/', views.login, name='login'),
-    path('set-login/', views.set_login, name='set_login'),
     path('register/', views.register, name='register'),
+    path('forgot-password/', views.forgot_password, name='forgot-password'),
+    
+    path('', views.dashboard, name='home'),
+    path('set-login/', views.set_login, name='set_login'),
     path('save-user/', views.save_user, name="save-user"),
     path('activation/', views.activation, name='activation'),
-    path('forgot-password/', views.forgot_password, name='forgot-password'),
     path('reset-password/', views.reset_password, name='reset-password'),
     path('check-user-exists/', views.check_user_exists, name='check-user-exists'),
     path('logout/', views.logout, name='logout'),
-
 
     # User Dashbaord
     path('profile/', views.profile, name='profile'),
@@ -36,7 +35,6 @@ urlpatterns = [
     path('save-enquiry/', views.save_enquiry, name='save-enquiry'),
     path('front-blog-search-suggestion/', views.blog_search_suggestion, name='front-blog-search-suggestion'),
     path('profile-update/', views.profile_update, name='profile-update'),
-    #path('chat/', views.chat, name='chat'),
     path('image-upload/', views.image_upload, name='image-upload'),
     path('send-enquiry-message/', views.send_enquiry_message, name='send-enquiry-message'),
     path('our-agents/', views.our_agents, name='our-agents'),

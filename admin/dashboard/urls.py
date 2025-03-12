@@ -74,6 +74,7 @@ urlpatterns = [
     path('contact-search-suggestion/', views.contact_search_suggestion, name='contact-search-suggestion'),
     path('blog-search-suggestion/', views.blog_search_suggestion, name='blog-search-suggestion'),
     path('delete-property/', views.delete_property, name='delete-property'),
+    path('delete-project/', views.delete_project, name='delete-project'),
     path('save-listing-settings/', views.save_listing_settings, name='save-listing-settings'),
     path('get-listing-settings/', views.get_listing_settings, name='get-listing-settings'),
     path('article-search-suggestion/', views.article_search_suggestion, name='article-search-suggestion'),
@@ -255,4 +256,7 @@ urlpatterns = [
     path('get-district/', views.get_district, name='get-district'),
     path('save-listing/', views.save_listing, name='save-listing'),
     path('auction-detail/', views.auction_detail, name='auction-detail'),
+    path('property-total-favourite/', views.property_total_favourite, name='property-total-favourite'),
+    path('export-property-total-favourite/', views.export_property_total_favourite, name="export-property-total-favourite"),
+
 ]

@@ -166,6 +166,7 @@ function initdrozone(params){
 
 }
 function delete_image(params){
+   console.log(params); 
    var image_id = '';
    var image_name = '';
    var new_ids = '';
@@ -470,16 +471,58 @@ function delete_image(params){
         }
     }else if(section == 'floor_plans'){
         image_id = $('#property_floor_plan_id').val();
-        image_name = $('#property_floor_plan_name').val();
+        if (image_id){
+            image_name = $('#property_floor_plan_name').val();
+            new_ids = remove_string(image_id,id,',');
+            new_names = remove_string(image_name,name,',');
+            $('li[rel_id="'+id+'"]').remove();
+            $('#property_floor_plan_id').val(new_ids);
+            $('#property_floor_plan_name').val(new_names);
+            if($('#property_floor_plan_id').val() == ''){
+                $('#PropertyFloorPlanDiv').hide();
+            }
+        }else{
+            image_id = params.id;
+            image_name = params.name;
+            new_ids = remove_string(image_id,id,',');
+            new_names = remove_string(image_name,name,',');
+            ref = params.ref;
+            $('li[rel_id="'+id+'"]').remove();
+            $('#floor_plan_img_id_inter'+ref).val(new_ids);
+            $('#floor_plan_img_name_'+ref).val(new_names);
+            $("#floorPlanImageDiv_inter"+ref).hide();
+
+            $('#floor_plan_img_id_'+ref).val(new_ids);
+            $('#floor_plan_img_name_'+ref).val(new_names);
+            $("#floorPlanImageDiv_"+ref).hide();
+
+
+        }
+        
+    }else if(section == 'developer_project_image'){
+        image_id = $('#project_image_id').val();
+        image_name = $('#project_image_name').val();
         new_ids = remove_string(image_id,id,',');
         new_names = remove_string(image_name,name,',');
         $('li[rel_id="'+id+'"]').remove();
-        $('#property_floor_plan_id').val(new_ids);
-        $('#property_floor_plan_name').val(new_names);
-        if($('#property_floor_plan_id').val() == ''){
-            $('#PropertyFloorPlanDiv').hide();
+        $('#project_image_id').val(new_ids);
+        $('#project_image_name').val(new_names);
+        if($('#project_image_id').val() == ''){
+            $('#PropertyImgDiv').hide();
+        }
+    }else if(section == 'developer_project_document'){
+        image_id = $('#project_doc_id').val();
+        image_name = $('#project_doc_name').val();
+        new_ids = remove_string(image_id,id,',');
+        new_names = remove_string(image_name,name,',');
+        $('li[rel_id="'+id+'"]').remove();
+        $('#project_doc_id').val(new_ids);
+        $('#project_doc_name').val(new_names);
+        if($('#project_image_id').val() == ''){
+            $('#ProjectDocDiv').hide();
         }
     }
+
 
    data = {'article_id': article_id, 'image_id': id, 'image_name': name, 'section': section, 'agent_id': agent_id, 'user_id': popup_user_id, loggedin_user_id: loggedin_user_id, request_from: request_from, delete_for: delete_for}
     if(name && section && id){

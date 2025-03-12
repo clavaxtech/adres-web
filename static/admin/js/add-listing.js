@@ -1,13 +1,14 @@
 $(document).ready(function(){
     $('.select').chosen();
     set_datepicker('#rental_till');
-    set_datepicker('.owner_dob');
+    set_datepicker_past('.owner_dob');
 
     $(document).on('click', ".add_owner", function () {
         // var count = parseInt($('.child_owner').length);
         var count = parseInt($('#total_section').val());
         var account_verification_type = parseInt($('#account_verification_type').val());
         var new_child = $(".child_owner:last").clone().insertAfter(".child_owner:last");
+        new_child.find(".owner_count").text(count+1);
         new_child.find(".owner_name").val("");
         new_child.find(".owner_eid").val("");
         new_child.find(".owner_passport").val("");
@@ -29,7 +30,7 @@ $(document).ready(function(){
         new_child.find(".owner_dob").attr('id', 'owner_dob_' + count).attr('name','owner_dob_'+ count);
         new_child.find(".owner_phone").attr('id', 'owner_phone_' + count).attr('name','owner_phone_'+ count);
         new_child.find(".owner_email").attr('id', 'owner_email_' + count).attr('name','owner_email_'+ count);
-        set_datepicker('#owner_dob_'+count);
+        set_datepicker_past('#owner_dob_'+count);
         // $("#owner_phone_"+count).inputmask('99 999 9999');
         new_child.find(".delete_child_owner").show();
         count = count+1;
@@ -64,6 +65,7 @@ $(document).ready(function(){
                 $(this).find(".owner_dob").attr('id', 'owner_dob_' + index).attr('name','owner_dob_'+ index);
                 $(this).find(".owner_phone").attr('id', 'owner_phone_' + index).attr('name','owner_phone_'+ index);
                 $(this).find(".owner_email").attr('id', 'owner_email_' + index).attr('name','owner_email_'+ index);
+                $(this).find(".owner_count").text(index+1);
             });
             var total_section = parseInt($('.child_owner').length);
             $('#total_section').val(total_section);
@@ -670,7 +672,7 @@ function section_three_validate(){
             required: true,
         },
         project:{
-            required: true,
+            required: false,
         },
         property_name:{
             required: true,
@@ -678,9 +680,9 @@ function section_three_validate(){
         community:{
             required: true,
         },
-        // property_type:{
-        //     required: true,
-        // },
+        property_type:{
+            required: true,
+        },
         building:{
             required: true,
         },
@@ -702,7 +704,7 @@ function section_four_validate(){
             required: true,
         },
         project:{
-            required: true,
+            required: false,
         },
         property_name:{
             required: true,
@@ -710,9 +712,9 @@ function section_four_validate(){
         community:{
             required: true,
         },
-        // property_type:{
-        //     required: true,
-        // },
+        property_type:{
+            required: true,
+        },
         building:{
             required: true,
         },
@@ -771,7 +773,7 @@ function section_five_validate(){
             required: true,
         },
         project:{
-            required: true,
+            required: false,
         },
         property_name:{
             required: true,
@@ -779,9 +781,9 @@ function section_five_validate(){
         community:{
             required: true,
         },
-        // property_type:{
-        //     required: true,
-        // },
+        property_type:{
+            required: true,
+        },
         building:{
             required: true,
         },

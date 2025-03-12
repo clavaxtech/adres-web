@@ -84,7 +84,10 @@
         transition: none;
         font-weight: $semibold;
         font-size: $fontLarge;
-
+        @include breakpoint(lg) {
+          font-size: $fontSmall;
+          height: 35px;
+        }
         &:hover {
           color: $black;
         }
@@ -280,6 +283,10 @@
             margin-left: 5px !important;
             @include border-radius (5px);
             display: block !important;
+
+            @include breakpoint(lg) {
+              width: 180px;
+            }
 
             ul {
               li {

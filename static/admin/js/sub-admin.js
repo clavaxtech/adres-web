@@ -107,31 +107,8 @@ $(document).ready(function(){
                 },
                 usr_phone_no:{
                     required:true,
-//                    remote:{
-//                        type: 'post',
-//                        url: '/admin/check-user-exists/',
-//                        dataType: 'json',
-//                        async:false,
-//                        data: {
-//                            check_type: function() {
-//                                return "main";
-//                            },
-//                            user_id: function() {
-//                                return $('#add_agent_form #agent_id').val();
-//                            }
-//                        },
-//                        dataFilter: function(data) {
-//                            var response = JSON.parse(data);
-//                            if(response.error == 0 && typeof(response.data.exists) != 'undefined'&& response.data.exists === true){
-//                                return false;
-//                            }else{
-//                                return true;
-//                            }
-//
-//                        }
-//                    },
-                    phoneminlength: 10,
-                    phonemaxlength: 10,
+                    // phoneminlength: 10,
+                    // phonemaxlength: 10,
                 },
                 agent_address:{
                     required: true

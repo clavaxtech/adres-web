@@ -122,7 +122,7 @@
 /* font-style mixing */
 
 @mixin font-style($weight, $size, $line-height, $family, $color) {
-  font: $weight list.slash($size, $line-height) $family;
+  font: $weight #{$size}/#{$line-height} $family;
   color: $color;
 }
 

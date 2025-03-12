@@ -1,30 +1,4 @@
 @font-face {
-  font-family: 'Arapey';
-  src: url('../fonts/Arapey-Italic.eot');
-  src: url('../fonts/Arapey-Italic.eot?#iefix') format('embedded-opentype'),
-    url('../fonts/Arapey-Italic.woff2') format('woff2'),
-    url('../fonts/Arapey-Italic.woff') format('woff'),
-    url('../fonts/Arapey-Italic.ttf') format('truetype'),
-    url('../fonts/Arapey-Italic.svg#Arapey-Italic') format('svg');
-  font-weight: normal;
-  font-style: italic;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Arapey';
-  src: url('../fonts/Arapey-Regular.eot');
-  src: url('../fonts/Arapey-Regular.eot?#iefix') format('embedded-opentype'),
-    url('../fonts/Arapey-Regular.woff2') format('woff2'),
-    url('../fonts/Arapey-Regular.woff') format('woff'),
-    url('../fonts/Arapey-Regular.ttf') format('truetype'),
-    url('../fonts/Arapey-Regular.svg#Arapey-Regular') format('svg');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
   font-family: 'GLYPHICONS Halflings';
   src: url('../fonts/GLYPHICONSHalflings-Regular.eot');
   src: url('../fonts/GLYPHICONSHalflings-Regular.eot?#iefix') format('embedded-opentype'),
@@ -140,29 +114,12 @@ body {
     font-size: $fontMiddle;
   }
 
-  @include breakpoint(md) {
+  @include breakpoint(lg) {
     font-size: $fontSmall;
   }
 
   &.overflow-hidden {
     overflow: hidden;
-  }
-}
-
-@media not all and (min-resolution:.001dpcm) {
-  body {
-    font-family: apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-  }
-}
-
-/* Safari 10.1+ (alternate method) */
-
-@media not all and (min-resolution:.001dpcm) {
-  @supports (-webkit-appearance:none) {
-
-    body {
-      font-family: apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-    }
   }
 }
 
@@ -411,6 +368,11 @@ ul {
 label {
   font-size: $fontLarge;
   font-weight: $medium;
+  margin-bottom: 0;
+  @include breakpoint(lg) {
+    font-size: $fontSmall;
+  }
+
 }
 
 .form-control {
@@ -428,19 +390,16 @@ label {
   @include breakpoint(lg) {
     line-height: 35px;
     height: 35px;
-  }
-
-  @include breakpoint(md) {
     font-size: $fontSmall;
   }
-
+  
   &.error {
     bottom: 0;
   }
 
   &.input-sm {
-    height: 34px;
-    line-height: 34px;
+    height: 35px;
+    line-height: 35px;
     font-size: $fontMiddle;
     @include border-radius(8px);
   }
@@ -486,7 +445,9 @@ label {
   @include breakpoint(laptop) {
     font-size: $fontMiddle;
   }
-
+  @include breakpoint(lg) {
+    font-size: $fontSmall;
+  }
   &:focus {
     background: $white;
     box-shadow: none;
@@ -527,12 +488,13 @@ label {
   line-height: 22px;
   height: auto;
   transition: .5s;
-  padding: 0.75rem 1.5rem;
+  padding: 12px 20px;
   @include border-radius (50px);
 
   @include breakpoint(lg) {
+    font-size: $fontSmall;
     font-weight: $normal;
-    padding: 0.5rem 2rem;
+    padding: 8px 15px;
   }
 
   &:focus,
@@ -545,23 +507,33 @@ label {
 
   &.btn-sm {
     font-size: 14px;
+    @include breakpoint(lg) {
+      font-size: $fontSmall;
+    }
   }
 
   &.btn-xs {
     font-size: 12px;
-    line-height: 26px;
-    padding: 0.2rem 1rem;
+    line-height: 24px;
+    padding: 5px 15px;
+    height: 35px;
   }
 
   &.btn-md {
     font-size: $fontLarge;
     line-height: 24px;
+    @include breakpoint(lg) {
+      font-size: $fontSmall;
+    }
   }
 
   &.btn-lg {
     font-size: 18px;
     line-height: 28px;
-    padding: 1rem 1.5rem;
+    padding: 16px 22px;
+    @include breakpoint(lg) {
+      font-size: $fontSmall;
+    }
   }
 
   &.btn-primary {
@@ -620,12 +592,12 @@ label {
 
   &.btn-default {
     background: #D8D8D8;
-    border: #D8D8D8;
+    border: 1px solid #D8D8D8;
     color: $gray;
 
     &:hover {
       background: $gray;
-      border: $gray;
+      border: 1px solid $gray;
       color: $white;
     }
 
@@ -639,23 +611,35 @@ label {
 
   &.btn-blue {
     background: $blue;
-    border: $blue;
+    border: 1px solid $blue;
     color: $white;
 
     &:hover {
       background: $black;
-      border: $black;
+      border: 1px solid $black;
+    }
+  }
+
+  &.btn-white {
+    background: $white;
+    border: 1px solid $bordercolor;
+    color: $black;
+
+    &:hover, &:focus, &:visited {
+      background: #f2f2f2;
+      border: 1px solid #d8d8d8;
+      color: $black;
     }
   }
 
   &.btn-green {
     background: $green;
-    border: $green;
+    border: 1px solid $green;
     color: $white;
 
     &:hover {
       background: #198B20;
-      border: #198B20;
+      border: 1px solid #198B20;
     }
   }
 }
@@ -679,7 +663,7 @@ label {
       padding: 0;
 
       @include breakpoint(lg) {
-        top: 10px;
+        top: 5px;
       }
     }
   }
@@ -1075,6 +1059,7 @@ html input[disabled] {
 
 
 .badge {
+  display: inline;
   padding: 4px 6px;
   font-size: $fontSmall;
   font-weight: 400;
@@ -1717,7 +1702,10 @@ h6 {
     }
   }
 }
-
+.tooltip.top {
+  box-shadow: none !important;
+  background-color: transparent !important;
+}
 
 .pagination {
   width: 100%;
@@ -1728,7 +1716,9 @@ h6 {
 
     li {
       padding: 0 5px;
-
+      @include breakpoint(lg) {
+        padding: 0 3px;
+      }
       &.active {
         a {
           color: $white !important;
@@ -1780,6 +1770,11 @@ h6 {
         padding: .375rem .75rem;
         color: #767676 !important;
         @include border-radius (100%);
+
+        @include breakpoint(lg) {
+          width: 35px;
+          height: 35px;
+        }
 
         &:hover,
         &:focus {

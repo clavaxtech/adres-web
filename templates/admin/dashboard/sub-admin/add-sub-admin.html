@@ -59,7 +59,7 @@
                 <div class="col-lg-4 col-md-6">
                   <div class="form-group">
                     <label for="usr_phone_no">Phone <span class="text-danger">*</span></label>
-                    <input type="text" aria-label="Phone" class="form-control" name="usr_phone_no" id="usr_phone_no" placeholder="Phone" value="{{ agent_details.phone_no|default:'' }}" data-inputmask="'mask': '(999) 999-9999'" data-inputmask-clearincomplete="true">
+                    <input type="text" aria-label="Phone" class="form-control" name="usr_phone_no" id="usr_phone_no" placeholder="Phone" value="{{ agent_details.phone_no|default:'' }}" data-inputmask="'mask': '99 999 9999'" data-inputmask-clearincomplete="true">
                   </div>
                 </div>
                 <div class="col-lg-4 col-md-6">
@@ -142,45 +142,7 @@
                 
               </div>
               <p id="agent_image_error"  class="custom_image_error" style="display:none;">Image is required.</p>
-              <!-- <div class="form-group">
-                <label for="uploadAgentLogoImgFrm">
-                  Company Logo
-                </label>
-                <div class="upload-fav pt10 pb0">
-                  <div class="item">
-                    
-                    <div class="dropzone" id="uploadAgentLogoImgFrm">
-                      <input type="hidden" id="agent_logo_img_id" name="agent_logo_img_id" value="{{ agent_details.company_logo.upload_id|default:'' }}"/>
-                                  <input type="hidden" name="agent_logo_img_name" id="agent_logo_img_name" value="{{ agent_details.company_logo.doc_file_name|default:'' }}"/>
-                      <div class="dz-default dz-message" data-dz-message="">
-                        <div class="block">
-                          <button type="button" class="btn btn-primary"><i class="fas fa-upload"></i> Upload Logo</button>
-                        </div>
-                        <div class="block">
-                          or
-                        </div>
-                        <div class="block">
-                          <h6>
-                            Drag & Drop Docs
-                            <span>Supported Files:  png, jpg, jpeg</span>
-                          </h6>
-                        </div>
-                      </div>
-
-                    </div>
-                  </div>
-                  <div class="item" class="agentLogoImageDiv" id="agentLogoImageDiv" style="{% if agent_details.company_logo.doc_file_name %}{% else %}display:none;{% endif %}">
-                    <div class="logo-icon agent-section">
-                      <figure>
-                        <img src="{{ azure_blob_url }}{{ agent_details.company_logo.bucket_name }}/{{ agent_details.company_logo.doc_file_name }}" class="agentLogoImageId" id="agentLogoImageId" alt="real estate sales" width="211" height="113">
-                      </figure>
-                      <a href="javascript:void(0)" class="confirm_image_delete" data-image-id="{{ agent_details.company_logo.upload_id|default:'' }}" data-image-name="{{ agent_details.company_logo.doc_file_name|default:'' }}" data-image-section="{{ agent_details.company_logo.bucket_name|default:'' }}" data-count=""><i class="fas fa-trash-alt"></i></a>
-                    </div>
-                  </div>
-
-                </div>
-              </div> -->
-
+              
               <input type="hidden" name="total_permission" id="total_permission" value="{{ permission_list|length }}" />
               <div class="row">
                 <div class="col-md-12">
@@ -241,49 +203,11 @@
                   </div><!-- End .permission-btn -->
                 </div>
               </div>
-              {% comment %}
-              <div class="form-group mb0">
-                <label for="doc">
-                  Real estate license validation document
-                </label>
-                <div class="upload-fav pt10">
-                  <div class="item">
-                    <div class="dropzone" id="doc">
-                      <div class="fallback">
-                        <input name="file" aria-label="Real estate license validation document" type="file" multiple />
-                        <button role="button"><i class="fas fa-upload" aria-hidden="true" role="presentation"></i> Upload Document</button>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="item">
-                    &nbsp;
-                  </div>
-                </div><!-- End .uplaod-fav -->
-
-                <div class="row">
-                  <div class="col-md-6">
-                    <div class="doc-show-list">
-                      <ul>
-                        <li>
-                          <h6>
-                            <span class="red-text"><i class="fas fa-file-pdf" aria-hidden="true" role="presentation"></i></span> license.pdf
-                          </h6>
-                          <a href="javascript:void(0)"><i class="fas fa-trash-alt" aria-hidden="true" role="presentation"></i></a>
-                        </li>
-                      </ul>
-                    </div><!-- End .doc-show-list -->
-                  </div>
-                </div>
-
-
-
-              </div>
-                {% endcomment %}
             </div><!-- End .box -->
 
             <div class="clearfix pt30">
               <button type="submit" id="submit" class="btn btn-primary">Save</button> 
-              <a href="/admin/agents/" class="btn btn-primary-bdr">Cancel</a>
+              <a href="/admin/sub-admin/" class="btn btn-primary-bdr">Cancel</a>
             </div>
             <div class="overlay" style="display:none;">
               <div class="loader">Loading...</div>
@@ -296,39 +220,24 @@
 {% block js_content %}
   <script type="text/javascript" src="{% static 'admin/js/mask_input.js' %}"></script>
   <script type="text/javascript" src="{% static 'admin/js/custom.js' %}"></script>
-    <!--<script type="text/javascript" src="{% static 'admin/js/tinymce/tinymce.min.js' %}"></script>-->
-    <script type="text/javascript" src="{% static 'admin/js/mask_input.js' %}"></script>
-    <script type="text/javascript" src="{% static 'admin/js/jquery.blockUI.js' %}"></script>
-    <script type="text/javascript" src="{% static 'admin/js/custom_validator.js' %}?v=2.4"></script>
-    <script type="text/javascript" src="{% static 'admin/js/jquery.growl.js' %}"></script>
-    <!-- <script type="text/javascript" src="{% static 'admin/js/agent.js' %}?v=3.6"></script> -->
-    <script type="text/javascript" src="{% static 'admin/js/sub-admin.js' %}?v=3.6"></script>
-    <script type="text/javascript" src="{% static 'admin/js/custom_js.js' %}?v=3.6"></script>
-<script type="text/javascript" src="{% static 'admin/js/dropzone.js' %}"></script>
-      <script type="text/javascript" src="{% static 'admin/js/custom_dropzone.js' %}?v=3.1"></script>
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-tour/0.11.0/js/bootstrap-tour.js"></script>
-      <script type="text/javascript" src="{% static 'admin/js/add_agent_tour.js' %}?v=3.1"></script>
+  <script type="text/javascript" src="{% static 'admin/js/mask_input.js' %}"></script>
+  <script type="text/javascript" src="{% static 'admin/js/jquery.blockUI.js' %}"></script>
+  <script type="text/javascript" src="{% static 'admin/js/custom_validator.js' %}?v=2.4"></script>
+  <script type="text/javascript" src="{% static 'admin/js/jquery.growl.js' %}"></script>
+  <script type="text/javascript" src="{% static 'admin/js/sub-admin.js' %}?v=3.6"></script>
+  <script type="text/javascript" src="{% static 'admin/js/custom_js.js' %}?v=3.6"></script>
+  <script type="text/javascript" src="{% static 'admin/js/dropzone.js' %}"></script>
+  <script type="text/javascript" src="{% static 'admin/js/custom_dropzone.js' %}?v=3.1"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-tour/0.11.0/js/bootstrap-tour.js"></script>
 
 <script>
       var is_first_login = {{request.session.is_first_admin_login}};
       var response_msg = '{{ response.msg }}';
       var response_error = '{{ response.error }}';
-      $(document).ready(function(){
-        myfunction(response_error, response_msg);
-      });
-      function myfunction(){
-        if(response_error == '0' && response_msg != ""){
-          $.growl.notice({title: "Business Info ", message: response_msg, size: 'large'});
-        }else if(response_error == '1' && response_msg != ""){
-          $.growl.error({title: "Business Info ", message: response_msg, size: 'large'});
-        }else{
-
-        }
-      }
+      
       $('#agent_state, #agent_status').chosen();
       $('[data-toggle="tooltip"]').tooltip();
-      $("#usr_phone_no").inputmask('(999) 999-9999');
+      // $("#usr_phone_no").inputmask('(999) 999-9999');
       check_permission();
-
     </script>
 {% endblock %}

@@ -3,8 +3,7 @@
 {% load dashboard_extra %}
 {% block title %}{{title}}{% endblock %}
 {% block styles %}
-    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.7.14/css/bootstrap-datetimepicker.min.css"> -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.37/css/bootstrap-datetimepicker.min.css">
+    
     <!-- <link rel="stylesheet" href="{% static 'admin/css/chosen.css' %}"> -->
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-tour/0.11.0/css/bootstrap-tour.css">
   
@@ -30,7 +29,15 @@
               {{ property_details.property_name|default:'' }}
             </span>
           </h4>
+          
         </div><!-- End .block -->
+        <div class="block">
+          {% if property_details.seller_status == 29%}
+            <h6 class="retn">
+              Return Reason: {{property_details.seller_property_return_reason|default:""}}
+            </h6>
+          {% endif %}
+        </div>
       </div><!-- End .item -->
     </div>
 
@@ -113,7 +120,7 @@
                                     <div class="row position-relative">
                                       <div class="col-md-12">
                                         <h6>
-                                          Owner
+                                          Owner #<span class="owner_count">{{ forloop.counter }}</span>
                                         </h6>
                                       </div>
                                       <div class="col-lg-6 col-md-6">
@@ -186,7 +193,7 @@
                                   <div class="row position-relative">
                                     <div class="col-md-12">
                                       <h6>
-                                        Owner
+                                        Owner #<span class="owner_count">1</span>
                                       </h6>
                                     </div>
 
@@ -303,7 +310,7 @@
                               </div><!-- End .col-md-6 -->
                               <div class="col-lg-6 col-md-6">
                                 <div class="form-group">
-                                  <label for="project">Project <span class="text-danger">*</span></label>
+                                  <label for="project">Project</label>
                                   <select class="project form-control select" aria-label="Project" name="project" id="project">
                                     <option value="">Select Project</option>
                                     {% for proj in project %}
@@ -326,7 +333,7 @@
                               </div>
                               <div class="col-lg-6 col-md-6">
                                 <div class="form-group">
-                                  <label for="property_type">Property Type </label>
+                                  <label for="property_type">Property Type <span class="text-danger">*</span></label>
                                   <select class="property_type form-control select" aria-label="Property Type" name="property_type" id="property_type">
                                     <option value="">Select Property Type</option>
                                     {% for prop_type in property_type %}
@@ -418,14 +425,17 @@
                                     <label for="vacancy" class="radio-label">Vacant</label>
                                   </div>
                                 </div>
+
+                                <div class="rental_till_parent" {% if property_details.vacancy == 2 %} style="display: none;" {% else %} style="display: block;" {% endif %}>
+                                  <div class="form-group">
+                                    <label for="rental_till" class="rental_till_class">Rented Till <span class="text-danger">*</span></label>
+                                    <input type="text" name="rental_till" class="form-control" id="rental_till" value="{{property_details.rental_till|default:""}}" />
+                                  </div>
+                                </div><!-- End .col-md-6 -->
+
                               </div><!-- End .col-md-6 -->
 
-                              <div class="col-md-6 col-sm-6 rental_till_parent" {% if property_details.vacancy == 2 %} style="display: none;" {% else %} style="display: block;" {% endif %}>
-                                <div class="form-group">
-                                  <label for="rental_till" class="rental_till_class">Rented Till <span class="text-danger">*</span></label>
-                                  <input type="text" name="rental_till" class="form-control" id="rental_till" value="{{property_details.rental_till|default:""}}" />
-                                </div>
-                              </div><!-- End .col-md-6 -->
+                              
 
                               <div class="col-md-6 col-sm-6">
                                 <div class="form-group">
@@ -439,7 +449,7 @@
                                 </div>
                               </div><!-- End .col-md-6 -->
 
-                              <div class="col-md-6 col-sm-6">
+                              <div class="col-md-12 col-sm-12">
                                 <div class="form-group">
                                   <label for="amenities">Amenities <span class="text-danger">*</span></label>
                                   <select name="property_amenities" aria-label="property_amenities" id="property_amenities" class="select form-control new_feature_dropdown" data-placeholder="Select" multiple>
@@ -453,7 +463,7 @@
                                 </div>
                               </div><!-- End .col-md-6 -->
 
-                              <div class="col-md-6 col-sm-6">
+                              <div class="col-md-12 col-sm-12">
                                 <div class="form-group">
                                   <label for="amenities">Property Tags <span class="text-danger">*</span></label>
                                   <select name="property_tags" aria-label="Property Tags" id="property_tags" class="select form-control new_feature_dropdown" data-placeholder="Select" multiple>
@@ -466,7 +476,7 @@
                                 </div>
                               </div><!-- End .col-md-6 -->
 
-                              <div class="col-md-6 col-sm-6">
+                              <div class="col-md-12 col-sm-12">
                                 <div class="form-group">
                                   <label for="description">Description <span class="text-danger">*</span></label>
                                   <textarea name="description" class="form-control" id="Description" placeholder="Property Description">{{property_details.description|default:""}}</textarea>
@@ -494,9 +504,9 @@
                     <div id="collapsesix" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
                         <div class="panel-body">
                             <div class="deed">
-                              <h6>
+                              <label>
                                 <i class="far fa-image red-text" aria-hidden="true" role="presentation"></i> Title Deed<span class="text-danger">*</span>
-                              </h6>
+                              </label>
                               <div class="upload-fav">
                                 <div class="item">
                                   <div class="dropzone" id="propertyDeedFrm">
@@ -504,7 +514,7 @@
                                         <input type="hidden" name="property_deed_name" id="property_deed_name" value="{{ property_details.deed_image_name|default:'' }}"/>
                                         <div class="dz-default dz-message" data-dz-message="">
                                           <div class="block">
-                                            <button type="button" class="btn btn-primary"><i class="fas fa-upload" aria-hidden="true" role="presentation"></i> Upload Photos</button>
+                                            <button type="button" class="btn btn-white"><i class="fas fa-upload" aria-hidden="true" role="presentation"></i> Upload Photos</button>
                                           </div>
                                           <div class="block">
                                             or
@@ -525,12 +535,12 @@
                                 </div>
                               </div><!-- End .uplaod-fav -->
                               <p id="custom_property_deed_error"  class="custom_image_error" style="display:none;">Image is required.</p>
-                              <h6>
+                              <label>
                                 Primary photos
                                 <div class="tooltipp"><i class="fas fa-question-circle" aria-hidden="true" role="presentation"></i>
                                   <span class="tooltipp__content right">Drag and drop photos to change their order.</span>
                                 </div>
-                              </h6>
+                              </label>
       
                               <div class="image-show-list" id="PropertyDeedDiv" style="{% if property_details.deed_image|length > 0 %}{% else %}display:none;{% endif %}">
                                 <ul id="propertyDeedList">
@@ -558,9 +568,9 @@
                             </div><!-- End .deed -->
 
                             <div class="floor_plan">
-                              <h6>
+                              <label>
                                 <i class="far fa-image red-text" aria-hidden="true" role="presentation"></i> Floor Plans<span class="text-danger">*</span>
-                              </h6>
+                              </label>
                               <div class="upload-fav">
                                 <div class="item">
                                   <div class="dropzone" id="propertyFloorPlanFrm">
@@ -568,7 +578,7 @@
                                         <input type="hidden" name="property_floor_plan_name" id="property_floor_plan_name" value="{{ property_details.floor_plans_image_name|default:'' }}"/>
                                         <div class="dz-default dz-message" data-dz-message="">
                                           <div class="block">
-                                            <button type="button" class="btn btn-primary"><i class="fas fa-upload" aria-hidden="true" role="presentation"></i> Upload Photos</button>
+                                            <button type="button" class="btn btn-white"><i class="fas fa-upload" aria-hidden="true" role="presentation"></i> Upload Photos</button>
                                           </div>
                                           <div class="block">
                                             or
@@ -589,12 +599,12 @@
                                 </div>
                               </div><!-- End .uplaod-fav -->
                               <p id="custom_property_floor_plan_error"  class="custom_image_error" style="display:none;">Image is required.</p>
-                              <h6>
+                              <label>
                                 Primary photos
                                 <div class="tooltipp"><i class="fas fa-question-circle" aria-hidden="true" role="presentation"></i>
                                   <span class="tooltipp__content right">Drag and drop photos to change their order.</span>
                                 </div>
-                              </h6>
+                              </label>
       
                               <div class="image-show-list" id="PropertyFloorPlanDiv" style="{% if property_details.floor_plans_image|length > 0 %}{% else %}display:none;{% endif %}">
                                 <ul id="propertyFloorPlanList">
@@ -622,9 +632,9 @@
                             </div><!-- End .floor plan -->
 
                             <div class="cover_image">
-                              <h6>
+                              <label>
                                 <i class="far fa-image red-text" aria-hidden="true" role="presentation"></i> Cover Image<span class="text-danger">*</span>
-                              </h6>
+                              </label>
                               <div class="upload-fav">
                                 <div class="item">
                                   <div class="dropzone" id="propertyCoverImageFrm">
@@ -632,7 +642,7 @@
                                         <input type="hidden" name="property_cover_image_name" id="property_cover_image_name" value="{{ property_details.cover_image_name|default:'' }}"/>
                                         <div class="dz-default dz-message" data-dz-message="">
                                           <div class="block">
-                                            <button type="button" class="btn btn-primary"><i class="fas fa-upload" aria-hidden="true" role="presentation"></i> Upload Photos</button>
+                                            <button type="button" class="btn btn-white"><i class="fas fa-upload" aria-hidden="true" role="presentation"></i> Upload Photos</button>
                                           </div>
                                           <div class="block">
                                             or
@@ -653,12 +663,12 @@
                                 </div>
                               </div><!-- End .uplaod-fav -->
                               <p id="custom_property_cover_image_error"  class="custom_image_error" style="display:none;">Image is required.</p>
-                              <h6>
+                              <label>
                                 Primary photos
                                 <div class="tooltipp"><i class="fas fa-question-circle" aria-hidden="true" role="presentation"></i>
                                   <span class="tooltipp__content right">Drag and drop photos to change their order.</span>
                                 </div>
-                              </h6>
+                              </label>
       
                               <div class="image-show-list" id="PropertyCoverImageDiv" style="{% if property_details.cover_image|length > 0 %}{% else %}display:none;{% endif %}">
                                 <ul id="propertyCoverImageList">
@@ -686,9 +696,9 @@
                             </div><!-- End .cover image -->
 
                             <div class="property_image">
-                              <h6>
+                              <label>
                                 <i class="far fa-image red-text" aria-hidden="true" role="presentation"></i> Property Images(Minimun 5 images required.)<span class="text-danger">*</span>
-                              </h6>
+                              </label>
                               <div class="upload-fav">
                                 <div class="item">
                                   <div class="dropzone" id="propertyImageFrm">
@@ -696,7 +706,7 @@
                                         <input type="hidden" name="property_image_name" id="property_image_name" value="{{ property_details.property_image_name|default:'' }}"/>
                                         <div class="dz-default dz-message" data-dz-message="">
                                           <div class="block">
-                                            <button type="button" class="btn btn-primary"><i class="fas fa-upload" aria-hidden="true" role="presentation"></i> Upload Photos</button>
+                                            <button type="button" class="btn btn-white"><i class="fas fa-upload" aria-hidden="true" role="presentation"></i> Upload Photos</button>
                                           </div>
                                           <div class="block">
                                             or
@@ -717,12 +727,12 @@
                                 </div>
                               </div><!-- End .uplaod-fav -->
                               <p id="custom_property_image_error"  class="custom_image_error" style="display:none;">Image is required.</p>
-                              <h6>
+                              <label>
                                 Primary photos
                                 <div class="tooltipp"><i class="fas fa-question-circle" aria-hidden="true" role="presentation"></i>
                                   <span class="tooltipp__content right">Drag and drop photos to change their order.</span>
                                 </div>
-                              </h6>
+                              </label>
       
                               <div class="image-show-list" id="PropertyImageDiv" style="{% if property_details.property_image|length > 0 %}{% else %}display:none;{% endif %}">
                                 <ul id="propertyImageList">
@@ -750,9 +760,9 @@
                             </div><!-- End .property image -->
 
                             <div class="property_video">
-                              <h6>
+                              <label>
                                 <i class="far fa-image red-text" aria-hidden="true" role="presentation"></i> Video 
-                              </h6>
+                              </label>
                               <div class="upload-fav">
                                 <div class="item">
                                   <div class="dropzone" id="propertyVideoFrm">
@@ -760,7 +770,7 @@
                                         <input type="hidden" name="property_video_name" id="property_video_name" value="{{ property_details.property_video_name|default:'' }}"/>
                                         <div class="dz-default dz-message" data-dz-message="">
                                           <div class="block">
-                                            <button type="button" class="btn btn-primary"><i class="fas fa-upload" aria-hidden="true" role="presentation"></i> Upload Video</button>
+                                            <button type="button" class="btn btn-white"><i class="fas fa-upload" aria-hidden="true" role="presentation"></i> Upload Video</button>
                                           </div>
                                           <div class="block">
                                             or
@@ -781,12 +791,13 @@
                                 </div>
                               </div><!-- End .uplaod-fav -->
                               <p id="custom_property_video_error"  class="custom_image_error" style="display:none;">Image is required.</p>
-                              <h6>
+
+                              <label>
                                 Primary Video
                                 <div class="tooltipp"><i class="fas fa-question-circle" aria-hidden="true" role="presentation"></i>
                                   <span class="tooltipp__content right">Drag and drop video to change their order.</span>
                                 </div>
-                              </h6>
+                              </label>
       
                               <div class="image-show-list" id="PropertyVideoDiv" style="{% if property_details.property_video|length > 0 %}{% else %}display:none;{% endif %}">
                                 <ul id="propertyVideoList">
@@ -899,21 +910,24 @@
                                 </div><!-- End .col-md-6 -->
 
                                 <div class="col-md-12 col-sm-12">
-                                  <div class="row">
-                                    <div class="col-md-6 col-sm-6">
-                                      <div class="form-group">
-                                        <div class="clearfix pb20">
-                                          <input type="checkbox" class="sell_at_full_amount_status css-checkbox" id="sell_at_full_amount_status" name="sell_at_full_amount_status" value="1" {% if property_details.sell_at_full_amount_status %}checked{% endif %}>
-                                          <label for="sell_at_full_amount_status" class="check-label">Sell at full price </label>
+                                 
+                                    <div class="form-group">
+                                      <div class="full-price">
+                                          <label for="sell_at_full_amount_status">Sell at full price</label>
+                                          <label title="Allow All Module Access" area-label="Allow All Module Access" class="switch small">
+                                            <input type="checkbox" class="sell_at_full_amount_status css-checkbox" id="sell_at_full_amount_status" name="sell_at_full_amount_status" value="1" {% if property_details.sell_at_full_amount_status %}checked{% endif %}>
+                                            <span class="slide round"></span>
+                                          </label>
+                                          <!-- <input type="checkbox" class="sell_at_full_amount_status css-checkbox" id="sell_at_full_amount_status" name="sell_at_full_amount_status" value="1" {% if property_details.sell_at_full_amount_status %}checked{% endif %}>
+                                          <label for="sell_at_full_amount_status" class="check-label">Sell at full price </label> -->
                                         </div>
-                                        <p class="mb0">
+                                        <p class="light-text mb0">
                                           Enable this option to sell the property immediately at your desired full price without waiting for further bids.
                                         </p>
-                                      </div>
                                     </div>
 
-                                    <div class="col-md-6 col-sm-6 full_price_field" {% if property_details.sell_at_full_amount_status %} style="display: block;" {% else %} style="display: none;" {% endif %}>
-                                      <div class="form-group">
+                                    <div class="row form-group full_price_field" {% if property_details.sell_at_full_amount_status %} style="display: block;" {% else %} style="display: none;" {% endif %}>
+                                      <div class="col-md-6 col-sm-6">
                                         <label for="full_amount">Full Price <span class="text-danger">*</span></label>
                                         <select class="full_amount form-control select" aria-label="Full Price" name="full_amount" id="full_amount">
                                           {% for price in price_listing %}
@@ -922,29 +936,43 @@
                                         </select>
                                       </div>
                                     </div>
-                                  </div>
+                                  
                                 </div>
+
+                                <hr>
                                 
                                 <div class="col-md-12 col-sm-12">
-                                  <div class="row">
-                                    <div class="col-md-6 col-sm-6">
-                                      <div class="form-group">
-                                        <input type="checkbox" class="bid_increment_status css-checkbox" id="bid_increment_status" name="bid_increment_status" value="1" {% if property_details.bid_increment_status %}checked{% endif %}>
-                                        <label for="bid_increment_status" class="check-label">Bid Increment </label>
-                                      </div>
+                                  <div class="form-group">
+                                    <div class="full-price">
+                                        <label for="bid_increment_status">Bid Increment </label>
+                                        <label title="Allow All Module Access" area-label="Allow All Module Access" class="switch small">
+                                          <!-- <input type="checkbox" area-label="" id="check_all_permission"> -->
+                                          <input type="checkbox" class="bid_increment_status css-checkbox" id="bid_increment_status" name="bid_increment_status" value="1" {% if property_details.bid_increment_status %}checked{% endif %}>
+                                          <span class="slide round"></span>
+                                        </label>
+
+                                        <!-- <input type="checkbox" class="bid_increment_status css-checkbox" id="bid_increment_status" name="bid_increment_status" value="1" {% if property_details.bid_increment_status %}checked{% endif %}>
+                                        <label for="bid_increment_status" class="check-label">Bid Increment </label> -->
+                                      
                                     </div>
-                                    <div class="col-md-6 col-sm-6 bid_increment_field" {% if property_details.bid_increment_status %} style="display: block;" {% else %} style="display: none;" {% endif %}>
-                                      <div class="form-group">
-                                        <label for="bid_increments">Bid Price <span class="text-danger">*</span></label>
-                                        <select class="bid_increments form-control select" aria-label="Bid Price" name="bid_increments" id="bid_increments">
-                                          {% for price in price_listing %}
-                                            <option value="{{ price }}" {% if property_details.bid_increments == price %} selected {% endif %}>{{ price }}</option>
-                                          {% endfor %}
-                                        </select>
-                                      </div>
+                                    <p class="light-text mb0">
+                                      Bid content
+                                    </p>
+                                  </div>
+                                  <div class="row form-group bid_increment_field" {% if property_details.bid_increment_status %} style="display: block;" {% else %} style="display: none;" {% endif %}>
+                                    <div class="col-md-6 col-sm-6">
+                                      <label for="bid_increments">Bid Price <span class="text-danger">*</span></label>
+                                      <select class="bid_increments form-control select" aria-label="Bid Price" name="bid_increments" id="bid_increments">
+                                        {% for price in price_listing %}
+                                          <option value="{{ price }}" {% if property_details.bid_increments == price %} selected {% endif %}>{{ price }}</option>
+                                        {% endfor %}
+                                      </select>
                                     </div>
                                   </div>
+                                  
                                 </div><!-- End .col-md-6 -->
+
+                                <hr>
 
                                 <div class="col-md-6 col-sm-6">
                                   <div class="form-group">
@@ -1005,17 +1033,22 @@
                               <div class="col-lg-12 col-md-12">
                                 <div class="form-group">
                                   <label for="municipality">Please review and sign the reservation agreement to reserve your property for auction. </label>
-                                  <p>This Reservation Agreement is between {% if property_details.signature %}{{property_details.signature|default:""}}{% else %}{{request.session.first_name|default:""}}{% endif %} and the Seller. By signing this agreement, the Seller confirms their intent to reserve the following property for auction:</p>
-                                  <p>Property Address: <span class="address_detail">{{property_details.state_name|default:""}}, {{property_details.property_name|default:""}}, {{property_details.country_name|default:""}}</span></p>
-                                  <p>Auction Date: <span class="auction_date_text" id="auction_date_text_one">{{property_details.start_date|default:""}}</span></p>
-                                  <p>Terms of Reservation:</p>
-                                  <ol>
-                                    <li>The Seller agrees to provide all necessary documents related to the property.</li>
-                                    <li>The property will be reserved for auction on <span class="auction_date_text" id="auction_date_text_two">{{property_details.start_date|default:""}}</span>.</li>
-                                    <li>The Seller acknowledges that the auction process will be conducted according to the terms outlined.</li>
-                                    <li>Any fees associated with the reservation will be communicated separately.</li>
-                                    <li>The Seller may withdraw the reservation prior to the auction date.</li>
-                                  </ol>
+                                  <div class="enable-text">
+                                    This Reservation Agreement is between {% if property_details.signature %}{{property_details.signature|default:""}}{% else %}{{request.session.first_name|default:""}}{% endif %} and the Seller. By signing this agreement, the Seller confirms their intent to reserve the following property for auction:
+                                    <br>
+                                    Property Address: <span class="address_detail">{{property_details.state_name|default:""}}, {{property_details.property_name|default:""}}, {{property_details.country_name|default:""}}</span>
+                                    <br>
+                                    Auction Date: <span class="auction_date_text" id="auction_date_text_one">{{property_details.start_date|default:""}}</span>
+                                    <br>
+                                    Terms of Reservation:
+                                    <br>
+                                    
+                                    The Seller agrees to provide all necessary documents related to the property.<br>
+                                    The property will be reserved for auction on <span class="auction_date_text" id="auction_date_text_two">{{property_details.start_date|default:""}}</span>.<br>
+                                    The Seller acknowledges that the auction process will be conducted according to the terms outlined.<br>
+                                    Any fees associated with the reservation will be communicated separately.<br>
+                                    The Seller may withdraw the reservation prior to the auction date.
+                                  </div>
                                 </div>
                               </div>
                               <div class="col-md-6 col-sm-6">
@@ -1025,9 +1058,9 @@
                                 </div>
                               </div><!-- End .col-md-6 -->
                               <div class="col-md-12 col-sm-12">
-                                <div class="form-group">
+                                <div class="form-group agrement-text">
                                   <input type="checkbox" class="term_agreement" id="term_agreement" name="term_agreement" value="1" {% if property_details.term_agreement %}checked{% endif %}>
-                                  <label for="term_agreement">I have read and agree to the terms of the reservation agreement.</label>
+                                  <label for="term_agreement" class="">I have read and agree to the terms of the reservation agreement.</label>
                                 </div>
                               </div><!-- End .col-md-12 -->
                             </div><!-- End .row -->

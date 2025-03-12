@@ -32,7 +32,7 @@ $(document).ready(function(){
     agent_image_params = {
         url: '/admin/save-images/',
         field_name: 'agent_image',
-        file_accepted: '.png, .jpg, .jpeg',
+        file_accepted: '.png, .jpg, .jpeg, .jfif',
         element: 'uploadAgentImgFrm',
         upload_multiple: false,
         max_files: 1,
@@ -46,7 +46,7 @@ $(document).ready(function(){
     agent_logo_image_params = {
         url: '/admin/save-images/',
         field_name: 'agent_logo_image',
-        file_accepted: '.png, .jpg, .jpeg',
+        file_accepted: '.png, .jpg, .jpeg, .jfif',
         element: 'uploadAgentLogoImgFrm',
         upload_multiple: false,
         max_files: 1,

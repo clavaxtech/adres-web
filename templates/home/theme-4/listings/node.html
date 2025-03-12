@@ -52,28 +52,19 @@ const socket = io.connect(socket_domain, {
     transports: ["websocket", "xhr-polling", "htmlfile", "jsonp-polling"],
     rejectUnauthorized: false,
     requestCert: false,
+    query: { user_id: 9 }
 });
-
-// const socket_domain = "http://127.0.0.1:3001"; // Connect from Docker to local machine
-
-// const socket = io.connect(socket_domain, {
-//     transports: ["websocket", "polling"],
-//     rejectUnauthorized: false,
-//     // requestCert: false,
-// });
-
-// console.log(socket);
 
 socket.on("connect", () => {
     console.log("Connected to Node.js socket server");
 });
+// socket.emit("joinRoom", 25);
 
-socket.emit("getNotifications", {"domain_id": 3, "user_id": 13});
+socket.emit("getNotifications", {"user_id": 9});
 socket.on('getNotifications',function(data) {
     console.log("==========");
     console.log(data)
 });
-console.log("-------------------------");
 
 
 // -------------------Socket call----------------

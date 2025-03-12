@@ -1,69 +1,5 @@
 {% load static %}
 {% load dashboard_extra %}
-<!-- <div class="block">
-                <div class="item">
-                  No.
-                </div>
-                <div class="item">
-                  Property Name
-                </div>
-                <div class="item">
-                  Property Type
-                </div>
-
-                {% if auction_id != 6 %}
-                <div class="item">
-                  {% if auction_id == 4 or auction_id == 7 %}Review Offers{% else %}Bidders{% endif %}
-                </div>
-                {% endif %}
-                <div class="item">
-                  Listing Agent
-                </div>
-                {% if auction_id == 4 or auction_id == 6 or auction_id == 7 %}
-                {% else %}
-                <div class="item">
-                  Bids
-                </div>
-                {% endif %}
-                <div class="item">
-                  No. of view
-                </div>
-                {% if auction_id == 4 %}
-                {% else %}
-                  {% if auction_id == 7 %}
-                    <div class="item">
-                      Offer Start
-                    </div>
-                    <div class="item">
-                      Offer End
-                    </div>
-                  {% else %}
-                    <div class="item">
-                      Bidding Start
-                    </div>
-                    <div class="item">
-                      Bidding End
-                    </div>
-                  {% endif %}
-                {% endif %}
-
-                <div class="item">
-                  Created Date
-                </div>
-                <div class="item">
-                  Status
-                </div>
-                <div class="item">
-                  Approval
-                </div>
-
-                <div class="item">
-                  Action
-                </div>
-
-              </div> -->
-
-
               <input type="hidden" name="counter_num" id="counter_num" value="{{ sno|default:1 }}">
               <div class=""  id="property_list">
                 {% if property_list|length > 0 %}
@@ -88,21 +24,6 @@
                     </li>
 
                     {% if property.sale_by_type == 4 %}
-                    {% comment %}
-                    <li>
-                      {% if property.open_house_start %}
-                      <i class="fa-solid fa-calendar-days" aria-hidden="true" role="presentation"></i> Open House Start Date |
-                      <span class="convert_to_local_date_time_cst" data-value="{{ property.open_house_start|default:'' }}"></span>
-                      {% endif %}
-                    </li>
-                    <li>
-                      {% if property.open_house_end %}
-                      <i class="fa-solid fa-calendar-days" aria-hidden="true" role="presentation"></i> Open House End Date |
-                      <span class="convert_to_local_date_time_cst" data-value="{{ property.open_house_end|default:'' }}"></span>
-                      {% endif %}
-                    </li>
-                    {% endcomment %}
-                    
                     <li>
                       <i class="fa-solid fa-calendar-days" aria-hidden="true" role="presentation"></i> Listing Created |
                       <span class="convert_to_local_date_time_cst" data-value="{{ property.created_date|default:'' }}"></span>
@@ -147,13 +68,13 @@
                         <div class="block-status">
                           <div class="item">
                             <span class="badge badge-info">
-                              {{ property.property_type|default:'' }}
+                              {{ property.property_type_name|default:'' }}
                             </span>
                           </div>
                           <div class="item">
                             <!-- <strong><label for="">Property Status</label></strong><br> -->
                             <div class="{% if is_broker == 1 %}display_status{% endif %}" id="display_status_{{ property.id }}">
-                              <span class="badge {% if property.status_id == 2 %} badge-danger{% elif property.status_id == 4 %} badge-danger{% else %}badge-danger{% endif %}" style="cursor:pointer;">
+                              <span class="badge {% if property.status_id == 2 %} badge-danger{% elif property.status_id == 4 %} badge-danger{% else %}badge-success{% endif %}" style="cursor:pointer;">
                                 {{ property.status }}
                               </span>
                             </div>
@@ -169,120 +90,54 @@
                           </div>
                         </div>
                         <h6>
-                          <a href="/asset-details/?property_id={{ property.id }}" target="_blank">
-                            {{ property.auction_type|default:'' }}
+                          <a href="/admin/add-listing/?property_id={{ property.id }}">
                             {% if property.property_name %}<span>{{property.property_name}}</span>{% endif %}
-                            <span class="blue-text" title="{{ property.name }}">{{ property.name }}</span>
                           </a>
                         </h6>
                         <p class="location">
-                          <i class="fas fa-map-marker-alt" aria-hidden="true" role="presentation"></i> {{ property.property_location }}
+                          <i class="fas fa-map-marker-alt" aria-hidden="true" role="presentation"></i> {{ property.state_name }} - {{ property.community }} 
                         </p>
                         <div class="approval-status">
                           {% if is_broker == 1 %}
-                            <div class="bdr">
-                              <strong><label for="">Property Approval Status</label></strong>
-                              <div class="{% if is_broker == 1 %}approval_status{% endif %}" id="approval_status_{{ property.id }}">
-                                <span class="badge {% if property.seller_status == 28 %} badge-success{% else %}badge-warning{% endif %}" style="cursor:pointer;">
-                                  {{ property.approval }}
-                                </span>
-                              </div>
-                              <div class="{% if is_broker == 1 %}change_approval{% endif %}" id="change_approval_{{ property.id }}" style="display:none;">
-                                <!-- <select class="select form-control listing_change_approval" name="listing_change_approval" id="listing_change_approval_{{ property.id }}" onchange="change_apporval_status({{ property.id }}, this)">
-                                    <option value="1" {% if property.is_approved == True %}selected{% endif %}>Approved</option>
-                                    <option value="0" {% if property.is_approved == False %}selected{% endif %}>Not Approved</option>
-                                </select> -->
-                                <select class="select form-control listing_change_approval" aria-label="Approval" name="listing_change_approval" id="listing_change_approval_{{ property.id }}" onchange="check_approval_status({{ property.id }}, this)">
-                                  <option value="24" {% if property.seller_status == 24 %}selected{% endif %}>Under Review</option>
-                                  <option value="28" {% if property.seller_status == 28 %}selected{% endif %}>Ready for Publish</option>
-                                  <option value="29" {% if property.seller_status == 29 %}selected{% endif %}>Returned for Update</option>
-                                </select>
-                              </div>
-                            </div>
-                          {% else %} 
-                          <div class="bdr">
+                            
                             <strong><label for="">Property Approval Status</label></strong>
                             <div class="{% if is_broker == 1 %}approval_status{% endif %}" id="approval_status_{{ property.id }}">
                               <span class="badge {% if property.seller_status == 28 %} badge-success{% else %}badge-warning{% endif %}" style="cursor:pointer;">
                                 {{ property.approval }}
                               </span>
                             </div>
-                          </div> 
+                            <div class="{% if is_broker == 1 %}change_approval{% endif %}" id="change_approval_{{ property.id }}" style="display:none;">
+                              
+                              <select class="select form-control listing_change_approval" aria-label="Approval" name="listing_change_approval" id="listing_change_approval_{{ property.id }}" onchange="check_approval_status({{ property.id }}, this)">
+                                <option value="24" {% if property.seller_status == 24 %}selected{% endif %}>Under Review</option>
+                                <option value="28" {% if property.seller_status == 28 %}selected{% endif %}>Ready for Publish</option>
+                                <option value="29" {% if property.seller_status == 29 %}selected{% endif %}>Returned for Update</option>
+                              </select>
+                            </div>
+                            
+                          {% else %} 
+                          
+                          <strong><label for="">Property Approval Status</label></strong>
+                          <div class="{% if is_broker == 1 %}approval_status{% endif %}" id="approval_status_{{ property.id }}">
+                            <span class="badge {% if property.seller_status == 28 %} badge-success{% else %}badge-warning{% endif %}" style="cursor:pointer;">
+                              {{ property.approval }}
+                            </span>
+                          </div>
+                          
                           {% endif %}
                           
                         </div>
                       </figcaption>
                     </li>
-                    <!-- <li>
-                      <div class="block-status status">
-                        <div class="item">
-                          <strong><label for="">Auction Type </label></strong><br>
-                            <span class="badge badge-info">
-                              {{ property.auction_type|default:'' }}
-                            </span>
-                        </div>
-                        <div class="item">
-                          <strong><label for="">Property Status</label></strong><br>
-                          <div class="{% if is_broker == 1 %}display_status{% endif %}" id="display_status_{{ property.id }}">
-                            <span class="badge {% if property.status_id == 2 %} badge-danger{% elif property.status_id == 4 %} badge-danger{% else %}badge-danger{% endif %}" style="cursor:pointer;">
-                              {{ property.status }}
-                            </span>
-                          </div>
-                          <div class="{% if is_broker == 1 %}change_status{% endif %}" id="change_status_{{ property.id }}" style="display:none;">
-                            <select class="select form-control listing_change_status" name="listing_change_status" id="listing_change_status_{{ property.id }}" onchange="change_property_status({{ property.id }},this)">
-                              {% if status_list %}
-                              {% for item in status_list %}
-                                <option value="{{ item.id }}" {% if item.id == property.status_id %}selected{% endif %}>{{ item.status_name }}</option>
-                              {% endfor %}
-                              {% endif %}
-                            </select>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div class="approval-status">
-                        {% comment %}
-                        {% if property.domain != user_domain %}
-                        {% endcomment %}
-                        {% if is_broker != 1 or property.domain != user_domain %}
-                          <strong><label for="">Approval Status</label></strong><br>
-                          <div class="{% if is_broker == 1 %}approval_status{% endif %}" id="approval_status_{{ property.id }}">
-                            <span class="badge {% if property.is_approved %} badge-success{% else %}badge-warning{% endif %}" style="cursor:pointer;">
-                              {{ property.approval }}
-                            </span>
-                          </div>
-                          <div class="{% if is_broker == 1 %}change_approval{% endif %}" id="change_approval_{{ property.id }}" style="display:none;">
-                            <select class="select form-control listing_change_approval" name="listing_change_approval" id="listing_change_approval_{{ property.id }}" onchange="change_apporval_status({{ property.id }}, this)">
-                                <option value="1" {% if property.is_approved == True %}selected{% endif %}>Approved</option>
-                                <option value="0" {% if property.is_approved == False %}selected{% endif %}>Not Approved</option>
-                            </select>
-                          </div>
-                          {% endif %}
-                      </div>
-
-                      <div class="block-agent">
-                        <div class="brokr-nme">
-                          <strong><label for="">Listing Agent</label></strong><br>
-                          <span>{{ property.broker_name }}</span> -
-                          <small class="blue-text"><a href="{{ property.domain_url }}" target="_blank">{{ property.domain_url }}</a></small>
-                        </div>
-                        {% if property.domain != user_domain %}
-                        <div class="connect">
-                          <a href="javascript:void(0)" class="badge badge-success" data-toggle="modal" data-target="#connectchatModal" onclick="agent_chat_detail({{property.agent_id}});"><i class="fa-regular fa-comment"></i> Connect</a>
-                        </div>
-                        {% endif %}
-                      </div>
-
-                    </li> -->
 
                     <li>
                       <div class="action-icon">
                         <span class="view-list">
                           <i class="fa-solid fa-ellipsis" aria-hidden="true" role="presentation"></i>
                           <ul>
-                            <li>
-                              <a href="/asset-details/?property_id={{ property.id }}" target="_blank"><i class="far fa-eye" aria-hidden="true" role="presentation"></i> View Listing</a>
-                            </li>
+                            <!-- <li>
+                              <a href="{{site_detail.domain_react_url}}property/detail/{{ property.id }}/{{property.url_decorator}}" target="_blank"><i class="far fa-eye" aria-hidden="true" role="presentation"></i> View Listing</a>
+                            </li> -->
                             <li>
                               <a href="/admin/add-listing/?property_id={{ property.id }}"><i class="far fa-edit" aria-hidden="true" role="presentation"></i> Edit Listing</a>
                             </li>
@@ -303,81 +158,39 @@
                           <li class="put_it_auction">
                             <a class="btn btn-secondary btn-sm" href="/admin/auction-detail/?property_id={{property.id}}"   style="cursor:pointer;">Put it on auction</a>
                           </li>
-                        {% endif %}
-                        {% if property.sale_by_type != 6 %}
-                        <li>
-                          <div class="icon"><img src="{% static 'admin/images/registered-bidders-icon.svg' %}" alt="real estate sales"></div>
-                            {% if property.sale_by_type == 7 %}
-<!--                              <a href="/admin/user-best-offer-list/?id={{ property.id }}"  style="{% if property.bidder_offer_count > 0 %}cursor:pointer;{% else %}cursor: initial;{% endif %}">-->
-                              <a href="{% if property.bidder_offer_count > 0 %}/admin/user-best-offer-list/?id={{ property.id }}{% else %}javascript:void(0);{% endif %}"  style="{% if property.bidder_offer_count > 0 %}cursor:pointer;{% else %}cursor: initial;{% endif %}">
-                            {% elif property.sale_by_type == 4 %}
-                              <a href="{% if property.bidder_offer_count > 0 %}/admin/user-traditional-offer-list/?id={{ property.id }}{% else %}javascript:void(0);{% endif %}"  style="{% if property.bidder_offer_count > 0 %}cursor:pointer;{% else %}cursor: initial;{% endif %}">
-                            {% else %}
-                              <a href="javascript:void(0)"  onclick="propertyBidderListingSearch({{ property.id }} ,1, '')" style="{% if property.bidder_offer_count > 0 %}cursor:pointer;{% else %}cursor: initial;{% endif %}">
-                            {% endif %}
-                              <h4 class=" {% if property.sale_by_type == 7 or property.sale_by_type == 4 %}badge-warning{% else %}badge-info{% endif %} bidder-badge" ><span class="total-bidder">{{ property.bidder_offer_count|default:'0' }}</span></h4>
-                            </a>
-                            <h6>
-                              {% if property.sale_by_type == 4 or property.sale_by_type == 7 %}Review Offers{% else %}Registered Bidders{% endif %}
-                            </h6>
-                        </li>
-                        {% endif %}
-                        {% comment %}
-                        <li>
-                          {% if property.sale_by_type == 4 or property.sale_by_type == 6 or property.sale_by_type == 7 %}
-                          {% else %}
-                          <div class="icon"><img src="{% static 'admin/images/bid-placed-icon.svg' %}" alt="real estate sales"></div>
-                            {% if property.sale_by_type == 4 %}
-                              <h4 class="bids-limit">0</h4>
-                            {% elif property.sale_by_type == 2 %}
-                              <h4 class="bids-limit" onclick="propertyInsiderBidHistorySearch({{ property.id }} ,1, 'dutch')">{{ property.bids }}</h4>
-                            {% else %}
-                              <h4 class="bids-limit" onclick="propertyBidHistorySearch({{ property.id }} ,1)">{{ property.bids }}</h4>
-                            {% endif %}
-                          
-                          {% endif %}
-                            {% if property.sale_by_type == 4 or property.sale_by_type == 6 or property.sale_by_type == 7 %}
-                              {% else %}
-                              <h6>
-                                Bids Placed
-                              </h6>
-                            {% endif %}
-                        </li>
-                        {% endcomment %}
-                        {% if property.sale_by_type != 4 and property.sale_by_type != 6 and property.sale_by_type != 7 %}
-                          <li>
-                            <div class="icon"><img src="{% static 'admin/images/bid-placed-icon.svg' %}" alt="real estate sales"></div>
-                              {% if property.sale_by_type == 4 %}
-                                <h4 class="circle bids-limit">0</h4>
-                              {% elif property.sale_by_type == 2 %}
-                                <h4 class="circle bids-limit" onclick="propertyInsiderBidHistorySearch({{ property.id }} ,1, 'dutch')">{{ property.bids }}</h4>
-                              {% else %}
-                                <h4 class="circle bids-limit" onclick="propertyBidHistorySearch({{ property.id }} ,1)">{{ property.bids }}</h4>
-                              {% endif %}
-                            
-                            <h6>
-                              Bids Placed
-                            </h6>
+                        {% elif property.seller_status == 29 %}
+                          <li class="retn">
+                            <a href="#" data-toggle="tooltip" data-placement="top" title="{{property.seller_property_return_reason|default:''}}">Return Reason: {{property.seller_property_return_reason|default:""}}</a>
                           </li>
                         {% endif %}
-                        {% comment %}
-                        {% if property.sale_by_type == 1 or property.sale_by_type == 2 or property.sale_by_type == 4 %}
-                        {% endcomment %}
                         <li>
-                          <div class="icon"><img src="{% static 'admin/images/watches-icon.svg' %}" alt="real estate sales"></div>
-                          <h4 class="bids-limit" onclick="totalPropertyWatcherSearch({{ property.id }} ,1)">
-                            {{ property.no_watcher }}
-                          </h4>
+                          <div class="icon"><img src="{% static 'admin/images/registered-bidders-icon.svg' %}" alt="real estate sales"></div>
+                            <a href="javascript:void(0)"  onclick="propertyBidderListingSearch({{ property.id }} ,1, '')" style="{% if property.total_transaction > 0 %}cursor:pointer;{% else %}cursor: initial;{% endif %}">
+                              <h4 class="badge-info bidder-badge" ><span class="total-bidder">{{ property.total_transaction|default:'0' }}</span></h4>
+                            </a>
+                            <h6>
+                              Transaction
+                            </h6>
+                        </li>
+                        
+                        <li>
+                          <div class="icon"><img src="{% static 'admin/images/bid-placed-icon.svg' %}" alt="real estate sales"></div>
+                          <h4 class="circle bids-limit" onclick="propertyBidHistorySearch({{ property.id }} ,1)">{{ property.bids }}</h4>
                           <h6>
-                            Watchers
+                            Bids Placed
                           </h6>
                         </li>
-                        {% comment %}
-                        {% endif %}
-                        {% endcomment %}
+                        
                         <li>
-                          <!-- <div class="circle">{{ property.no_view }}</div>-->
-                          <!-- <div class="circle bids-limit" onclick="totalPropertyViewSearch({{ property.id }} ,1)">{{ property.no_view }}</div>-->
+                          <div class="icon"><img src="{% static 'admin/images/watches-icon.svg' %}" alt="real estate sales"></div>
+                          <h4 class="bids-limit" onclick="totalPropertyFavouriteSearch({{ property.id }} ,1)">
+                            {{ property.total_favourite }}
+                          </h4>
+                          <h6>
+                            Favourite
+                          </h6>
+                        </li>
+                        <li>
                           <div class="icon"><img src="{% static 'admin/images/views-icon.svg' %}" alt="real estate sales"></div>
                           <h4 class="view-btn">
                             {{ property.no_view }}
@@ -413,8 +226,7 @@
                 {% endif %}
               </div><!-- End .block -->
 {% block js_content %}
-  <script type="text/javascript" src="{% static 'admin/js/custom_js.js' %}?v=6.2"></script>
-  <script type="text/javascript" src="{% static 'admin/js/properties.js' %}?v=6.2"></script>
+  <script type="text/javascript" src="{% static 'admin/js/listing.js' %}?v=1.1"></script>
   <script>
     $('.select').chosen();
     try{

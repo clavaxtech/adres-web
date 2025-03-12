@@ -158,6 +158,42 @@
                 </div>
               </div>
 
+              <div class="row">
+                <div class="col-md-3">
+                  <div class="form-group">
+                    <label for="service_fee" class="lh46">
+                      Service Fee(%)<span class="required">*</span>
+                      <div class="tooltipp"><i class="fas fa-question-circle" aria-hidden="true" role="presentation"></i>
+                        <span class="tooltipp__content right banner-img">Service Fee.</span>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+                <div class="col-md-4 timer-error">
+                  <div class="form-group ">
+                    <input type="number" class="form-control" name="service_fee" id="service_fee" placeholder="Service Fee" value="{{ listing_setting.service_fee|default:'' }}" onkeypress="validatePercentage(event, this, 100);">
+                  </div>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-3">
+                  <div class="form-group">
+                    <label for="auction_fee" class="lh46">
+                      Auction Fee<span class="required">*</span>
+                      <div class="tooltipp"><i class="fas fa-question-circle" aria-hidden="true" role="presentation"></i>
+                        <span class="tooltipp__content right banner-img">Auction Fee.</span>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+                <div class="col-md-4 timer-error">
+                  <div class="form-group ">
+                    <input type="number" min="1" class="form-control" name="auction_fee" id="auction_fee" placeholder="Auction Fee" value="{{ listing_setting.auction_fee|floatformat:0|default:'' }}" maxlength="15" onkeypress="validateInput(event, this, 15);">
+                  </div>
+                </div>
+              </div>
+
               <div class="row" id="global_bid_limit_section" style="{% if 'auto_approval' in listing_setting and listing_setting.auto_approval == True %}display:block;{% else %}display:none;{% endif %}">
                 <div class="col-md-3">
                   <div class="form-group">
@@ -198,7 +234,7 @@
 
               <div class="row">
                 <div class="col-md-3">
-                  <div class="form-group mb0">
+                  <div class="form-group">
                     <label class="">
                       Allow Autobid <span class="required">*</span>
                       <div class="tooltipp"><i class="fas fa-question-circle"></i>
@@ -208,7 +244,7 @@
                   </div>
                 </div>
                 <div class="col-md-4 ">
-                  <div class="form-group mb0">
+                  <div class="form-group">
                     <input id="autobid_yes" type="radio" name="autobid" value="1" aria-label="Yes" class="css-radio" {% if listing_setting.autobid and listing_setting.autobid == 1 %}checked{% endif %}>
                     <label for="autobid_yes" class="radio-label autobid_label">Yes</label>
                     &nbsp; &nbsp; &nbsp;
@@ -220,7 +256,7 @@
 
               <div class="row" id="global_autobid_section" style="{% if listing_setting.autobid and listing_setting.autobid == 1 %} display:block; {% else %} display:none; {% endif %}">
                 <div class="col-md-3">
-                  <div class="form-group">
+                  <div class="form-group mb0">
                     <label class="">
                       Autobid Setup
                       <div class="tooltipp"><i class="fas fa-question-circle"></i>
@@ -231,7 +267,7 @@
                 </div>
 
                 <div class="col-md-9">
-                  <div class="form-group">
+                  <div class="form-group mb0">
                     <div class="pb10">
                       <input id="autobid_setup_second" type="radio" aria-label="Allowed after start of bidding (until bidding ends)" name="autobid_setup" value="2" class="css-radio autobid_setup" value="2" checked="checked">
                       <label for="autobid_setup_second" class="radio-label autobid_setup">Allowed after start of bidding (until bidding ends)</label>

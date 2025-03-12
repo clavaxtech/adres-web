@@ -147,6 +147,11 @@ def subdomain_site_details(request):
             except:
                 email_verified = ""
 
+            try:
+                domain_react_url = site_details['data']['domain_react_url']
+            except:
+                domain_react_url = ""        
+
             google_map_key = settings.GOOGLE_MAP_KEY
             request.session['google_map_key'] = google_map_key 
 
@@ -169,7 +174,9 @@ def subdomain_site_details(request):
                 'current_plan_price_id': plan_price_id,
                 'previous_plan_price_id': previous_plan_price_id,
                 'email_verified': email_verified,
-                'google_map_key': google_map_key
+                'google_map_key': google_map_key,
+                'domain_react_url': domain_react_url,
+                
             }
             if "business_detail" in site_details['data'] and "address" in site_details['data']:
                 for addr in site_details['data']['business_detail']['address']:

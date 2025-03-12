@@ -3,8 +3,7 @@
 {% load dashboard_extra %}
 {% block title %}{{title}}{% endblock %}
 {% block styles %}
-    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.7.14/css/bootstrap-datetimepicker.min.css"> -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.37/css/bootstrap-datetimepicker.min.css">
+    
     <!-- <link rel="stylesheet" href="{% static 'admin/css/chosen.css' %}"> -->
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-tour/0.11.0/css/bootstrap-tour.css">
   
@@ -68,7 +67,7 @@
                     <div class="panel-body">
                       <div class="row">
                         <div class="col-md-12 col-sm-12">
-                          <div class="form-group">
+                          
                             <div class="row">
 
                               <div class="col-lg-6 col-md-6">
@@ -137,17 +136,20 @@
                               <div class="col-md-12 col-sm-12">
                                 
                                 <div class="form-group">
-                                  <div class="clearfix pb20">
-                                    <input type="checkbox" class="sell_at_full_amount_status css-checkbox" id="sell_at_full_amount_status" name="sell_at_full_amount_status" value="1" {% if property_details.sell_at_full_amount_status %}checked{% endif %}>
-                                    <label for="sell_at_full_amount_status" class="check-label">Sell at full price </label>
+                                  <div class="full-price">
+                                    <label for="sell_at_full_amount_status">Sell at full price</label>
+                                    <label title="Allow All Module Access" area-label="Allow All Module Access" class="switch small">
+                                      <input type="checkbox" class="sell_at_full_amount_status css-checkbox" id="sell_at_full_amount_status" name="sell_at_full_amount_status" value="1" {% if property_details.sell_at_full_amount_status %}checked{% endif %}>
+                                      <span class="slide round"></span>
+                                    </label>
                                   </div>
-                                  <p class="mb0">
+                                  <p class="light-text mb0">
                                     Enable this option to sell the property immediately at your desired full price without waiting for further bids.
                                   </p>
                                 </div>
                                 
-                                <div class="col-md-6 col-sm-6 full_price_field" {% if property_details.sell_at_full_amount_status %} style="display: block;" {% else %} style="display: none;" {% endif %}>
-                                  <div class="form-group">
+                                <div class="row form-group full_price_field" {% if property_details.sell_at_full_amount_status %} style="display: block;" {% else %} style="display: none;" {% endif %}>
+                                  <div class="col-md-6 col-sm-6">
                                     <label for="full_amount">Full Price <span class="text-danger">*</span></label>
                                     <select class="full_amount form-control select" aria-label="Full Price" name="full_amount" id="full_amount">
                                       {% for price in price_listing %}
@@ -158,17 +160,25 @@
                                 </div>
                                 
                               </div>
+
+                              <hr>
                               
                               <div class="col-md-12 col-sm-12">
-                                <div class="row">
-                                  <div class="col-md-6 col-sm-6">
-                                    <div class="form-group">
+                                <div class="form-group">
+                                  <div class="full-price">
+                                    <label for="bid_increment_status">Bid Increment</label>
+                                    <label title="Allow All Module Access" area-label="Allow All Module Access" class="switch small">
                                       <input type="checkbox" class="bid_increment_status css-checkbox" id="bid_increment_status" name="bid_increment_status" value="1" {% if property_details.bid_increment_status %}checked{% endif %}>
-                                      <label for="bid_increment_status" class="check-label">Bid Increment </label>
-                                    </div>
+                                      <span class="slide round"></span>
+                                    </label>
                                   </div>
-                                  <div class="col-md-6 col-sm-6 bid_increment_field" {% if property_details.bid_increment_status %} style="display: block;" {% else %} style="display: none;" {% endif %}>
-                                    <div class="form-group">
+                                  <p class="light-text mb0">
+                                    Bid content
+                                  </p>
+                                </div>
+                                  
+                                  <div class="row form-group bid_increment_field" {% if property_details.bid_increment_status %} style="display: block;" {% else %} style="display: none;" {% endif %}>
+                                    <div class="col-md-6 col-sm-6">
                                       <label for="bid_increments">Bid Price <span class="text-danger">*</span></label>
                                       <select class="bid_increments form-control select" aria-label="Bid Price" name="bid_increments" id="bid_increments">
                                         {% for price in price_listing %}
@@ -177,8 +187,10 @@
                                       </select>
                                     </div>
                                   </div>
-                                </div>
-                              </div><!-- End .col-md-6 -->
+                                
+                              </div><!-- End .col-md-12 -->
+
+                              <hr>
 
                               <div class="col-md-6 col-sm-6">
                                 <div class="form-group">
@@ -209,10 +221,10 @@
                                   </div>
                                 </div>
                               </div><!-- End .col-md-6 -->
-                              <div class="clearfix col-md-12">
+                              <div class="clearfix col-md-12 right">
                                 <a class="btn btn-primary-bdr" id="section_one_next_button">Next</a>
                               </div>
-                            </div>
+                            
                           </div>
                         </div><!-- End .col-md-6 -->
                         <div class="col-md-6 col-sm-6">
@@ -239,17 +251,25 @@
                             <div class="col-lg-12 col-md-12">
                               <div class="form-group">
                                 <label for="municipality">Please review and sign the reservation agreement to reserve your property for auction. </label>
-                                <p>This Reservation Agreement is between {% if property_details.signature %}{{property_details.signature|default:""}}{% else %}{{property_details.seller_name|default:""}}{% endif %} and the Seller. By signing this agreement, the Seller confirms their intent to reserve the following property for auction:</p>
-                                <p>Property Address: {{property_details.state_name|default:""}}, {{property_details.property_name|default:""}}, {{property_details.country_name|default:""}}</p>
-                                <p>Auction Date: <span class="auction_date_text" id="auction_date_text_one">{{property_details.start_date|default:""}}</span></p>
-                                <p>Terms of Reservation:</p>
-                                <ol>
-                                  <li>The Seller agrees to provide all necessary documents related to the property.</li>
-                                  <li>The property will be reserved for auction on <span class="auction_date_text" id="auction_date_text_two">{{property_details.start_date|default:""}}</span>.</li>
-                                  <li>The Seller acknowledges that the auction process will be conducted according to the terms outlined.</li>
-                                  <li>Any fees associated with the reservation will be communicated separately.</li>
-                                  <li>The Seller may withdraw the reservation prior to the auction date.</li>
-                                </ol>
+                                <div class="enable-text">
+                                  This Reservation Agreement is between {% if property_details.signature %}{{property_details.signature|default:""}}{% else %}{{property_details.seller_name|default:""}}{% endif %} and the Seller. By signing this agreement, the Seller confirms their intent to reserve the following property for auction:
+                                  <br>
+                                  Property Address: {{property_details.state_name|default:""}}, {{property_details.property_name|default:""}}, {{property_details.country_name|default:""}}
+                                  <br>
+                                  Auction Date: <span class="auction_date_text" id="auction_date_text_one">{{property_details.start_date|default:""}}</span>
+                                  <br>
+                                  Terms of Reservation:
+                                  <br>
+                                  The Seller agrees to provide all necessary documents related to the property.
+                                  <br>
+                                  The property will be reserved for auction on <span class="auction_date_text" id="auction_date_text_two">{{property_details.start_date|default:""}}</span>.
+                                  <br>
+                                  The Seller acknowledges that the auction process will be conducted according to the terms outlined.
+                                  <br>
+                                  Any fees associated with the reservation will be communicated separately.<br>
+                                  The Seller may withdraw the reservation prior to the auction date.
+                                  
+                                </div>
                               </div>
                             </div>
                             <div class="col-md-6 col-sm-6">
@@ -259,9 +279,9 @@
                               </div>
                             </div><!-- End .col-md-6 -->
                             <div class="col-md-12 col-sm-12">
-                              <div class="form-group">
-                                <input type="checkbox" class="term_agreement" id="term_agreement" name="term_agreement" value="1" {% if property_details.term_agreement %}checked{% endif %}>
-                                <label for="term_agreement">I have read and agree to the terms of the reservation agreement.</label>
+                              <div class="form-group agrement-text">
+                                <input type="checkbox" class="term_agreement " id="term_agreement" name="term_agreement" value="1" {% if property_details.term_agreement %}checked{% endif %}>
+                                <label for="term_agreement" class="">I have read and agree to the terms of the reservation agreement.</label>
                               </div>
                             </div><!-- End .col-md-12 -->
                           </div><!-- End .row -->

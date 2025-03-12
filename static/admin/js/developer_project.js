@@ -1,6 +1,9 @@
 var currpage = 1;
 var recordPerpage = 10;
 $(document).ready(function(){
+    $(document).on("click","#del_prop_false",function() {
+        $('#confirmPropertyDeleteModal').modal('hide');
+    });
     $.validator.setDefaults({ ignore: ":hidden:not(select)" })
     try{
         CKEDITOR.env.isCompatible = true;
@@ -603,19 +606,12 @@ function save_project(element){
                     var project_id = '';
                 }
 
-                if(element == 'project_info_frm' && project_id != ""){
-                    try{
-                        custom_response = {
-                            'site_id': site_id,
-                            'user_id': '',
-                            'project_id': project_id,
-                        };
-                        customCallBackFunc(update_bidder_socket, [custom_response]);
-                    }catch(ex){
-                        //console.log(ex);
-                    }
-                }
-
+                if(response.project_id == ""){
+                    custom_response = {
+                        'user_id': response.data.data.user_id,
+                    };
+                    customCallBackFunc(update_notification_socket, [custom_response]);
+                }    
                 window.setTimeout(function () {
                     if(response.next_url != '/admin/project-list/' && response.next_url != ''){
                         window.location.href = response.next_url+'?project_id='+response.data.data.project_id;
@@ -623,6 +619,7 @@ function save_project(element){
                         window.location.href = '/admin/project-list/';
                     }
                 }, 2000);
+                
             }else{
                 if(typeof(response.data) != 'undefined' && typeof(response.data.msg) != 'undefined'){
                     var msg = response.data.msg;
@@ -694,7 +691,7 @@ function set_facility_details(response){
     }
 }
 
-function set_floor_plan_details(response, elementId){
+function set_floor_plan_details(response, elementId, add_more=""){
     if(response.status == 200){
         var image_name = '';
         var actual_image = '';
@@ -728,7 +725,17 @@ function set_floor_plan_details(response, elementId){
                 $('#floorPlanImageId_'+ splitElementId).attr('src', testi_img);
                 $('#floorPlanImageDiv_'+ splitElementId).show();
             }
-            $('#floorPlanImageDiv' + splitElementId + ' .floor-plan-section a').attr({ 'data-image-id': $('#floor_plan_img_id'+splitElementId).val(), 'data-image-name':$('#floor_plan_img_name').val(), 'data-image-section': upload_to, 'data-count': '' }).addClass('confirm_image_delete');
+            var project_id = $("#project_id").val();
+            // console.log(project_id);
+            var cnt = $(".section").length;
+            var ref = cnt+project_id;
+            // $('#floorPlanImageDiv_' + splitElementId + ' .floor-plan-section a').attr({ 'data-image-id': $('#floor_plan_img_id'+splitElementId).val(), 'data-image-name':$('#floor_plan_img_name').val(), 'data-image-section': upload_to, 'data-count': '' , 'data-ref': ref}).addClass('confirm_image_delete');
+            // floorPlanImageDiv_inter25
+            if (add_more == "add_more"){
+                $('#floorPlanImageDiv_' + splitElementId + ' .floor-plan-section a').attr({ 'data-image-id': actual_id, 'data-image-name': actual_image, 'data-image-section': upload_to, 'data-count': '', 'data-ref': splitElementId}).addClass('confirm_image_delete');
+            }else{
+                $('#floorPlanImageDiv_' + splitElementId + ' .floor-plan-section a').attr({ 'data-image-id': actual_id, 'data-image-name': actual_image, 'data-image-section': upload_to, 'data-count': '', 'data-ref': splitElementId.slice(-2)}).addClass('confirm_image_delete');
+            }
         }
     }
 }
@@ -942,7 +949,7 @@ function projectListingSearch(current_page){
                 $("#tbl_project_list").find('script').remove();
                 $("#proj_listing_pagination_list").html(response.pagination_html);
                 $("#counter_num").val(response.sno);
-                    $("#download_btn_section").html('<a href="/admin/add-project-info/" class="btn btn-primary btn-sm pl20"><i class="fas fa-plus"></i> Add New Project</a>');
+                    // $("#download_btn_section").html('<a href="/admin/add-project-info/" class="btn btn-primary btn-xs"><i class="fas fa-plus"></i> Add New Project</a>');
             }else{
                 $('#tbl_project_list').html('<div class="block-item"><div class="item fullwidth"><p class="custom_error center mb0">No Data Found!</p></div></div>');
             }
@@ -955,7 +962,6 @@ function projectListingSearch(current_page){
 function delete_project(){
     var row_id = $('#del_prop_true').attr('rel_id');
     if(row_id != ""){
-        $('#project_list #row_id_'+row_id).remove();
         var search = $('#prop_search').val();
         if($('#prop_num_record').val() != ""){
             recordPerpage = $('#prop_num_record').val();
@@ -967,34 +973,21 @@ function delete_project(){
             type: 'post',
             dataType: 'json',
             cache: false,
-            data: {project_id: row_id, search: search, perpage: recordPerpage, status: status, page: 1, project_type: project_type},
+            data: {project_id: row_id},
             beforeSend: function(){
                 $('.overlay').show();
             },
             success: function(response){
                 $('.overlay').hide();
-                $('#del_prop_true').removeAttr('rel_id');
-                $('#del_prop_false').removeAttr('rel_id');
-                $('#confirmPropertyDeleteModal').modal('hide');
-                var auction_type = $('option:selected','#filter_auction_type').val();
-                var auction_type_text = '';
                 if(response.error == 0){
+                    $('#del_prop_true').removeAttr('rel_id');
+                    $('#del_prop_false').removeAttr('rel_id');
+                    $('#confirmPropertyDeleteModal').modal('hide');
+                    $('#project_list #row_id_'+row_id).remove();
                     $.growl.notice({title: "Property ", message: response.msg, size: 'large'});
-                    if(parseInt(auction_type) == 4){
-                        auction_type_text = 'traditional offer';
-                    }else if(parseInt(auction_type) == 7){
-                        auction_type_text = 'highest offer';
-                    }else if(parseInt(auction_type) == 4){
-                        auction_type_text = 'live offer';
-                    }
-                    if(auction_type_text != ""){
-                        window.location.href = '/admin/listing/?auction_type='+auction_type_text;
-                    }else{
-                        window.location.href = '/admin/listing/';
-                    }
+                    //window.location.href = '/admin/project-list/';
 
                 }else{
-                    //$('#agent_list').empty();
                     $('#del_prop_true').removeAttr('rel_id');
                     $('#del_prop_false').removeAttr('rel_id');
                     $('#confirmPropertyDeleteModal').modal('hide');
@@ -1007,6 +1000,7 @@ function delete_project(){
         });
     }
 }
+
 
 $(function(){
     try{
@@ -1413,7 +1407,7 @@ function addMoreSection(button, project_type_id) {
         upload_multiple: false,
         max_files: 1,
         call_function: function (response) {
-            set_floor_plan_details(response, elementId);
+            set_floor_plan_details(response, elementId,'add_more');
         }
     };
 
@@ -1572,6 +1566,10 @@ function change_apporval_status(project_id, element){
                 }
                 $('#change_approval_'+project_id).hide();
                 $('#approval_status_'+project_id).html('<span class="badge '+badge_class+'" style="cursor:pointer;">'+approval_name+'</span>').show();
+                custom_response = {
+                    'user_id': response.data.user_id,
+                };
+                customCallBackFunc(update_notification_socket, [custom_response]);
                 window.setTimeout(function () {
                     $.growl.notice({title: "Project ", message: response.msg, size: 'large'});
                 }, 2000);
@@ -1582,4 +1580,8 @@ function change_apporval_status(project_id, element){
             }
         }
     });
+}
+
+function update_notification_socket(response){
+    socket.emit("getNotifications", {"user_id": response.user_id});
 }

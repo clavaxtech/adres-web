@@ -853,10 +853,10 @@ function propertyBidderListingSearch(e, property_id, current_page){
             if(response.error == 0){
                 $("#bidderHistoryList").html(response.bidder_history_html);
                 $("#bidderHistoryPaginationList").html(response.pagination_html);
-                $("#bidder_list_export_btn_section").html('<button type="button" class="btn btn-primary btn-sm pl20" onClick="exportBidderList(\''+response.property_id+'\',\''+response.page+'\')"><i class="fas fa-file-export"></i> Export</button>');
+                $("#bidder_list_export_btn_section").html('<button type="button" class="btn btn-primary btn-xs" onClick="exportBidderList(\''+response.property_id+'\',\''+response.page+'\')"><i class="fas fa-file-export"></i> Export</button>');
             }else{
                 $('#bidderHistoryList').html('<li class="text-center text-danger" style="width:100%;"><img src="static/theme-1/images/property-not-avail.png" class=" center mb0" /></li>');
-                $("#bidder_list_export_btn_section").html('<button type="button" class="btn btn-primary btn-sm pl20"><i class="fas fa-file-export"></i> Export</button>');
+                $("#bidder_list_export_btn_section").html('<button type="button" class="btn btn-primary btn-xs"><i class="fas fa-file-export"></i> Export</button>');
                 $("#bidderHistoryPaginationList").hide();
             }
             $('#bidderlistModal').modal('show');

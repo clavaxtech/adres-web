@@ -17,30 +17,6 @@
             <span class="user-icon" area-label="User Icon" role="img" aria-hidden="true"></span><span class="name"> {% if request.session.first_name %}{{request.session.first_name}}{% else %} William{% endif %}</span><span class="arrow-icon" role="img" aria-hidden="true" area-label="arrow"></span>
           </a>
           <ul role="menu" class="dropdown-header-top author-log dropdown-menu">
-            <li>
-              <a href="{{ FRONT_URL }}" target="_blank"><span class="icon website-icon" area-label="My Website" title="My Website"></span> My Website</a>
-            </li>
-
-            {% if request.session.is_broker %}
-              <li><a href="/admin/payment-settings/"><span class="icon payment-icon" area-label="Payment Settings" title="Payment Settings"></span> Payment Settings</a>
-              </li>
-            {% endif %}
-
-            {% if request.session.user_id %}
-            {% comment %} <li>
-              <a href="/my-bids/"><span class="icon bid-icon" area-label="My Bids" title="My Bids"></span> My Bids</a>
-            </li>
-            <li>
-              <a href="/favourite-listings/"><span class="icon favorite-icon" area-label="Favorite Listings" title="Favorite Listings"></span> Favorite Listings</a>
-            </li> {% endcomment %}
-            <li>
-              <a href="/my-bids/"><span class="icon personal-icon" area-label="User Dashboard" title="User Dashboard"></span> User Dashboard</a>
-            </li>
-            {% endif %}
-            {% comment %} <li><a href="javascript:void(0)" data-toggle="modal" data-target="#personalModal" onclick="show_hide_popup('personalModal')"><span class="icon personal-icon" area-label="Personal Info" title="Personal Info"></span> Personal Info</a>
-            </li>
-            <li><a href="javascript:void(0)" data-toggle="modal" data-target="#securityModal" onclick="show_hide_popup('securityModal')"><span class="icon security-icon" area-label="Security" title="Security"></span> Security</a>
-            </li> {% endcomment %}
             <li><a href="javascript:void(0)" data-toggle="modal" data-target="#logoutModal"><span class="icon logout-icon" area-label="Log Out" title="Log Out"></span> Log Out</a>
             </li>
           </ul>

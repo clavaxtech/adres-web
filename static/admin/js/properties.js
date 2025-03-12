@@ -3301,7 +3301,19 @@ $(document).ready(function(){
                     }
                 },
                 min:1
-            }
+            },
+            service_fee:{
+                required: true,
+                min: 1,
+                max: 100,
+                number: true
+            },
+            auction_fee:{
+                required: true,
+                min: 1,
+                maxlength: 15, // Ensures max 15 digits
+                number: true
+            },
         },
         messages:{
             auto_approval:{
@@ -3411,7 +3423,19 @@ $(document).ready(function(){
                     }
                 },
                 min:1
-            }
+            },
+            service_fee:{
+                required: true,
+                min: 1,
+                max: 100,
+                number: true
+            },
+            auction_fee:{
+                required: true,
+                min: 1,
+                maxlength: 15, // Ensures max 15 digits
+                number: true
+            },
         },
         messages:{
             auto_approval:{
@@ -4530,6 +4554,12 @@ function get_listing_setting_details(property_id){
                 if(response.listing_setting.auction_id){
                     auction_id = response.listing_setting.auction_id;
                 }
+                if(response.listing_setting.service_fee){
+                    service_fee = response.listing_setting.service_fee;
+                }
+                if(response.listing_setting.auction_fee){
+                    auction_fee = response.listing_setting.auction_fee;
+                }
                 $('#listing_setting_frm #property_id').val(property_id);
                 $('#listing_setting_frm #auction_id').val(auction_id);
                 $('#listing_setting_frm input[name="auto_approval"][value="'+auto_approval+'"]').prop('checked', true);
@@ -4539,6 +4569,8 @@ function get_listing_setting_details(property_id){
                 $('#listing_setting_frm #timer_flash').val(time_flash);
                 $('#listing_setting_frm #log_time_extension').val(log_time_extension);
                 $('#listing_setting_frm #remain_time_to_add_extension').val(remain_time_to_add_extension);
+                $('#listing_setting_frm #service_fee').val(service_fee);
+                $('#listing_setting_frm #auction_fee').val(auction_fee);
 
                 if(auto_approval == 1){
                     $('#listing_setting_frm #bid_limit').val(bid_limit);
@@ -4614,11 +4646,11 @@ function propertyBidderListingSearch(property_id, current_page, filter_listing){
 
                 $("#popup_bidder_list").html(response.bidder_listing_html);
                 $("#bid_popup_listing_pagination_list").html(response.pagination_html);
-                $("#bidder_list_export_btn_section").html('<button type="button" class="btn btn-primary btn-sm pl20" onClick="exportBidderList(\''+response.property_id+'\',\''+response.page+'\')"><i class="fas fa-file-export"></i> Export</button>');
+                $("#bidder_list_export_btn_section").html('<button type="button" class="btn btn-primary btn-xs" onClick="exportBidderList(\''+response.property_id+'\',\''+response.page+'\')"><i class="fas fa-file-export"></i> Export</button>');
                 //$("#blog_sidebar").html(response.blog_sidebar_html);
             }else{
                 $('#blog_list').html('<li class="text-center text-danger" style="width:100%;"><img src="static/theme-1/images/property-not-avail.png" class=" center mb0" /></li>');
-                $("#bidder_list_export_btn_section").html('<button type="button" class="btn btn-primary btn-sm pl20"><i class="fas fa-file-export"></i> Export</button>');
+                $("#bidder_list_export_btn_section").html('<button type="button" class="btn btn-primary btn-xs"><i class="fas fa-file-export"></i> Export</button>');
                 $("#bid_listing_pagination_list").hide();
             }
             $('#bidderlistModal').modal('show');
@@ -4695,11 +4727,11 @@ function propertyBidHistorySearch(property_id, current_page){
             if(typeof(response.total) != 'undefined' && response.total){
                 //$('#bid_history_search_section').html('<div class="block right"><form action="" class="search-field"><div class="search-icon"><i class="fas fa-search"></i></div><input type="text" name="search_bid_history" id="search_bid_history" class="form-control" value="'+search_bid_history+'"><button type="button" id="bid_history_search_btn" class="btn btn-gray btn-sm pl20" onclick="propertyBidHistorySearch(\''+response.property_id+'\',1)">Search</button></form></div><div class="block last"><button type="button" class="btn btn-primary btn-sm pl20" onClick="exportBidHistory(\''+response.property_id+'\',\''+response.page+'\')"><i class="fas fa-file-export"></i> Export</button></div><div class="clearfix"></div><div class="block last highest_bid_btn"><button type="button" class="btn btn-primary btn-sm pl20" onClick="confirmDeleteLastBid(\''+response.property_id+'\')"> <i class="fas fa-trash-alt"></i> Highest Bid</button></div>');
                 //$('#bid_history_search_section').html('<div class="block last"><button type="button" class="btn btn-primary btn-sm pl20" onClick="printPage()"><i class="fas fa-file-export"></i> Print</button></div><div class="clearfix"></div>   <div class="block last"><button type="button" class="btn btn-primary btn-sm pl20" onClick="exportBidHistory(\''+response.property_id+'\',\''+response.page+'\')"><i class="fas fa-file-export"></i> Export</button></div><div class="clearfix"></div> <div class="block last"><button type="button" class="btn btn-primary btn-sm pl20" onClick="emailPropertyTotalToAllBids(\''+response.property_id+'\')"><i class="fas fa-file-export"></i> Email All</button></div><div class="clearfix"></div><div class="block last highest_bid_btn"><button type="button" class="btn btn-primary btn-sm pl20" onClick="confirmDeleteLastBid(\''+response.property_id+'\')"> <i class="fas fa-trash-alt"></i> Highest Bid</button></div>');
-                $('#bid_history_search_section').html('<div class="block last"><button type="button" class="btn btn-primary btn-sm pl20" onClick="printPage()"><i class="fas fa-file-export"></i> Print</button></div><div class="clearfix"></div>   <div class="block last"><button type="button" class="btn btn-primary btn-sm pl20" onClick="exportBidHistory(\''+response.property_id+'\',\''+response.page+'\')"><i class="fas fa-file-export"></i> Export</button></div><div class="clearfix"></div> <div class="block last"><button type="button" class="btn btn-primary btn-sm pl20" onClick="emailPropertyTotalToAllBids(\''+response.property_id+'\')"><i class="fas fa-file-export"></i> Email All</button></div><div class="clearfix"></div>');
-                $('#tempbid_history_search_section').html('<div class="block last"><button type="button" class="btn btn-primary btn-sm pl20" onClick="printPage()"><i class="fas fa-file-export"></i> Print</button></div><div class="clearfix"></div>   <div class="block last"><button type="button" class="btn btn-primary btn-sm pl20" onClick="exportBidHistory(\''+response.property_id+'\',\''+response.page+'\')"><i class="fas fa-file-export"></i> Export</button></div><div class="clearfix"></div> <div class="block last"><button type="button" class="btn btn-primary btn-sm pl20" onClick="emailPropertyTotalToAllBids(\''+response.property_id+'\')"><i class="fas fa-file-export"></i> Email All</button></div><div class="clearfix"></div>');
+                $('#bid_history_search_section').html('<div class="block last"><button type="button" class="btn btn-primary btn-xs" onClick="printPage()"><i class="fas fa-file-export"></i> Print</button></div><div class="clearfix"></div>   <div class="block last"><button type="button" class="btn btn-primary btn-xs" onClick="exportBidHistory(\''+response.property_id+'\',\''+response.page+'\')"><i class="fas fa-file-export"></i> Export</button></div><div class="clearfix"></div> <div class="block last"><button type="button" class="btn btn-primary btn-xs" onClick="emailPropertyTotalToAllBids(\''+response.property_id+'\')"><i class="fas fa-file-export"></i> Email All</button></div><div class="clearfix"></div>');
+                $('#tempbid_history_search_section').html('<div class="block last"><button type="button" class="btn btn-primary btn-xs" onClick="printPage()"><i class="fas fa-file-export"></i> Print</button></div><div class="clearfix"></div>   <div class="block last"><button type="button" class="btn btn-primary btn-xs" onClick="exportBidHistory(\''+response.property_id+'\',\''+response.page+'\')"><i class="fas fa-file-export"></i> Export</button></div><div class="clearfix"></div> <div class="block last"><button type="button" class="btn btn-primary btn-xs" onClick="emailPropertyTotalToAllBids(\''+response.property_id+'\')"><i class="fas fa-file-export"></i> Email All</button></div><div class="clearfix"></div>');
             }else{
                 //$('#bid_history_search_section').html('<div class="block right"><form action="" class="search-field"><div class="search-icon"><i class="fas fa-search"></i></div><input type="text" name="search_bid_history" id="search_bid_history" class="form-control" value="'+search_bid_history+'"><button type="button" id="bid_history_search_btn" class="btn btn-gray btn-sm pl20" onclick="propertyBidHistorySearch(\''+response.property_id+'\',1)">Search</button></form></div><div class="block last"><button type="button" class="btn btn-primary btn-sm pl20" onClick="exportBidHistory(\''+response.property_id+'\',\''+response.page+'\')"><i class="fas fa-file-export"></i> Export</button></div>');
-                $('#bid_history_search_section').html('<div class="block last"><button type="button" class="btn btn-primary btn-sm pl20" onClick="printPage()"><i class="fas fa-file-export"></i> Print</button></div><div class="clearfix"></div> <div class="block last"><button type="button" class="btn btn-primary btn-sm pl20" onClick="exportBidHistory(\''+response.property_id+'\',\''+response.page+'\')"><i class="fas fa-file-export"></i> Export</button></div><div class="clearfix"></div> <div class="block last"><button type="button" class="btn btn-primary btn-sm pl20" onClick="emailPropertyTotalToAllBids(\''+response.property_id+'\')"><i class="fas fa-file-export"></i> Email All</button></div>');
+                $('#bid_history_search_section').html('<div class="block last"><button type="button" class="btn btn-primary btn-xs" onClick="printPage()"><i class="fas fa-file-export"></i> Print</button></div><div class="clearfix"></div> <div class="block last"><button type="button" class="btn btn-primary btn-xs" onClick="exportBidHistory(\''+response.property_id+'\',\''+response.page+'\')"><i class="fas fa-file-export"></i> Export</button></div><div class="clearfix"></div> <div class="block last"><button type="button" class="btn btn-primary btn-xs" onClick="emailPropertyTotalToAllBids(\''+response.property_id+'\')"><i class="fas fa-file-export"></i> Email All</button></div>');
             }
 
             $('#bidderrecordModal').modal('show');
@@ -4750,9 +4782,9 @@ function totalPropertyViewSearch(property_id, current_page){
             }
             var search_property_total_view = $('#search_property_total_view').val();
             if(typeof(response.total) != 'undefined' && response.total){
-                $('#property_total_view_search_section').html('<div class="block right"><form action="" class="search-field"><div class="search-icon"><i class="fas fa-search"></i></div><input type="text" name="search_property_total_view" id="search_property_total_view" class="form-control" value="'+search_property_total_view+'"><button type="button" id="property_total_view_search_btn" class="btn btn-gray btn-sm pl20" onclick="totalPropertyViewSearch(\''+response.property_id+'\',1)">Search</button></form></div><div class="block last"><button type="button" class="btn btn-primary btn-sm pl20" onClick="exportPropertyTotalView(\''+response.property_id+'\',\''+response.page+'\')"><i class="fas fa-file-export"></i> Export</button></div><div class="clearfix"></div> <div class="block last"><button type="button" class="btn btn-primary btn-sm pl20" onClick="emailPropertyTotalToAll(\''+response.property_id+'\')"><i class="fas fa-file-export"></i> Email All</button></div><div class="clearfix"></div>');
+                $('#property_total_view_search_section').html('<div class="block right"><form action="" class="search-field"><div class="search-icon"><i class="fas fa-search"></i></div><input type="text" name="search_property_total_view" id="search_property_total_view" class="form-control" value="'+search_property_total_view+'"><button type="button" id="property_total_view_search_btn" class="btn btn-gray btn-xs" onclick="totalPropertyViewSearch(\''+response.property_id+'\',1)">Search</button></form></div><div class="block last"><button type="button" class="btn btn-primary btn-xs" onClick="exportPropertyTotalView(\''+response.property_id+'\',\''+response.page+'\')"><i class="fas fa-file-export"></i> Export</button></div><div class="clearfix"></div> <div class="block last"><button type="button" class="btn btn-primary btn-xs" onClick="emailPropertyTotalToAll(\''+response.property_id+'\')"><i class="fas fa-file-export"></i> Email All</button></div><div class="clearfix"></div>');
             }else{
-                $('#property_total_view_search_section').html('<div class="block right"><form action="" class="search-field"><div class="search-icon"><i class="fas fa-search"></i></div><input type="text" name="search_property_total_view" id="search_property_total_view" class="form-control" value="'+search_property_total_view+'"><button type="button" id="property_total_view_search_btn" class="btn btn-gray btn-sm pl20" onclick="totalPropertyViewSearch(\''+response.property_id+'\',1)">Search</button></form></div><div class="block last"><button type="button" class="btn btn-primary btn-sm pl20" onClick="exportPropertyTotalView(\''+response.property_id+'\',\''+response.page+'\')"><i class="fas fa-file-export"></i> Export</button></div>');
+                $('#property_total_view_search_section').html('<div class="block right"><form action="" class="search-field"><div class="search-icon"><i class="fas fa-search"></i></div><input type="text" name="search_property_total_view" id="search_property_total_view" class="form-control" value="'+search_property_total_view+'"><button type="button" id="property_total_view_search_btn" class="btn btn-gray btn-xs" onclick="totalPropertyViewSearch(\''+response.property_id+'\',1)">Search</button></form></div><div class="block last"><button type="button" class="btn btn-primary btn-xs" onClick="exportPropertyTotalView(\''+response.property_id+'\',\''+response.page+'\')"><i class="fas fa-file-export"></i> Export</button></div>');
             }
 
             $('#property_total_view_model').modal('show');
@@ -4808,9 +4840,9 @@ function totalPropertyWatcherSearch(property_id, current_page){
             }
             var search_property_total_watcher = $('#search_property_total_watcher').val();
             if(typeof(response.total) != 'undefined' && response.total){
-                $('#property_total_watcher_search_section').html('<div class="block right"><form action="" class="search-field"><div class="search-icon"><i class="fas fa-search"></i></div><input type="text" name="search_property_total_watcher" id="search_property_total_watcher" class="form-control" value="'+search_property_total_watcher+'"><button type="button" id="property_total_watcher_search_btn" class="btn btn-gray btn-sm pl20" onclick="totalPropertyWatcherSearch(\''+response.property_id+'\',1)">Search</button></form></div><div class="block last"><button type="button" class="btn btn-primary btn-sm pl20" onClick="exportPropertyTotalWatcher(\''+response.property_id+'\',\''+response.page+'\')"><i class="fas fa-file-export"></i> Export</button></div><div class="clearfix"></div> <div class="block last"><button type="button" class="btn btn-primary btn-sm pl20" onClick="emailPropertyTotalToAllWatcher(\''+response.property_id+'\')"><i class="fas fa-file-export"></i> Email All</button></div><div class="clearfix"></div>');
+                $('#property_total_watcher_search_section').html('<div class="block right"><form action="" class="search-field"><div class="search-icon"><i class="fas fa-search"></i></div><input type="text" name="search_property_total_watcher" id="search_property_total_watcher" class="form-control" value="'+search_property_total_watcher+'"><button type="button" id="property_total_watcher_search_btn" class="btn btn-gray btn-sm pl20" onclick="totalPropertyWatcherSearch(\''+response.property_id+'\',1)">Search</button></form></div><div class="block last"><button type="button" class="btn btn-primary btn-xs" onClick="exportPropertyTotalWatcher(\''+response.property_id+'\',\''+response.page+'\')"><i class="fas fa-file-export"></i> Export</button></div><div class="clearfix"></div> <div class="block last"><button type="button" class="btn btn-primary btn-xs" onClick="emailPropertyTotalToAllWatcher(\''+response.property_id+'\')"><i class="fas fa-file-export"></i> Email All</button></div><div class="clearfix"></div>');
             }else{
-                $('#property_total_watcher_search_section').html('<div class="block right"><form action="" class="search-field"><div class="search-icon"><i class="fas fa-search"></i></div><input type="text" name="search_property_total_watcher" id="search_property_total_watcher" class="form-control" value="'+search_property_total_watcher+'"><button type="button" id="property_total_watcher_search_btn" class="btn btn-gray btn-sm pl20" onclick="totalPropertyWatcherSearch(\''+response.property_id+'\',1)">Search</button></form></div><div class="block last"><button type="button" class="btn btn-primary btn-sm pl20" onClick="exportPropertyTotalWatcher(\''+response.property_id+'\',\''+response.page+'\')"><i class="fas fa-file-export"></i> Export</button></div>');
+                $('#property_total_watcher_search_section').html('<div class="block right"><form action="" class="search-field"><div class="search-icon"><i class="fas fa-search"></i></div><input type="text" name="search_property_total_watcher" id="search_property_total_watcher" class="form-control" value="'+search_property_total_watcher+'"><button type="button" id="property_total_watcher_search_btn" class="btn btn-gray btn-sm pl20" onclick="totalPropertyWatcherSearch(\''+response.property_id+'\',1)">Search</button></form></div><div class="block last"><button type="button" class="btn btn-primary btn-xs" onClick="exportPropertyTotalWatcher(\''+response.property_id+'\',\''+response.page+'\')"><i class="fas fa-file-export"></i> Export</button></div>');
             }
 
             $('#property_total_watcher_model').modal('show');
@@ -5203,9 +5235,9 @@ function propertyListingSearch(current_page){
                     $("#prop_listing_pagination_list").html(response.pagination_html);
                     $("#counter_num").val(response.sno);
                     if(response.auction_id == 1 || response.auction_id == 2 || response.auction_id == ""){
-                        $("#download_btn_section").html('<a href="javascript:void(0)" class="btn btn-primary btn-sm pl20" onclick="downloadListing(\''+response.page+'\');"><i class="fas fa-download"></i> Download</a> <a href="/admin/listing-settings/" class="btn btn-primary btn-sm pl20"><i class="fas fa-wrench"></i> Setting</a>');
+                        $("#download_btn_section").html('<a href="javascript:void(0)" class="btn btn-primary btn-xs" onclick="downloadListing(\''+response.page+'\');"><i class="fas fa-download"></i> Download</a> <a href="/admin/listing-settings/" class="btn btn-primary btn-xs"><i class="fas fa-wrench"></i> Setting</a>');
                     }else{
-                        $("#download_btn_section").html('<a href="javascript:void(0)" class="btn btn-primary btn-sm pl20" onclick="downloadListing(\''+response.page+'\');"><i class="fas fa-download"></i> Download</a>');
+                        $("#download_btn_section").html('<a href="javascript:void(0)" class="btn btn-primary btn-xs" onclick="downloadListing(\''+response.page+'\');"><i class="fas fa-download"></i> Download</a>');
                     }
 
 
@@ -6433,7 +6465,6 @@ function downloadListing(current_page){
                         $.growl.notice({title: "Listing ", message: response.msg, size: 'large'});
                     }, 2000);
                     custom_response = {
-                        'site_id': response.data.domain_id,
                         'user_id': response.data.agent_id,
                     };
                     customCallBackFunc(update_notification_socket, [custom_response]);
@@ -7686,9 +7717,9 @@ function propertyInsiderBidHistorySearch(property_id, current_page, insider_step
             }
             var search_bid_history = $('#insider_search_bid_history').val();
             if(typeof(response.total) != 'undefined' && response.total){
-                $('#insider_bid_history_search_section').html('<div class="block right"><form action="" class="search-field"><div class="search-icon"><i class="fas fa-search"></i></div><input type="text" name="insider_search_bid_history" id="insider_search_bid_history" class="form-control" value="'+search_bid_history+'"><button type="button" id="bid_history_search_btn" class="btn btn-gray btn-sm pl20" onclick="propertyInsiderBidHistorySearch(\''+response.property_id+'\',1,\''+response.step+'\')">Search</button></form></div><div class="block last"><button type="button" class="btn btn-primary btn-sm pl20" onClick="exportInsiderBidHistory(\''+response.property_id+'\',\''+response.page+'\',\''+response.step+'\')"><i class="fas fa-file-export"></i> Export</button></div><div class="clearfix"></div>');
+                $('#insider_bid_history_search_section').html('<div class="block right"><form action="" class="search-field"><div class="search-icon"><i class="fas fa-search"></i></div><input type="text" name="insider_search_bid_history" id="insider_search_bid_history" class="form-control" value="'+search_bid_history+'"><button type="button" id="bid_history_search_btn" class="btn btn-gray btn-xs" onclick="propertyInsiderBidHistorySearch(\''+response.property_id+'\',1,\''+response.step+'\')">Search</button></form></div><div class="block last"><button type="button" class="btn btn-primary btn-xs" onClick="exportInsiderBidHistory(\''+response.property_id+'\',\''+response.page+'\',\''+response.step+'\')"><i class="fas fa-file-export"></i> Export</button></div><div class="clearfix"></div>');
             }else{
-                $('#insider_bid_history_search_section').html('<div class="block right"><form action="" class="search-field"><div class="search-icon"><i class="fas fa-search"></i></div><input type="text" name="insider_search_bid_history" id="insider_search_bid_history" class="form-control" value="'+search_bid_history+'"><button type="button" id="bid_history_search_btn" class="btn btn-gray btn-sm pl20" onclick="propertyInsiderBidHistorySearch(\''+response.property_id+'\',1,\''+response.step+'\')">Search</button></form></div><div class="block last"><button type="button" class="btn btn-primary btn-sm pl20" onClick="exportInsiderBidHistory(\''+response.property_id+'\',\''+response.page+'\',\''+response.step+'\')"><i class="fas fa-file-export"></i> Export</button></div>');
+                $('#insider_bid_history_search_section').html('<div class="block right"><form action="" class="search-field"><div class="search-icon"><i class="fas fa-search"></i></div><input type="text" name="insider_search_bid_history" id="insider_search_bid_history" class="form-control" value="'+search_bid_history+'"><button type="button" id="bid_history_search_btn" class="btn btn-gray btn-xs" onclick="propertyInsiderBidHistorySearch(\''+response.property_id+'\',1,\''+response.step+'\')">Search</button></form></div><div class="block last"><button type="button" class="btn btn-primary btn-xs" onClick="exportInsiderBidHistory(\''+response.property_id+'\',\''+response.page+'\',\''+response.step+'\')"><i class="fas fa-file-export"></i> Export</button></div>');
             }
             $("#dutchBiddingList").find('script').remove();
             $("#sealedBiddingList").find('script').remove();
@@ -7823,7 +7854,7 @@ function state_list_update(){
 }
 
 function update_notification_socket(response){
-    socket.emit("getNotifications", {"user_id": response.user_id, "domain_id": response.domain_id});
+    socket.emit("getNotifications", {"user_id": response.user_id});
 }
 
 $("#prop_country").change(function(){
@@ -7895,3 +7926,52 @@ $("#bulk_upload").on('change', function(){
         });
     }
 });
+
+function validateInput(event, el, maxLength) {
+    var charCode = event.which ? event.which : event.keyCode;
+
+    // Allow only numbers (0-9)
+    if (charCode && (charCode < 48 || charCode > 57)) {
+        event.preventDefault();
+        return false;
+    }
+
+    // Enforce max length
+    if (el.value.length >= maxLength) {
+        event.preventDefault();
+        return false;
+    }
+
+    return true;
+}
+
+function validatePercentage(event, el, maxVal) {
+    var charCode = event.which ? event.which : event.keyCode;
+    let currentValue = $(el).val();
+    if (
+        (charCode < 48 || charCode > 57) && // Not a number
+        charCode !== 46 // Not a dot (.)
+    ) {
+        event.preventDefault();
+        return false;
+    }
+
+    // Prevent multiple decimal points
+    if (charCode === 46 && currentValue.includes(".")) {
+        event.preventDefault();
+        return false;
+    }
+
+    // Enforce max value
+    if (el.value >= maxVal) {
+        event.preventDefault();
+        return false;
+    }
+
+    // Enforce max length
+    if (el.value.length >= 5) {
+        event.preventDefault();
+        return false;
+    }
+    return true;
+}

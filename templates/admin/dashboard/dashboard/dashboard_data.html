@@ -20,7 +20,7 @@
             <div class="block filters">
               {% csrf_token %}
               <ul>
-                <li id="configuration_website"><a href="/admin/website/" class="btn btn-secondary" role="button" tabindex="3"><i class="fa-solid fa-house-user"></i> Configure Website Homepage</a></li>
+                {% comment %} <li id="configuration_website"><a href="/admin/website/" class="btn btn-secondary" role="button" tabindex="3"><i class="fa-solid fa-house-user"></i> Configure Website Homepage</a></li> {% endcomment %}
                 <li>
                   <div class='input-group date' id='datetimepicker1'>
                     <input type='text' class="form-control" id='datetimepicker_1' placeholder="2023-01-01" value="2023-01-01">
@@ -61,11 +61,17 @@
                     </div>
                     
                     <div class="usr-block">
-                      <div class="item-block">
+                      {% comment %} <div class="item-block">
                         <div class="actve">Active : <span id="active_user"></span></div>
                       </div>
                       <div class="item-block">
                         <div class="inactve">Inactive : <span id="inactive_user"></span></div>
+                      </div> {% endcomment %}
+                      <div class="item-block">
+                        <div class="actve">Under Review : <span id="under_review_user"></span></div>
+                      </div>
+                      <div class="item-block">
+                        <div class="inactve">Verified : <span id="verified_user"></span></div>
                       </div>
                     </div>
                   </a>
@@ -82,9 +88,12 @@
                       </div>
                       <div class="usr-text">
                         <h6>
-                          Agents/Sellers
+                          {% comment %} Agents/Sellers {% endcomment %}
+                          Developers
                         </h6>
-                        <h2 id="total_agent">
+                        {% comment %} <h2 id="total_agent">
+                        </h2> {% endcomment %}
+                        <h2 id="total_developer">
                         </h2>
                       </div>
                     </div>
@@ -94,11 +103,17 @@
                     </div> -->
 
                     <div class="usr-block">
-                      <div class="item-block">
+                      {% comment %} <div class="item-block">
                         <div class="actve">Active Agents: <span id="active_agent"></span></div>
                       </div>
                       <div class="item-block">
                         <div class="inactve">Inactive Agents: <span id="inactive_agent"></span></div>
+                      </div> {% endcomment %}
+                      <div class="item-block">
+                        <div class="actve">Active: <span id="active_developer"></span></div>
+                      </div>
+                      <div class="item-block">
+                        <div class="inactve">Inactive: <span id="inactive_developer"></span></div>
                       </div>
                     </div>
                   </a>
@@ -228,7 +243,7 @@
               </div>
             </div><!-- End .block -->
 
-            <div class="block">
+            {% comment %} <div class="block">
               <div class="box">
                 <a href="/admin/listing/">
                   <div class="usr-data">
@@ -243,9 +258,6 @@
                       </h2>
                     </div>
                   </div>
-                  <!-- <div class="process-bar">
-                    <div data-size="20" class="process"></div>
-                  </div> -->
                   <div class="usr-block">
                     <div class="item-block">
                       <div class="actve">Accept offer: <span id="accept_offer"></span></div>
@@ -256,7 +268,37 @@
                   </div>
                 </a>
               </div>
-            </div><!-- End .block -->
+            </div><!-- End .block --> {% endcomment %}
+
+            {% if request.session.is_broker %}
+              <div class="block">
+                <div class="box">
+                  <a href="/admin/employee/">
+                    <div class="usr-data">
+                      <div class="circle">
+                        <div class="icons icon-2"></div>
+                      </div>
+                      <div class="usr-text">
+                        <h6>
+                          Employees
+                        </h6>
+                        <h2 id="total_employee">
+                        </h2>
+                      </div>
+                    </div>
+                    
+                    <div class="usr-block">
+                      <div class="item-block">
+                        <div class="actve">Active: <span id="active_employee"></span></div>
+                      </div>
+                      <div class="item-block">
+                        <div class="inactve">Inactive: <span id="inactive_employee"></span></div>
+                      </div>
+                    </div>
+                  </a>
+                </div>
+              </div><!-- End .block -->
+            {% endif %}
 
             <div class="block">
               <div class="box">
@@ -384,7 +426,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-tour/0.11.0/js/bootstrap-tour.js"></script>
     <script type="text/javascript" src="{% static 'admin/js/dashboard_tour.js' %}?v=3.1"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.7.14/css/bootstrap-datetimepicker.min.css">
+    
 <script>(g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})
         ({key: "{{site_detail.google_map_key}}", v: "beta"});</script>
 <script>
