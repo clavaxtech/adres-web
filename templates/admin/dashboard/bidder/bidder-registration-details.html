@@ -54,34 +54,36 @@
                       <div class="panel-body">
                         <div class="row">
                           <div class="col-md-6">
-                            <ul class="biddr-info">
+                              <ul class="biddr-info">
                               <li>
-                                <strong>Assets Name:</strong> <span class="blue-text">{{ bidder.asset_information.asset_name|default:'' }}</span>
+                                <strong>Property Name:</strong> <span class="blue-text">{{ bidder.asset_information.property_name|default:'' }}</span>
                               </li>
-                              <li>
-                                <strong>Address:</strong> {{ bidder.asset_information.address_one|default:'' }}
-                              </li>
-                              <li>
-                                <strong>State:</strong> {{ bidder.asset_information.state|default:'' }}
-                              </li>
-                            </ul>
-                          </div>
-                          <div class="col-md-6">
-                            <ul class="biddr-info">
-                              <!-- <li>
-                                <strong>CA Signed:</strong> No
-                              </li> -->
                               <li>
                                 <strong>Property Type:</strong>
                                 {{ bidder.asset_information.property_type|default:'' }}
                               </li>
                               <li>
-                                <strong>City:</strong>
-                                {{ bidder.asset_information.city|default:'' }}
+                                <strong>Project Name:</strong>
+                                {{ bidder.asset_information.project|default:'-' }}
                               </li>
                               <li>
-                                <strong>Zip code:</strong>
-                                {{ bidder.asset_information.postal_code|default:'' }}
+                                <strong>Country:</strong> {{ bidder.asset_information.country|default:'' }}
+                              </li>
+                            </ul>
+                          </div>
+                          <div class="col-md-6">
+                            <ul class="biddr-info">
+                              <li>
+                                <strong>City:</strong> {{ bidder.asset_information.state|default:'' }}
+                              </li>
+                              <li>
+                                <strong>Municipality:</strong> {{ bidder.asset_information.municipality|default:'' }}
+                              </li>
+                              <li>
+                                <strong>District:</strong> {{ bidder.asset_information.district|default:'' }}
+                              </li>
+                              <li>
+                                <strong>Community:</strong> {{ bidder.asset_information.community|default:'' }}
                               </li>
                             </ul>
                           </div>
@@ -89,74 +91,8 @@
                       </div>
                   </div>
               </div><!-- End .panel -->
-              {% if bidder.buyer_agent_information %}
-                  <div class="panel panel-default">
-                  <div class="panel-heading" role="tab" id="headingNine">
-                      <h4 class="panel-title">
-                          <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseNine" aria-expanded="true" aria-controls="collapseNine" class="collapsed">
-                              Buyer/Agent Information
-                            <span class="icon"></span>
-                          </a>
-                      </h4>
-                  </div>
-                  <div id="collapseNine" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingNine">
-                      <div class="panel-body">
-                        <div class="row">
-                          <div class="col-md-6">
-                            <ul class="biddr-info">
-                              <li>
-                                <strong>Registrant Name:</strong> {{ bidder.buyer_agent_information.first_name|default:'' }} {{ bidder.other_user_information.last_name|default:'' }}
-                              </li>
-                              <!--<li>
-                                <strong>Title:</strong> {{ bidder.buyer_information.first_name|default:'' }}
-                              </li>-->
-                              <li>
-                                <strong>Mobile:</strong> {{ bidder.buyer_agent_information.phone_no|format_phone|default:'' }}
-                              </li>
-                             <li>
-                                <strong>City:</strong> {{ bidder.buyer_agent_information.city|default:'NA' }}
-                              </li>
-                              <li>
-                                <strong>Zipcode:</strong> {{ bidder.buyer_agent_information.postal_code|default:'NA' }}
-                              </li>
-                              <li>
-                                <strong>IP Address:</strong> {{ bidder.buyer_agent_information.ip_address|default:'NA' }}
-                              </li>
-                              <!--<li>
-                                <strong>Contract Issue To:</strong> {{ bidder.buyer_information.first_name|default:'' }} {{ bidder.buyer_information.last_name|default:'' }}
-                              </li>-->
-                            </ul>
 
-                          </div>
-                          <div class="col-md-6">
-                            <ul class="biddr-info">
-                              <li>
-                                <strong>Company Name:</strong> {{ bidder.buyer_agent_information.company_name|default:'' }}
-                              </li>
-                              <li>
-                                <strong>Email:</strong> {{ bidder.buyer_agent_information.email|default:'' }}
-                              </li>
-                              <li>
-                                <strong>Address:</strong> {{ bidder.buyer_agent_information.address_first|default:'' }}
-                              </li>
-                              <li>
-                                <strong>State:</strong> {{ bidder.buyer_agent_information.state|default:'' }}
-                              </li>
-                              <!--<li>
-                                <strong>Country:</strong> USA
-                              </li>-->
-                              <li>
-                                <strong>Contracting Entity Type:</strong> {{ bidder.buyer_agent_information.user_type|default:'' }}
-                              </li>
-                            </ul>
-
-                          </div>
-                        </div>
-                      </div>
-                  </div>
-                </div><!-- End .panel -->
-              {% else %}
-                {% if bidder.buyer_information %}
+              {% if bidder.buyer_information %}
                 <div class="panel panel-default">
                     <div class="panel-heading" role="tab" id="headingOne">
                         <h4 class="panel-title">
@@ -172,48 +108,21 @@
                             <div class="col-md-6">
                               <ul class="biddr-info">
                                 <li>
-                                  <strong>Registrant Name:</strong> {{ bidder.buyer_information.first_name|default:'' }} {{ bidder.buyer_information.last_name|default:'' }}
-                                </li>
-                                <!--<li>
-                                  <strong>Title:</strong> {{ bidder.buyer_information.first_name|default:'' }}
-                                </li>-->
-                                <li>
-                                  <strong>Mobile:</strong> {{ bidder.buyer_information.phone_no|format_phone|default:'' }}
+                                  <strong>Registrant Name:</strong> {{ bidder.buyer_information.first_name|default:'' }}
                                 </li>
                                 <li>
-                                  <strong>City:</strong> {{ bidder.buyer_information.city|default:'NA' }}
+                                  <strong>Email:</strong> {{ bidder.buyer_information.email|default:'' }}
                                 </li>
-                                <li>
-                                  <strong>Zipcode:</strong> {{ bidder.buyer_information.postal_code|default:'NA' }}
-                                </li>
-                                <li>
-                                  <strong>IP Address:</strong> {{ bidder.buyer_information.ip_address|default:'NA' }}
-                                </li>
-                                <!--<li>
-                                  <strong>Contract Issue To:</strong> {{ bidder.buyer_information.first_name|default:'' }} {{ bidder.buyer_information.last_name|default:'' }}
-                                </li>-->
                               </ul>
 
                             </div>
                             <div class="col-md-6">
                               <ul class="biddr-info">
-                                <!--<li>
-                                  <strong>Company Name:</strong> {{ bidder.buyer_information.company_name|default:'' }}
-                                </li>-->
                                 <li>
-                                  <strong>Email:</strong> {{ bidder.buyer_information.email|default:'' }}
+                                  <strong>Mobile:</strong>+{{agent.bidder.buyer_information.phone_country_code|default:971}} {{ bidder.buyer_information.phone_no|format_phone|default:'' }}
                                 </li>
                                 <li>
-                                  <strong>Address:</strong> {{ bidder.buyer_information.address_first|default:'' }}
-                                </li>
-                                <li>
-                                  <strong>State:</strong> {{ bidder.buyer_information.state|default:'' }}
-                                </li>
-                                <!--<li>
-                                  <strong>Country:</strong> USA
-                                </li>-->
-                                <li>
-                                  <strong>Contracting Entity Type:</strong> {{ bidder.buyer_information.user_type|default:'' }}
+                                  <strong>IP Address:</strong> {{ bidder.buyer_information.ip_address|default:'NA' }}
                                 </li>
                               </ul>
 
@@ -222,207 +131,51 @@
                         </div>
                     </div>
                 </div><!-- End .panel -->
-                {% endif %}
-
-                {% if bidder.agent_information %}
-                <div class="panel panel-default">
-                  <div class="panel-heading" role="tab" id="headingEight">
+              {% endif %}
+              
+              <div class="panel panel-default">
+                  <div class="panel-heading" role="tab" id="headingTwo">
                       <h4 class="panel-title">
-                          <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseEigth" aria-expanded="true" aria-controls="collapseEigth" class="collapsed">
-                            Agent Information
+                          <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo" class="collapsed">
+                            Registration Information
                             <span class="icon"></span>
                           </a>
                       </h4>
                   </div>
-                  <div id="collapseEigth" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingEight">
+                  <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
                       <div class="panel-body">
                         <div class="row">
                           <div class="col-md-6">
                             <ul class="biddr-info">
                               <li>
-                                <strong>Agent Name:</strong> {{ bidder.agent_information.first_name|default:'' }} {{ bidder.agent_information.last_name|default:'' }}
+                                <strong>Registration Date:</strong> <span class="convert_to_local_date_time" data-value="{{ bidder.registration_information.added_on|default:'' }}">{{ bidder.registration_information.added_on|default:'' }}</span>
                               </li>
-                              <!--<li>
-                                <strong>Title:</strong> {{ bidder.buyer_information.first_name|default:'' }}
-                              </li>-->
-                              <li>
-                                <strong>Mobile:</strong> {{ bidder.agent_information.phone_no|format_phone|default:'' }}
-                              </li>
-                              <li>
-                                <strong>City:</strong> {{ bidder.agent_information.city|default:'NA' }}
-                              </li>
-                              <li>
-                                <strong>Zipcode:</strong> {{ bidder.agent_information.postal_code|default:'NA' }}
-                              </li>
-                              <li>
-                                <strong>IP Address:</strong> {{ bidder.agent_information.ip_address|default:'NA' }}
-                              </li>
-                              <!--<li>
-                                <strong>Contract Issue To:</strong> {{ bidder.buyer_information.first_name|default:'' }} {{ bidder.buyer_information.last_name|default:'' }}
-                              </li>-->
                             </ul>
-
                           </div>
                           <div class="col-md-6">
                             <ul class="biddr-info">
                               <li>
-                                <strong>Company Name:</strong> {{ bidder.agent_information.company_name|default:'' }}
-                              </li>
-                              <li>
-                                <strong>Email:</strong> {{ bidder.agent_information.email|default:'' }}
-                              </li>
-                              <li>
-                                <strong>Address:</strong> {{ bidder.agent_information.address_first|default:'' }}
-                              </li>
-                              <li>
-                                <strong>State:</strong> {{ bidder.agent_information.state|default:'' }}
-                              </li>
-                              <!--<li>
-                                <strong>Country:</strong> USA
-                              </li>-->
-                              <li>
-                                <strong>Contracting Entity Type:</strong> {{ bidder.agent_information.user_type|default:'' }}
+                                <strong>Deposit Amount:</strong> {{bidder.registration_information.amount| default:""}}
                               </li>
                             </ul>
-
+                          </div>
+                          <div class="col-md-6">
+                            <ul class="biddr-info">
+                              <li>
+                                <strong>Tax:</strong> {{bidder.registration_information.tax| default:""}}
+                              </li>
+                            </ul>
                           </div>
                         </div>
                       </div>
                   </div>
-              </div><!-- End .panel -->
-
-                {% endif %}
-              {% endif %}
-                <div class="panel panel-default">
-                    <div class="panel-heading" role="tab" id="headingTwo">
-                        <h4 class="panel-title">
-                            <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo" class="collapsed">
-                              Registration Information
-                              <span class="icon"></span>
-                            </a>
-                        </h4>
-                    </div>
-                    <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
-                        <div class="panel-body">
-                          <div class="row">
-                            <div class="col-md-6">
-                              <ul class="biddr-info">
-                                <li>
-                                  <strong>Registration Date:</strong> <span class="convert_to_local_date_time" data-value="{{ bidder.registration_information.added_on|default:'' }}">{{ bidder.registration_information.added_on|default:'' }}</span>
-                                </li>
-                              </ul>
-                            </div>
-                            <div class="col-md-6">
-                              <ul class="biddr-info">
-                                <li>
-                                  <strong>Due Diligence Vault:</strong> {% if bidder.registration_information.is_document_vault > 0 %} Yes {% else %} No {% endif %}
-                                </li>
-                              </ul>
-                            </div>
-                          </div>
-                        </div>
-                    </div>
                 </div><!-- End .panel -->
-
-
-              {% comment %}
-              <div class="panel panel-default">
-                <div class="panel-heading" role="tab" id="headingTwo">
-                    <h4 class="panel-title">
-                        <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapsefour" aria-expanded="false" aria-controls="collapsefour" class="collapsed">
-                          Notes
-                          <span class="icon"></span>
-                        </a>
-                    </h4>
-                </div>
-                <div id="collapsefour" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
-                    <div class="panel-body">
-                        {{ bidder.note_information.buyer_comment|default:'' }}
-                    </div>
-                </div>
-              </div><!-- End .panel -->
-              {% endcomment %}
-              <div class="panel panel-default">
-                <div class="panel-heading" role="tab" id="headingTwo">
-                    <h4 class="panel-title">
-                        <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseFive" aria-expanded="false" aria-controls="collapseFive" class="collapsed">
-                          Upload Proof of Funds
-                          <span class="icon"></span>
-                        </a>
-                    </h4>
-                </div>
-                <div id="collapseFive" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
-                    <div class="panel-body">
-                      <input type="hidden" id="bidder_doc_id" name="bidder_doc_id" value="{{ bidder.upload_ids|default:'' }}"/>
-                      <input type="hidden" name="bidder_doc_name" id="bidder_doc_name" value="{{ bidder.upload_names|default:'' }}"/>
-                      <!--<div class="upload-fav">
-                        <div class="item">
-                          <div class="dropzone" id="bidderDocFrm">
-                              
-                                <div class="dz-default dz-message" data-dz-message="">
-                                  <div class="block">
-                                    <button type="button" class="btn btn-primary"><i class="fas fa-upload"></i> Upload Document</button>
-                                  </div>
-                                  <div class="block">
-                                    or
-                                  </div>
-                                  <div class="block">
-                                    <h6>
-                                      Drag & Drop Docs
-                                      <span>Supported Files: pdf, doc, docx</span>
-                                    </h6>
-                                  </div>
-                                </div>
-
-                          </div>
-                        </div>
-                        <div class="item">
-                          <div class="tooltipp"><i class="fas fa-question-circle"></i>
-                            <span class="tooltipp__content">Allowed file type is pdf. You can upload maximum 6 doc at a time.</span>
-                          </div>
-                        </div>
-                      </div>--><!-- End .uplaod-fav -->
-                      {% if bidder.upload_pof %}
-                      <div class="row" id="bidderDocDiv" style="{% if bidder.uploads_information.pof_upload|length > 0 %}{% else %}display:none;{% endif %}">
-                        <div class="col-lg-6 col-md-6 col-sm-12">
-                          <div class="pdf-show-list">
-                            <ul id="bidderDocList">
-                              {% if bidder.uploads_information.pof_upload|length > 0 %}
-                              {% for doc in bidder.uploads_information.pof_upload %}
-                              <li rel_id="{{ doc.upload_id }}" rel_position="{{ forloop.counter0 }}">
-                                <!--<span class="pdf-icon"><img src="{% static 'admin/images/pdf.png' %}" alt="real estate sales"></span>-->
-                                <span class="pdf-icon">{% if doc.file_type == 'pdf' %}<i class='fas fa-file-pdf' aria-hidden="true" role="presentation"></i>{% elif doc.file_type == 'docx' %}<i class='far fa-file-alt' aria-hidden="true" role="presentation"></i>{% elif doc.file_type == 'doc' %}<i class='fas fa-file-word'></i>{% else %}{% endif %}</span>
-                                <a href="{% if doc.doc_file_name %}{{ azure_blob_url }}{{ doc.bucket_name }}/{{ doc.doc_file_name }}{% endif %}">{{ doc.doc_file_name }}</a>
-                                <a href="javascript:void(0)" data-image-id="{{ doc.upload_id }}" data-image-name="{{ doc.doc_file_name }}" data-image-section="{{ doc.bucket_name }}" class="pdf-delete confirm_bidder_doc_delete"><i class="far fa-trash-alt" aria-hidden="true" role="presentation"></i></a>
-                              </li>
-                              {% endfor %}
-                              {% endif %}
-
-                            </ul>
-                          </div>
-                        </div>
-                      </div>
-                      {% else %}
-                      <div class="row">
-                        <div class="col-md-12">
-                          <ul class="biddr-info">
-                            <li>
-                              <strong>Reason For Not Upload:</strong> <span>{{ bidder.uploads_information.reason_for_not_upload|default:'' }}</span>
-                            </li>
-                          </ul>
-                        </div>
-                      </div>
-                      {% endif %}
-
-                    </div>
-                </div>
-              </div><!-- End .panel -->
 
               <div class="panel panel-default">
                 <div class="panel-heading" role="tab" id="headingTwo">
                     <h4 class="panel-title">
                         <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseSix" aria-expanded="false" aria-controls="collapseSix" class="collapsed">
-                          Review and Approval
+                          Approval
                           <span class="icon"></span>
                         </a>
                     </h4>
@@ -434,18 +187,6 @@
                           <div class="row">
                             <div class="col-md-6">
                               <div class="form-group">
-                                <label for="review_status">
-                                  Review Status <span class="text-danger">*</span>
-                                </label>
-                                <select class="select form-control" aria-label="Review Status" name="review_status" id="review_status">
-                                  <option value="">Select</option>
-                                  <option value="1" {% if bidder.review_information.is_reviewed == 1 %}selected{% endif %}>Reviewed</option>
-                                  <option value="0" {% if bidder.review_information.is_reviewed == 0 %}selected{% endif %}>Not Reviewed</option>
-                                </select>
-                              </div>
-                            </div>
-                            <div class="col-md-6">
-                              <div class="form-group">
                                 <label for="apprvoal_status">
                                   Approval Status <span class="text-danger">*</span>
                                 </label>
@@ -454,7 +195,6 @@
                                   <option value="1" {% if bidder.review_information.is_approved == 1 %}selected{% endif %}>Pending</option>
                                   <option value="2" {% if bidder.review_information.is_approved == 2 %}selected{% endif %}>Approved</option>
                                   <option value="3" {% if bidder.review_information.is_approved == 3 %}selected{% endif %}>Declined</option>
-                                  <!--<option value="4" {% if bidder.review_information.is_approved == 4 %}selected{% endif %}>Not Interested</option>-->
                                 </select>
                               </div>
                             </div>
@@ -464,17 +204,6 @@
                                   Note about buyer
                                 </label>
                                 <textarea class="form-control" name="note_for_buyer" id="note_for_buyer" placeholder="Enter note about buyer">{{ bidder.review_information.seller_comment|default:'' }}</textarea>
-<!--                                <input type="text" class="form-control" name="note_for_buyer" id="note_for_buyer" value="{{ bidder.review_information.seller_comment|default:'' }}" placeholder="Enter note about buyer">-->
-                              </div>
-                            </div>
-                            <div class="col-md-6">
-                              <div class="form-group approval-price">
-                                <label for="approval_limit">
-                                  Approval Limit
-                                  <span class="text-danger">*</span>
-                                </label>
-                                <span class="dollar">$</span>
-                                <input type="text" class="form-control" name="approval_limit" id="approval_limit" aria-label="Enter approval limit" placeholder="Enter approval limit" value="{{ bidder.review_information.approval_limit|convert_num|intcomma|default:'' }}" maxlength="15">
                               </div>
                             </div>
                           </div>
@@ -509,9 +238,6 @@
                                 Bid Approval
                               </th>
                               <th role="columnheader" scope="col">
-                                Approved Limit
-                              </th>
-                              <th role="columnheader" scope="col">
                                 Note
                               </th>
                             </tr>
@@ -525,13 +251,10 @@
                                 {{ forloop.counter }}
                               </th>
                               <td role="rowheader">
-                                {{ history.property_address_one|default:'' }}, {{ history.property_city|default:'' }}, {{ history.property_state|default:'' }} {{ history.property_postal_code|default:'' }}
+                                {{ history.property_name|default:'' }}, {{ history.state|default:'' }}, {{ history.community|default:'' }}
                               </td>
                               <td role="rowheader">
                                 <span class="badge {% if history.is_approved|lower == 'pending' %}badge-warning{% elif history.is_approved|lower == 'approved' %}badge-success{% else %}badge-danger{% endif %}">{{ history.is_approved|default:'' }}</span>
-                              </td>
-                              <td role="rowheader">
-                                {{ history.approval_limit|convert_num|intcomma|default:'0' }}
                               </td>
                               <td role="rowheader">
                                 {{ history.seller_comment|default:'-' }}

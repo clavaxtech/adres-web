@@ -307,3 +307,7 @@ def split(value,delimiter):
         arr = value.split(delimiter)
 
     return arr
+
+@register.filter
+def is_pdf(filename):
+    return filename.lower().endswith('.pdf')

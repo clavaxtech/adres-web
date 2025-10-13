@@ -56,6 +56,7 @@ function ajax_cms_list() {
     $.ajax({
         url: "/admin/ajax-cms-list/",
         type: "POST",
+        headers: { 'X-CSRFToken': getCookie('csrftoken') },
         data: { 
             'page': page,
             'count': $('#per_page_record').val(),

@@ -32,9 +32,9 @@
                             <li>
                               <a href="javascript:void(0)" onclick="get_popup_user_details({{ user.id }})"><i class="fas fa-edit" aria-hidden="true" role="presentation"></i> Edit</a>
                             </li>
-                            <li>
+                            <!-- <li>
                               <a href="javascript:void(0)" onclick="user_delete_confirmation({{ user.id }})"><i class="fas fa-trash" aria-hidden="true" role="presentation"></i> Delete</a>
-                            </li>
+                            </li> -->
                             <li>
                               <a href="javascript:void(0)" onclick="send_reset_password_link({{ user.id }})"><i class="fas fa-share" aria-hidden="true" role="presentation"></i> Reset Password</a>
                             </li>
@@ -59,7 +59,7 @@
                               <span class="tooltipp__content user-tip-tool right">Brokerage Name: {{ user.other_brokerage_name }}<br/>License No.: {{ user.other_licence_number }} </span>
                             </div>
                             {% endif %}
-                            {{ user.first_name|default:"" }} {{ user.last_name|default:"" }}</span>
+                            {{ user.first_name|default:"" }}</span>
                           
                         </h6>
                         {% if user.user_details %}
@@ -117,5 +117,7 @@
                 {% endif %}
     <!-- <script type="text/javascript" src="{% static 'admin/js/users.js' %}?v=4.6"></script> -->
 {% block js_content %}
-    <script type="text/javascript" src="{% static 'admin/js/custom_js.js' %}?v=4.6"></script>
+    <!-- <script type="text/javascript" src="{% static 'admin/js/custom_js.js' %}?v=4.6"></script> -->
+    <script type="text/javascript" src="{% static 'admin/js/custom-date-time.js' %}?v=4.6"></script>
+    <script type="text/javascript" src="{% static 'admin/js/users.js' %}?v=3.1"></script>
 {% endblock %}

@@ -237,3 +237,55 @@ label.radioo-label {
   top: 0;
   opacity: 0;
 }
+
+
+
+
+
+
+// Custom Radio
+
+
+.custom-input {
+  /* change default input is hidden */
+  -webkit-appearance: none; 
+  appearance: none;   
+}
+
+input[type="radio"].custom-input {
+  border-radius: 50%;
+  outline: none;
+  outline-offset: inherit;
+}
+
+/* Create custom checkbox & Radio Button inside 
+    - it is not styled yet, just square shape
+*/
+.custom-input::before {
+  display: block;
+  content: "";
+  width: 18px;
+  height: 18px;
+  transition: 120ms transform ease-in-out;
+}
+
+/* Style to custom redio button */
+input[type="radio"].custom-input::before {
+  background-image:url(../images/radio-btn.svg);
+  background-position: 0 -58px;
+}
+
+/* Show radio button by checked */
+input[type="radio"].custom-input:checked::before {
+  background-position: 0 0;
+}
+input[type="radio"] {
+ /* styling outside of checkbox and radio button */
+  width: 20px;
+  height: 20px;
+  // background-image:url(../images/radio-btn.svg);
+  padding: 0;
+  margin: 0 0 4px 10px;
+  position: relative;
+  vertical-align: middle;
+}

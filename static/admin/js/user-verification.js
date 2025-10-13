@@ -56,7 +56,8 @@ function save_data(element){
                     window.location.reload();
                 }, 2000);
                 custom_response = {
-                    'user_id': response.data.user_id,
+                    // 'user_id': response.data.user_id,
+                    'user_id': encryptUserId(String(response.data.user_id), encryptionKey),
                 };
                 customCallBackFunc(update_notification_socket, [custom_response]);
             }else{

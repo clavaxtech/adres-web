@@ -1046,6 +1046,13 @@ function convert_to_utc_datetime(myTimeStamp,format){
     }
     return timeStp;
 }
+
+function convert_to_date_format(myTimeStamp){
+    const [month, day, year] = myTimeStamp.split("-");
+    const formatted = `${year.trim()}-${month.trim()}-${day.trim()}`;
+    return formatted;
+}
+
 function convert_to_24h(time_str) {
     try{
         var time =time_str;
@@ -1096,6 +1103,33 @@ function formatPhoneNumber(phoneNumberString) {
     return '(' + match[1] + ') ' + match[2] + '-' + match[3];
   }
   return null;
+}
+
+// function formatPhoneNumberUae(phoneNumberString) {
+//   var cleaned = ('' + phoneNumberString).replace(/\D/g, '');
+//   var match = cleaned.match(/^(\d{2})(\d{3})(\d{5})$/);
+//   if (match) {
+//     return match[1] + ' ' + match[2] + ' ' + match[3];
+//   }
+//   return null;
+// }
+
+function formatPhoneNumberUae(phoneNumberString) {
+  var cleaned = ('' + phoneNumberString).replace(/\D/g, '');
+
+  if (cleaned.length === 10) {
+    var match10 = cleaned.match(/^(\d{2})(\d{3})(\d{5})$/);
+    if (match10) {
+      return match10[1] + ' ' + match10[2] + ' ' + match10[3];
+    }
+  } else if (cleaned.length === 9) {
+    var match9 = cleaned.match(/^(\d{2})(\d{3})(\d{4})$/);
+    if (match9) {
+      return match9[1] + ' ' + match9[2] + ' ' + match9[3];
+    }
+  }
+
+  return null; // Return null if not 9 or 10 digit
 }
 
 /*function filter_user_list(){
@@ -1518,6 +1552,26 @@ function cst_convert_bidding_date(element){
              var actual_date = getLocalDate(value, 'mm-dd-yyyy', 'datetime');
              var virtual_date = getCstDate(value, 'mm-dd-yyyy','ampm');
             $('#virtual_'+element).val(virtual_date);
+        }else{
+
+            $('#virtual_'+element).val('');
+        }
+        $('#'+element).val('');
+        $('#'+element+'_local').val('');
+
+    }catch(ex){
+        //console.log(ex);
+    }
+
+}
+
+function convert_date(element){
+    try{
+        value = $('#'+element).val();
+        const [year, month, day] = value.split("-");
+        if(value != ""){
+            const formatted = `${month.trim()}-${day.trim()}-${year.trim()}`;
+            $('#virtual_'+element).val(formatted);
         }else{
 
             $('#virtual_'+element).val('');

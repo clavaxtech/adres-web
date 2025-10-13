@@ -47,7 +47,10 @@
               </select>
             </li>
             <li id="add_broker_agent">
-              {% if request.session.is_broker %}<a href="/admin/add-developer/" class="btn btn-primary btn-xs"><i class="fas fa-plus" aria-hidden="true" role="presentation"></i> New Developer</a>{% endif %}
+              <a href="/admin/add-developer/" class="btn btn-primary btn-xs"><i class="fas fa-plus" aria-hidden="true" role="presentation"></i> New Developer</a>
+            </li>
+            <li>
+              <a href="javascript:void(0)" onclick="developer_csv_download()" class="btn btn-primary btn-xs"></i>Download CSV</a>
             </li>
           </ul>
         </div>
@@ -69,7 +72,7 @@
                     {{ agent.email|default:'' }}
                   </li>
                   <li>
-                    <i class="fa-solid fa-phone" aria-hidden="true" role="presentation"></i> {{ agent.phone_no|default:''|format_phone }}
+                    <i class="fa-solid fa-phone" aria-hidden="true" role="presentation"></i>+{{agent.phone_country_code|default:971}} {{ agent.phone_no|default:''|format_phone }}
                   </li>
                   <li>
                     <i class="fa-solid fa-calendar-days" aria-hidden="true" role="presentation"></i> Create Date | <span class="convert_to_local_date_time" data-value="{{ agent.added_on|default:'' }}">
@@ -91,7 +94,7 @@
                     <figcaption>
                       <h6>
                         <span>
-                          {{ agent.first_name|default:'' }} {{ agent.last_name|default:'' }}
+                          {{ agent.first_name|default:'' }}
                           {% if agent.is_upgrade %}
                           <a href="javascript:void(0)" data-toggle="tooltip" data-placement="bottom" title="User upgraded to Agent"><img src="{% static 'admin/images/up-arrow.svg' %}" alt="real estate sales"></a>
                           {% endif %}
@@ -110,9 +113,9 @@
                           <li>
                             <a href="/admin/add-developer/?id={{ agent.id }}"><i class="fas fa-edit" aria-hidden="true" role="presentation"></i> Edit Developer</a>
                           </li>
-                          <li>
+                          <!-- <li>
                             <a href="javascript:void(0)" onclick="agent_delete_confirmation({{ agent.id }})"><i class="fas fa-trash" aria-hidden="true" role="presentation"></i> Delete Developer</a>
-                          </li>
+                          </li> -->
                         </ul>
                       </span>
                     </div>
@@ -133,7 +136,7 @@
                            {% if agent.employee_cnt %}
                             <a href="/admin/employee/?developer_id={{ agent.id }}">{{ agent.employee_cnt|default:'NA' }}</a>
                           {% else %}
-                            <a href="/admin/employee/?developer_id={{ agent.id }}">{{ agent.employee_cnt|default:'NA' }}</a>
+                            NA
                           {% endif %}
                         </h5>
                         <h6 class="pt10">
@@ -143,7 +146,11 @@
                       <li>
                         <div class="icon"><i class="fa-solid fa-building fa-2x" aria-hidden="true" role="presentation"></i></div>
                         <h5 class="blue-text">
-                          {{ agent.project_cnt|default:'NA' }}
+                          {% if agent.project_cnt %}
+                            <a href="/admin/project-list/?d_i={{ agent.id }}">{{ agent.project_cnt|default:'NA' }}</a>
+                          {% else %}
+                            NA
+                          {% endif %}   
                         </h5>
                         <h6 class="pt10">
                           No. Projects
@@ -152,7 +159,11 @@
                       <li>
                         <div class="icon"><i class="fa-solid fa-building fa-2x" aria-hidden="true" role="presentation"></i></div>
                         <h5 class="blue-text">
-                          {{ agent.property_cnt|default:'NA' }}
+                          {% if agent.project_cnt %}
+                            <a href="/admin/listing/?d_i={{ agent.id }}">{{ agent.property_cnt|default:'NA' }}</a>
+                          {% else %}
+                           NA
+                          {% endif %}  
                         </h5>
                         <h6 class="pt10">
                           No. Property
@@ -227,8 +238,8 @@
     <script type="text/javascript" src="{% static 'admin/js/jquery.growl.js' %}"></script>
     <script type="text/javascript" src="{% static 'admin/js/autosuggestion.js' %}?v=1.9"></script>
     <script type="text/javascript" src="{% static 'admin/js/pagination.js' %}?v=1.1"></script>
-    <script type="text/javascript" src="{% static 'admin/js/custom_js.js' %}?v=4.2"></script>
-    <script type="text/javascript" src="{% static 'admin/js/agent.js' %}?v=5.1"></script>
+    <script type="text/javascript" src="{% static 'admin/js/custom-date-time.js' %}?v=4.2"></script>
+    <script type="text/javascript" src="{% static 'admin/js/agent.js' %}?v=5.2"></script>
     <script type="text/javascript" src="{% static 'admin/js/dropzone.js' %}"></script>
     <script type="text/javascript" src="{% static 'admin/js/custom_dropzone.js' %}?v=3.1"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-tour/0.11.0/js/bootstrap-tour.js"></script>

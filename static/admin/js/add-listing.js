@@ -7,7 +7,30 @@ $(document).ready(function(){
         // var count = parseInt($('.child_owner').length);
         var count = parseInt($('#total_section').val());
         var account_verification_type = parseInt($('#account_verification_type').val());
-        var new_child = $(".child_owner:last").clone().insertAfter(".child_owner:last");
+        // var new_child = $(".child_owner:last").clone().insertAfter(".child_owner:last");
+
+        // -----------Updated Part----------
+        var last_child = $(".child_owner:last");
+        // Store checked states before cloning
+        last_child.find('input[type="radio"]').each(function () {
+            if ($(this).prop('checked')) {
+                $(this).attr('data-was-checked', 'true');
+            }
+        });
+
+        // Clone the last section
+        var new_child = last_child.clone();
+
+        // Insert the clone
+        new_child.insertAfter(".child_owner:last");
+
+        // Restore checked states in the original
+        last_child.find('input[type="radio"]').each(function () {
+            $(this).prop('checked', $(this).attr('data-was-checked') === 'true');
+            $(this).removeAttr('data-was-checked');
+        });
+        // -----------Updated Part End------
+
         new_child.find(".owner_count").text(count+1);
         new_child.find(".owner_name").val("");
         new_child.find(".owner_eid").val("");
@@ -19,12 +42,28 @@ $(document).ready(function(){
         new_child.find(".owner_email").val("");
         new_child.attr('id', 'child_owner_' + count);
         new_child.find(".owner_name").attr('id', 'owner_name_' + count).attr('name','owner_name_'+ count);
-        if(account_verification_type != 2){
-            new_child.find(".owner_eid").attr('id', 'owner_eid_' + count).attr('name','owner_eid_'+ count);
-            new_child.find(".owner_eid").inputmask('999-9999-9999999-9');
-        }else{
-            new_child.find(".owner_passport").attr('id', 'owner_passport_' + count).attr('name','owner_passport_'+ count);
-        }
+        
+        new_child.find(".chosen-container").remove();
+        new_child.find(".select").chosen();
+        // if(account_verification_type != 2){
+        //     new_child.find(".owner_eid").attr('id', 'owner_eid_' + count).attr('name','owner_eid_'+ count);
+        //     new_child.find(".owner_eid").inputmask('999-9999-9999999-9');
+        // }else{
+        //     new_child.find(".owner_passport").attr('id', 'owner_passport_' + count).attr('name','owner_passport_'+ count);
+        // }
+        // ------For owner identification type------
+        new_child.find(".owner_eid").attr('id', 'owner_eid_' + count).attr('name','owner_eid_'+ count);
+        new_child.find(".owner_eid").inputmask('999-9999-9999999-9');
+        new_child.find(".owner_passport").attr('id', 'owner_passport_' + count).attr('name','owner_passport_'+ count);
+        // new_child.find(".type_eid").attr('id', 'owner_eid_type_' + count).attr('name','owner_eid_type_'+ count);
+        new_child.find(".type_eid").attr('id', 'owner_eid_type_' + count).attr('name', 'owner_eid_type_' + count).prop('checked', true);
+        new_child.find('#owner_passport_' + count).hide();
+        new_child.find('#owner_eid_' + count).show();
+        new_child.find(".type_passport").attr('id', 'owner_eid_type_pass_' + count).attr('name','owner_eid_type_'+ count);
+        new_child.find(".eid_label").attr('for', 'owner_eid_type_' + count);
+        new_child.find(".passport_label").attr('for', 'owner_eid_type_pass_' + count);
+
+
         new_child.find(".owner_percentage").attr('id', 'owner_percentage_' + count).attr('name','owner_percentage_'+ count);
         new_child.find(".owner_nationality").attr('id', 'owner_nationality_' + count).attr('name','owner_nationality_'+ count);
         new_child.find(".owner_dob").attr('id', 'owner_dob_' + count).attr('name','owner_dob_'+ count);
@@ -35,6 +74,23 @@ $(document).ready(function(){
         new_child.find(".delete_child_owner").show();
         count = count+1;
         $("#total_section").val(count);
+    });
+
+    $(document).on('change', ".type_eid, .type_passport", function () {
+        // Identify which class triggered it
+        if ($(this).hasClass("type_eid")) {
+            $(this).closest(".owner_eid_section").find(".label_text").html('EID <span class="text-danger">*</span>');
+            // $(this).closest(".owner_eid_section").find(".owner_eid").val("");
+            // $(this).closest(".owner_eid_section").find(".owner_eid").attr("placeholder", "Enter your EID Number");
+            $(this).closest(".owner_eid_section").find(".owner_passport").hide();
+            $(this).closest(".owner_eid_section").find(".owner_eid").show();
+        } else if ($(this).hasClass("type_passport")) {
+            $(this).closest(".owner_eid_section").find(".label_text").html('Passport <span class="text-danger">*</span>');
+            // $(this).closest(".owner_eid_section").find(".owner_eid").val("");
+            // $(this).closest(".owner_eid_section").find(".owner_eid").attr("placeholder", "Enter your Passport Number");
+            $(this).closest(".owner_eid_section").find(".owner_eid").hide();
+            $(this).closest(".owner_eid_section").find(".owner_passport").show();
+        }
     });
 
     $(document).ready(function(){
@@ -77,9 +133,18 @@ $(document).ready(function(){
 
     $(document).on('change', '#prop_city', function(){
         var prop_city = $(this).val();
+        if (prop_city != 83){
+            $("#community_data").empty();
+            $('#community_data').trigger("chosen:updated");
+            $('.community_dropdown').hide();
+            $("#community").val("");
+            $(".community_text").show();
+        }
+
         $.ajax({
             url: '/admin/get-municipality/',
             type: 'post',
+            headers: { 'X-CSRFToken': getCookie('csrftoken') },
             dataType: 'json',
             cache: false,
             data: {prop_city: prop_city},
@@ -96,6 +161,7 @@ $(document).ready(function(){
                         $('#municipality').append('<option value="'+item.id+'">'+item.municipality_name+'</option>');
                     });
                     $('#municipality').trigger("chosen:updated");
+                    $('#district').trigger("chosen:updated");
                     // -------Enable next section-------
                     var href = $("#section_two").data('href');
                     $("#section_two").attr('href', "#"+href);
@@ -111,6 +177,7 @@ $(document).ready(function(){
         $.ajax({
             url: '/admin/get-district/',
             type: 'post',
+            headers: { 'X-CSRFToken': getCookie('csrftoken') },
             dataType: 'json',
             cache: false,
             data: {municipality: municipality},
@@ -131,6 +198,40 @@ $(document).ready(function(){
         });
     });
 
+    $(document).on('change', '#district', function(){
+        var district = $(this).val();
+        var prop_city = $("#prop_city").val();
+        if (prop_city != 83){
+            $(".community_text").show();
+            $('.community_dropdown').hide();
+            return false;
+        }
+
+        $.ajax({
+            url: '/admin/get-community/',
+            type: 'post',
+            dataType: 'json',
+            cache: false,
+            data: {district},
+            beforeSend: function(){
+                $('.overlay').show();
+            },
+            success: function(response){
+                $('.overlay').hide();
+                if(response.error == 0){
+                    $(".community_text").hide();
+                    $('.community_dropdown').show();
+                    $('#community_data').empty();
+                    $('#community_data').append('<option value="">Select</option>');
+                    $.each(response.community, function(i, item) {
+                        $('#community_data').append('<option value="'+item.community_name+'">'+item.community_name+'</option>');
+                    });
+                    $('#community_data').trigger("chosen:updated");
+                }
+            }
+        });
+    });
+
     $(document).on('click', '.vacancy', function(){
         var vacancy = $(this).val();
         if(vacancy == 1){
@@ -139,6 +240,10 @@ $(document).ready(function(){
             $("#rental_till").val('');
             $(".rental_till_parent").hide();
         }
+    });
+
+    $(document).on('change', '#project', function(){
+        set_construction_status();
     });
 
     // ----------------Upload Deed Section-------
@@ -178,7 +283,7 @@ $(document).ready(function(){
     cover_image_params = {
         url: '/admin/save-images/',
         field_name: 'cover_image',
-        file_accepted: '.png, .jpg, .jpeg, .pdf',
+        file_accepted: '.png, .jpg, .jpeg',
         element: 'propertyCoverImageFrm',
         upload_multiple: true,
         call_function: set_property_cover_image_details,
@@ -194,7 +299,7 @@ $(document).ready(function(){
     property_image_params = {
         url: '/admin/save-images/',
         field_name: 'property_image',
-        file_accepted: '.png, .jpg, .jpeg, .pdf',
+        file_accepted: '.png, .jpg, .jpeg',
         element: 'propertyImageFrm',
         upload_multiple: true,
         call_function: set_property_image_details,
@@ -280,6 +385,7 @@ $(document).ready(function(){
             $("#section_three").addClass('collapsed');
             $("#collapseFive").removeClass('in').addClass('collapse');
         }
+        set_construction_status();
     });
 
     // --------------Next button for Property features----------
@@ -346,13 +452,22 @@ $(document).ready(function(){
             property_name:{
                 required: false,
             },
+            property_name_ar:{
+                required: false,
+            },
             community:{
+                required: false,
+            },
+            community_data:{
                 required: false,
             },
             property_type:{
                 required: false,
             },
             building:{
+                required: false,
+            },
+            map_url:{
                 required: false,
             },
             area_size:{
@@ -390,6 +505,9 @@ $(document).ready(function(){
                 required: false,
             },
             description:{
+                required: false,
+            },
+            description_ar:{
                 required: false,
             },
             property_deed_id:{
@@ -459,6 +577,42 @@ $(document).ready(function(){
             }
         }
     });
+
+    // ckeditor initialization
+    try{
+        CKEDITOR.env.isCompatible = true;
+    }catch(ex){
+        console.log("cked: "+ex);
+    }
+
+    try{
+        CKEDITOR.on( 'instanceReady', function(e) {
+            $('iframe', e.editor.container.$).contents().on('click', function() {
+                e.editor.focus();
+            });
+        });
+    }catch(ex){
+        //console.log(ex);
+    }
+    CKEDITOR.replace('Description', {
+        toolbar: [
+            { name: 'document', items: ['Source'] },
+            { name: 'basicstyles', items: ['Bold', 'Italic', 'Underline'] },
+            { name: 'paragraph', items: ['NumberedList', 'BulletedList'] },
+            { name: 'links', items: ['Link', 'Unlink'] },
+            { name: 'insert', items: ['Image', 'Table'] },
+        ]
+    });
+
+    CKEDITOR.replace('description_ar', {
+        toolbar: [
+            { name: 'document', items: ['Source'] },
+            { name: 'basicstyles', items: ['Bold', 'Italic', 'Underline'] },
+            { name: 'paragraph', items: ['NumberedList', 'BulletedList'] },
+            { name: 'links', items: ['Link', 'Unlink'] },
+            { name: 'insert', items: ['Image', 'Table'] },
+        ]
+    });
     
 });
 
@@ -472,6 +626,7 @@ function save_property(element, redirection_url=""){
     for (instance in CKEDITOR.instances){
         CKEDITOR.instances[instance].updateElement();
     }
+    $("#property_info_submit_next_btn, #property_info_submit_exit_btn").attr("disabled", true);
     //return false;
     $.ajax({
         url: '/admin/save-listing/',
@@ -504,7 +659,7 @@ function save_property(element, redirection_url=""){
                         'auction_id': auction_id,
                         'auction_type': auction_type,
                       };
-                        // customCallBackFunc(update_bidder_socket, [custom_response]);
+                      customCallBackFunc(update_bidder_socket, [custom_response]);
                     }catch(ex){
                         //console.log(ex);
                     }
@@ -518,6 +673,7 @@ function save_property(element, redirection_url=""){
                     }
                 }, 2000);
             }else{
+                $("#property_info_submit_next_btn, #property_info_submit_exit_btn").removeAttr("disabled");
                 if(typeof(response.data) != 'undefined' && typeof(response.data.msg) != 'undefined'){
                     var msg = response.data.msg;
                 }else{
@@ -551,15 +707,27 @@ function save_property(element, redirection_url=""){
 
 function update_bidder_socket(response){
     if(typeof(response.auction_type) != 'undefined' && parseInt(response.auction_type) == 2){
-        socket.emit("checkInsiderBid", {"user_id": response.user_id, "property_id": response.property_id, "auction_id": response.auction_id, "domain_id": response.site_id});
+        if("user_id" in response && response.user_id != ""){
+            var encryptedUserId = encryptUserId(str(response.user_id), encryptionKey);
+        }else{
+            var encryptedUserId = response.user_id;
+        }
+        // socket.emit("checkInsiderBid", {"user_id": response.user_id, "property_id": response.property_id, "auction_id": response.auction_id, "domain_id": response.site_id});
+        socket.emit("checkInsiderBid", {"user_id": encryptedUserId, "property_id": response.property_id, "auction_id": response.auction_id, "domain_id": response.site_id});
     }else{
-        socket.emit("checkBid", {"user_id": response.user_id, "property_id": response.property_id, "auction_id": response.auction_id, "domain_id": response.site_id});
+        if("user_id" in response && response.user_id != ""){
+            var encryptedUserId = encryptUserId(str(response.user_id), encryptionKey);
+        }else{
+            var encryptedUserId = response.user_id;
+        }
+        // socket.emit("checkBid", {"user_id": response.user_id, "property_id": response.property_id, "auction_id": response.auction_id, "domain_id": response.site_id});
+        socket.emit("checkBid", {"user_id": encryptedUserId, "property_id": response.property_id, "auction_id": response.auction_id, "domain_id": response.site_id});
     }
 
 }
 
 function add_validation_rule(){
-    $('.child_owner').each(function() {
+    $('.child_owner').each(function(index) {
         var position = $(this).find('.owner_name').attr('id');
         $("#"+position).rules("add", {
             required: true,
@@ -571,10 +739,18 @@ function add_validation_rule(){
         var position = $(this).find('.owner_eid').attr('id');
         $("#"+position).rules("add", {
             required: function(){
-                if(parseInt($("#account_verification_type").val()) != 2){
+                // if(parseInt($("#account_verification_type").val()) != 2){
+                //     return true;
+                // }else{
+                //     return false;
+                // }
+                var type_eid = $(this).find('.type_eid').attr('name');
+                // var selectedVal = $('input[name='+type_eid+']:checked').val();
+                var selectedVal = $('input[name=owner_eid_type_'+index+']:checked').val();
+                if (selectedVal == '1') {
                     return true;
-                }else{
-                    return false;
+                } else {
+                     return false;
                 }
             },
             maxlength: 18,
@@ -586,10 +762,18 @@ function add_validation_rule(){
         var position = $(this).find('.owner_passport').attr('id');
         $("#"+position).rules("add", {
             required: function(){
-                if(parseInt($("#account_verification_type").val()) == 2){
+                // if(parseInt($("#account_verification_type").val()) == 2){
+                //     return true;
+                // }else{
+                //     return false;
+                // }
+                var type_eid = $(this).find('.type_passport').attr('name');
+                // var selectedVal = $('input[name='+type_eid+']:checked').val();
+                var selectedVal = $('input[name=owner_eid_type_'+index+']:checked').val();
+                if (selectedVal == '0') {
                     return true;
-                }else{
-                    return false;
+                } else {
+                     return false;
                 }
             },
             messages: {
@@ -600,9 +784,11 @@ function add_validation_rule(){
         var position = $(this).find('.owner_percentage').attr('id');
         $("#"+position).rules("add", {
             required: true,
+            totalPercentage: true,
             max: 100,
             messages: {
                 required: "This field is required.",
+                totalPercentage: "Total ownership percentage must not exceed 100%",
             }
         });
 
@@ -617,6 +803,7 @@ function add_validation_rule(){
         var position = $(this).find('.owner_dob').attr('id');
         $("#"+position).rules("add", {
             required: true,
+            atLeast18YearsOld: true,
             messages: {
                 required: "This field is required.",
             }
@@ -677,8 +864,26 @@ function section_three_validate(){
         property_name:{
             required: true,
         },
-        community:{
+        property_name_ar:{
             required: true,
+        },
+        community:{
+            required: function(){
+                if($("#prop_city").val() != 83){
+                    return true;
+                }else{
+                    return false;
+                }
+            },
+        },
+        community_data:{
+            required: function(){
+                if($("#prop_city").val() == 83){
+                    return true;
+                }else{
+                    return false;
+                }
+            },
         },
         property_type:{
             required: true,
@@ -686,11 +891,21 @@ function section_three_validate(){
         building:{
             required: true,
         },
+        map_url:{
+            required: true,
+            url: true
+        },
     };
 }
 
 function section_four_validate(){
-    $('#property_info_frm').validate().settings.rules = {
+    const validator = $('#property_info_frm').validate();
+    // Sync CKEditor fields to textarea before validating
+    for (var instance in CKEDITOR.instances) {
+        CKEDITOR.instances[instance].updateElement();
+    }
+    // $('#property_info_frm').validate().settings.rules = {
+    validator.settings.rules = {
         prop_country:{
             required: true
         },
@@ -709,14 +924,36 @@ function section_four_validate(){
         property_name:{
             required: true,
         },
-        community:{
+        property_name_ar:{
             required: true,
+        },
+        community:{
+            required: function(){
+                if($("#prop_city").val() != 83){
+                    return true;
+                }else{
+                    return false;
+                }
+            },
+        },
+        community_data:{
+            required: function(){
+                if($("#prop_city").val() == 83){
+                    return true;
+                }else{
+                    return false;
+                }
+            },
         },
         property_type:{
             required: true,
         },
         building:{
             required: true,
+        },
+        map_url:{
+            required: true,
+            url: true
         },
         area_size:{
             required: true,
@@ -748,10 +985,13 @@ function section_four_validate(){
         property_amenities:{
             required: true,
         },
-        property_tags:{
+        // property_tags:{
+        //     required: true,
+        // },
+        description:{
             required: true,
         },
-        description:{
+        description_ar:{
             required: true,
         },
     };
@@ -759,7 +999,13 @@ function section_four_validate(){
 }
 
 function section_five_validate(){
-    $('#property_info_frm').validate().settings.rules = {
+    const validator = $('#property_info_frm').validate();
+    // Sync CKEditor fields to textarea before validating
+    for (var instance in CKEDITOR.instances) {
+        CKEDITOR.instances[instance].updateElement();
+    }
+    // $('#property_info_frm').validate().settings.rules = {
+    validator.settings.rules = {
         prop_country:{
             required: true
         },
@@ -778,14 +1024,36 @@ function section_five_validate(){
         property_name:{
             required: true,
         },
-        community:{
+        property_name_ar:{
             required: true,
+        },
+        community:{
+            required: function(){
+                if($("#prop_city").val() != 83){
+                    return true;
+                }else{
+                    return false;
+                }
+            },
+        },
+        community_data:{
+            required: function(){
+                if($("#prop_city").val() == 83){
+                    return true;
+                }else{
+                    return false;
+                }
+            },
         },
         property_type:{
             required: true,
         },
         building:{
             required: true,
+        },
+        map_url:{
+            required: true,
+            url: true
         },
         area_size:{
             required: true,
@@ -817,10 +1085,13 @@ function section_five_validate(){
         property_amenities:{
             required: true,
         },
-        property_tags:{
+        // property_tags:{
+        //     required: true,
+        // },
+        description:{
             required: true,
         },
-        description:{
+        description_ar:{
             required: true,
         },
         property_deed_id:{
@@ -828,7 +1099,7 @@ function section_five_validate(){
             maxImageCount: 1,
         },
         property_floor_plan_id:{
-            required: true,
+            // required: true,
             maxImageCount: 1,
         },
         property_image_id:{
@@ -841,4 +1112,36 @@ function section_five_validate(){
         // }
     };
     
+}
+
+function set_construction_status(){
+    var project_id = $("#project").val();
+    $.ajax({
+        url: '/admin/get-construction-status/',
+        type: 'post',
+        headers: { 'X-CSRFToken': getCookie('csrftoken') },
+        dataType: 'json',
+        cache: false,
+        data: {},
+        beforeSend: function(){
+            $('.overlay').show();
+        },
+        success: function(response){
+            $('.overlay').hide();
+            if(response.error == 0){
+                $('#construction_status').empty();
+                $('#construction_status').append('<option value="">Select Status</option>');
+                $.each(response.construction_status, function(i, item) {
+                    if(project_id == ""){
+                        if(parseInt(item.id) != 32){
+                            $('#construction_status').append('<option value="'+item.id+'">'+item.status_name+'</option>');
+                        }
+                    }else{
+                        $('#construction_status').append('<option value="'+item.id+'">'+item.status_name+'</option>');
+                    }
+                });
+                $('#construction_status').trigger("chosen:updated");
+            }
+        }
+    });
 }

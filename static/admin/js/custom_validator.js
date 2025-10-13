@@ -29,7 +29,28 @@ $(document).ready(function(){
 
             return isNaN(value) && isNaN($(params).val()) ||
                 (Number(value) > Number($(params).val()));
-        }, 'Must be greater than {0}.');
+        }, 'Please enter a valid value');
+
+        $.validator.addMethod("timeDifferenceValid", function(value, element, params) {
+            const otherVal = $(params).val();
+            // Allow empty values to pass (optional, based on your form requirements)
+            if (!value || !otherVal) {
+                return true;
+            }
+
+            const start = new Date(otherVal);
+            const end = new Date(value);
+            // Ensure both are valid dates
+            if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+                return false;
+            }
+
+            const diffMs = end - start;
+            const diffMinutes = diffMs / (1000 * 60);
+
+            return diffMinutes >= 30 && diffMinutes <= 120;
+        }, 'Time difference must be between 30 minutes and 2 hours.');
+
         $.validator.addMethod("greaterThanValue",
         function (value, element, param) {
 
@@ -119,7 +140,8 @@ $(document).ready(function(){
 
         $.validator.addMethod("acceptcharacters", function (value, element)
             {
-                return this.optional(element) || /^[a-zA-Z-,]+(\s{0,1}[a-zA-Z-,.!_@ ])*$/.test(value);
+                // return this.optional(element) || /^[a-zA-Z-,]+(\s{0,1}[a-zA-Z-,.!_@ ])*$/.test(value);
+                return this.optional(element) || /^[\p{L}\p{M}\s\-.,!_@]+$/u.test(value);
             }, "Letters and spaces only please");
 
 
@@ -175,5 +197,94 @@ $(document).ready(function(){
             },
             "You can only upload a maximum of {0} document."
         );
+
+        $.validator.addMethod("totalPercentage", function(value, element) {
+            let total = 0;
+            $('.owner_percentage').each(function () {
+                const val = parseFloat($(this).val());
+                if (!isNaN(val)) {
+                    total += val;
+                }
+            });
+            return total <= 100;
+        }, "Total ownership percentage must not exceed 100%");
+
+        $.validator.addMethod("atLeast18YearsOld_old", function(value, element) {
+            if (!value) return true; // Allow empty value (optional)
+
+            const selectedDate = new Date(value);
+            if (isNaN(selectedDate.getTime())) return false;
+
+            const today = new Date();
+
+            // Calculate 18 years ago from today
+            const eighteenYearsAgo = new Date(
+                today.getFullYear() - 18,
+                today.getMonth(),
+                today.getDate()
+            );
+
+            // The selected date must be on or before 18 years ago
+            return selectedDate <= eighteenYearsAgo;
+
+        }, "You must be at least 18 years old.");
+
+        // $.validator.addMethod("atLeast18YearsOld", function(value, element) {
+        //     if (!value) return true;
+
+        //     const selectedDate = new Date(value);
+        //     if (isNaN(selectedDate.getTime())) return false;
+
+        //     const today = new Date();
+        //     const eighteenYearsAgo = new Date(
+        //         today.getFullYear() - 18,
+        //         today.getMonth(),
+        //         today.getDate()
+        //     );
+
+        //     return selectedDate <= eighteenYearsAgo;
+
+        // }, "You must be at least 18 years old.");
+
+        $.validator.addMethod("atLeast18YearsOld", function(value, element) {
+            if (!value) return true;
+
+            const selectedDate = new Date(value + "T00:00:00");  // normalize to midnight
+            if (isNaN(selectedDate.getTime())) return false;
+
+            const today = new Date();
+            const eighteenYearsAgo = new Date(
+                today.getFullYear() - 18,
+                today.getMonth(),
+                today.getDate()
+            );
+
+            // Normalize both dates to midnight to avoid time-of-day differences
+            selectedDate.setHours(0, 0, 0, 0);
+            eighteenYearsAgo.setHours(0, 0, 0, 0);
+
+            return selectedDate <= eighteenYearsAgo;
+
+        }, "You must be at least 18 years old.");
+
+        $.validator.addMethod("strongPassword", function(value, element) {
+            return this.optional(element) || 
+                value.length >= 8 &&
+                /[A-Z]/.test(value) &&           // Uppercase
+                /[a-z]/.test(value) &&           // Lowercase
+                /\d/.test(value) &&              // Number
+                /[!@#$%^&*]/.test(value);        // Special character
+        }, "Password must be at least 8 characters long and include an uppercase letter, a lowercase letter, a number, and a special character.");
+
+
+        $.validator.addMethod("atLeastOneAlpha", function(value, element) {
+            return this.optional(element) || /[a-zA-Z]/.test(value);
+        }, "Must contain at least one alphabetic character.");
+
+        $.extend($.validator.messages, {
+            min: "Please enter a valid value",
+            greaterThanValue: "Please enter a valid value",
+        });
+
 
 });

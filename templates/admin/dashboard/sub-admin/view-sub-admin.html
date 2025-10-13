@@ -38,15 +38,18 @@
             <li>
               <select name="agent_num_record" aria-label="Record" tabindex="5" id="agent_num_record" class="select form-control" onchange="agentListingSearch(1);">
                 <option value="">Record Per Page</option>
-                <option value="10" {% if request.GET.perpage and request.GET.perpage == 10 %}selected{% endif %}>10 Agent</option>
-                <option value="20" {% if request.GET.perpage and request.GET.perpage == 20 %}selected{% endif %}>20 Agent</option>
-                <option value="30" {% if request.GET.perpage and request.GET.perpage == 30 %}selected{% endif %}>30 Agent</option>
-                <option value="40" {% if request.GET.perpage and request.GET.perpage == 40 %}selected{% endif %}>40 Agent</option>
-                <option value="50" {% if request.GET.perpage and request.GET.perpage == 50 %}selected{% endif %}>50 Agent</option>
+                <option value="10" {% if request.GET.perpage and request.GET.perpage == 10 %}selected{% endif %}>10 Sub Admin</option>
+                <option value="20" {% if request.GET.perpage and request.GET.perpage == 20 %}selected{% endif %}>20 Sub Admin</option>
+                <option value="30" {% if request.GET.perpage and request.GET.perpage == 30 %}selected{% endif %}>30 Sub Admin</option>
+                <option value="40" {% if request.GET.perpage and request.GET.perpage == 40 %}selected{% endif %}>40 Sub Admin</option>
+                <option value="50" {% if request.GET.perpage and request.GET.perpage == 50 %}selected{% endif %}>50 Sub Admin</option>
               </select>
             </li>
             <li id="add_broker_agent">
               {% if request.session.is_broker %}<a href="/admin/add-sub-admin/" role="link" area-label="New Sub Admin" class="btn btn-primary btn-xs"><i class="fas fa-plus" aria-hidden="true" role="img" aria-label="Add"></i> New Sub Admin</a>{% endif %}
+            </li>
+            <li>
+              <a href="javascript:void(0)" onclick="sub_admin_csv_download()" class="btn btn-primary btn-xs"></i>Download CSV</a>
             </li>
           </ul>
         </div>
@@ -64,14 +67,14 @@
             {% for agent in agent_list %}
               <div id="row_{{ agent.id }}" class="new-listing_blocks {% if first_row > 0 and second_row > 0 %}{% if forloop.counter == first_row or forloop.counter == second_row %}last-row{% endif %}{% endif %}">
                 <ul class="bottom">
-                  <li>
+                  <!-- <li>
                     License No: {{ agent.licence_no|default:'' }}
-                  </li>
+                  </li> -->
                   <li>
                     <i class="fa-solid fa-envelope" aria-hidden="true" role="img" aria-label="envelope"></i>  {{ agent.email|default:'' }}
                   </li>
                   <li>
-                    <i class="fa-solid fa-phone" aria-hidden="true" role="img" aria-label="phone"></i> {{ agent.phone_no|default:''|format_phone }}
+                    <i class="fa-solid fa-phone" aria-hidden="true" role="img" aria-label="phone"></i>+{{agent.phone_country_code|default:971}} {{ agent.phone_no|default:''|format_phone }}
                   </li>
                   <li>
                     <i class="fa-solid fa-calendar-days" aria-hidden="true" role="img" aria-label="calendar"></i> Create Date | <span class="convert_to_local_date_time" data-value="{{ agent.added_on|default:'' }}">
@@ -93,7 +96,7 @@
                     <figcaption>
                       <h6>
                         <span>
-                          {{ agent.first_name|default:'' }} {{ agent.last_name|default:'' }}
+                          {{ agent.first_name|default:'' }}
                           {% if agent.is_upgrade %}
                           <a href="javascript:void(0)" data-toggle="tooltip" data-placement="bottom" title="User upgraded to Agent"><img src="{% static 'admin/images/up-arrow.svg' %}" alt="" role="img" aria-label="Up arrow"></a>
                           {% endif %}
@@ -115,23 +118,15 @@
                           <li>
                             <a href="/admin/add-sub-admin/?id={{ agent.id }}"><i class="fas fa-edit" aria-hidden="true" role="img" aria-label="Edit"></i> Edit Sub Admin</a>
                           </li>
-                          <li>
+                          <!-- <li>
                             <a href="javascript:void(0)" onclick="agent_delete_confirmation({{ agent.id }})"><i class="fas fa-trash" aria-hidden="true" role="img" aria-label="Delete"></i> Delete Sub Admin</a>
-                          </li>
+                          </li> -->
                         </ul>
                       </span>
                     </div>
 
                     <ol class="circle-high">
-                      <!-- <li>
-                        <div class="icon"><i class="fa-solid fa-user-large fa-2x"></i></div>
-                        <span class="badge {% if agent.status|lower == 'active' %}badge-success{% else %}badge-danger{% endif %}">
-                          {{ agent.status|default:'' }}
-                        </span>
-                        <h6 class="pt10">
-                          Agent Status
-                        </h6>
-                      </li> -->
+                      
                       <li>
                         <div class="icon"><i class="fa-solid fa-user-tie fa-2x" aria-hidden="true" role="img" aria-label="User"></i></div>
                         <span class="badge {% if agent.user_status|lower == 'active' %}badge-success{% else %}badge-danger{% endif %}">
@@ -151,71 +146,7 @@
                         </h6>
                       </li>
                     </ol>
-                    
-                    <!-- <div class="block-status">
-                      <div class="item">
-                        <strong><label for="">Agent Status</label></strong><br>
-                        <span class="badge {% if agent.status|lower == 'active' %}badge-success{% else %}badge-danger{% endif %}">
-                          {{ agent.status|default:'' }}
-                        </span>
-                      </div>
-                      <div class="item">
-                        <strong><label for="">User Status </label></strong><br>
-                        <span class="badge {% if agent.user_status|lower == 'active' %}badge-success{% else %}badge-danger{% endif %}">
-                          {{ agent.user_status|default:'' }}
-                        </span>
-                      </div>
-                    </div>
-                     <div class="block-status pb0">
-                      <div class="item">
-                        <strong><label for="">Email</label></strong><br>
-                        <span class="blue-text">{{ agent.email|default:'' }}</span>
-                      </div>
-                      <div class="item">
-                        <strong><label for="">Phone</label></strong><br>
-                        {{ agent.phone_no|default:''|format_phone }}
-                      </div>
-                    </div> -->
                   </li>
-                  <!-- <li>
-                    <div class="action-icon">
-                      <span class="view-list">
-                        <i class="fa-solid fa-ellipsis"></i>
-                        <ul>
-                          <li>
-                            <a href="/admin/add-agent/?id={{ agent.id }}"><i class="fas fa-edit"></i> Edit Agent</a>
-                          </li>
-                          <li>
-                            <a href="javascript:void(0)" onclick="agent_delete_confirmation({{ agent.id }})"><i class="fas fa-trash"></i> Delete Agent</a>
-                          </li>
-                        </ul>
-                      </span>
-                    </div>
-                    <div class="block-status pt10">
-                      <div class="item">
-                        <strong><label for="">No. Property</label></strong><br>
-                        {{ agent.property_cnt|default:'NA' }}
-                      </div>
-                      <div class="item">
-                        <strong><label for="">License No.</label></strong><br>
-                        {{ agent.licence_no|default:'' }}
-                      </div>
-                    </div>
-                    <div class="block-status pb0">
-                      <div class="item">
-                        <strong><label for="">Created Date</label></strong><br>
-                        <span class="convert_to_local_date_time" data-value="{{ agent.added_on|default:'' }}">
-                          {{ agent.added_on }}
-                        </span>
-                      </div>
-                      <div class="item">
-                        <strong><label for="">Last Login</label></strong><br>
-                        <span class="date-block {% if agent.last_login == None %}  {% else %} convert_to_local_date_time {% endif%}" data-value="{{ agent.last_login|default:'' }}">
-                          {% if agent.last_login == None %}  {% else %} {{ agent.last_login }} {% endif %}
-                        </span>
-                      </div>
-                    </div>
-                  </li> -->
                 </ul>    
               </div><!-- End .block-item -->
               
@@ -283,9 +214,9 @@
     <script type="text/javascript" src="{% static 'admin/js/jquery.growl.js' %}"></script>
     <script type="text/javascript" src="{% static 'admin/js/autosuggestion.js' %}?v=1.9"></script>
     <script type="text/javascript" src="{% static 'admin/js/pagination.js' %}?v=1.1"></script>
-    <script type="text/javascript" src="{% static 'admin/js/custom_js.js' %}?v=4.2"></script>
-    <!-- <script type="text/javascript" src="{% static 'admin/js/agent.js' %}?v=5.1"></script> -->
-    <script type="text/javascript" src="{% static 'admin/js/sub-admin.js' %}?v=5.1"></script>
+    <!-- <script type="text/javascript" src="{% static 'admin/js/custom_js.js' %}?v=4.2"></script> -->
+    <script type="text/javascript" src="{% static 'admin/js/custom-date-time.js' %}?v=4.2"></script>
+    <script type="text/javascript" src="{% static 'admin/js/sub-admin.js' %}?v=5.2"></script>
     <script type="text/javascript" src="{% static 'admin/js/dropzone.js' %}"></script>
     <script type="text/javascript" src="{% static 'admin/js/custom_dropzone.js' %}?v=3.1"></script>
 

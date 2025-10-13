@@ -28,16 +28,18 @@
                 <input type="hidden" name="employee_id" id="employee_id" value="{{ details.id|default:'' }}"/>
                 <div class="col-lg-4 col-md-6">
                   <div class="form-group">
-                    <label for="first_name">First Name <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control alphaAccpt" aria-label="First Name" name="first_name" id="first_name" placeholder="Enter First Name" value="{{ details.first_name|default:'' }}" maxlength="40">
+                    <label for="first_name">Name <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" aria-label="First Name" name="first_name" id="first_name" placeholder="Enter First Name" value="{{ details.first_name|default:'' }}" maxlength="40">
                   </div>
                 </div>
+
                 <div class="col-lg-4 col-md-6">
                   <div class="form-group">
-                    <label for="last_name">Last Name <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control alphaAccpt" aria-label="Last Name" name="last_name" id="last_name" placeholder="Enter Last Name" value="{{ details.last_name|default:'' }}" maxlength="40">
+                    <label for="first_name_ar">Name In Arabic <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" aria-label="First Name" name="first_name_ar" id="first_name_ar" placeholder="Enter First Name In Arabic" value="{{ details.first_name_ar|default:'' }}" maxlength="40">
                   </div>
                 </div>
+
                 <div class="col-lg-4 col-md-6">
                   <div class="form-group">
                     <label for="email">Email <span class="text-danger">*</span></label>
@@ -47,7 +49,12 @@
                 <div class="col-lg-4 col-md-6">
                   <div class="form-group">
                     <label for="phone_no">Phone <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" aria-label="Phone" name="phone_no" id="phone_no" placeholder="Phone" value="{{ details.phone_no|default:'' }}" data-inputmask="'mask': '99 999 9999'" data-inputmask-clearincomplete="true">
+                    <div class="ph-code">
+                      <select name="phone_country_code" class="select">
+                        <option value="971" {% if details.phone_country_code == 971 %} selected {% endif %}>+971</option>
+                      </select>
+                      <input type="text" class="form-control" aria-label="Phone" name="phone_no" id="phone_no" placeholder="Phone" value="{{ details.phone_no|default:'' }}" data-inputmask="'mask': '99 999 9999'" data-inputmask-clearincomplete="true">
+                    </div>
                   </div>
                 </div>
                 <div class="col-lg-4 col-md-6">
@@ -57,12 +64,12 @@
                   </div>
                 </div>
 
-                <div class="col-lg-4 col-md-6">
+                <!-- <div class="col-lg-4 col-md-6">
                   <div class="form-group">
                     <label for="zip_code">Zip Code <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" aria-label="Zip" name="zip_code" id="zip_code" autocomplete="nope" placeholder="Enter Zip Code" value="{{ details.postal_code|default:'' }}" maxlength="5">
                   </div>
-                </div>
+                </div> -->
                 <div class="col-lg-4 col-md-6">
                   <div class="form-group">
                     <label for="state">State <span class="text-danger">*</span></label>
@@ -85,14 +92,14 @@
                     </select>
                   </div>
                 </div>
-                {% if is_broker == True %}
+                {% if is_broker == True or request.session.user_type == 4%}
                   <div class="col-lg-4 col-md-6">
                     <div class="form-group">
                       <label for="status">Developer <span class="text-danger">*</span></label>
-                      <select name="admin_user" aria-label="admin_user" class="form-control" id="admin_user">
+                      <select name="admin_user" aria-label="admin_user" class="developer form-control" id="admin_user">
                         <option value="">Select Developer</option>
                         {% for developer in developer_list %}
-                          <option value="{{ developer.id }}" {% if details.developer == developer.id or developer_id|add:'0' == developer.id|add:'0' %}selected{% endif %} >{{ developer.first_name }}&nbsp;{{developer.last_name}}</option>
+                          <option value="{{ developer.id }}" {% if details.developer == developer.id or developer_id|add:'0' == developer.id|add:'0' %}selected{% endif %} >{{ developer.first_name }}</option>
                         {% endfor %}
                       </select>
                     </div>
@@ -192,7 +199,7 @@
 
         }
       }
-      $('#state, #status').chosen();
+      $('#state, #status, .developer').chosen();
       $('[data-toggle="tooltip"]').tooltip();
       check_permission();
   </script>

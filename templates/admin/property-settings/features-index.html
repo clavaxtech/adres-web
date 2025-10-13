@@ -11,14 +11,18 @@
 {% load tz %}
 {% load humanize %}
 <div class="dashboard-body">
-    <div class="form-group">
-      <label class=" " for="feature_type">Choose Property Feature To View/Manage </label>
-      <select class="select form-control"  aria-label="Choose Property Feature To View/Manage" name="feature_type" id="feature_type" required="required">
+    <div class="listing-top">
+      <div class="block">
+        <label class=" " for="feature_type">Choose Property Feature To View/Manage </label>
+      </div>
+      <div class="block">
+        <select class="select form-control"  aria-label="Choose Property Feature To View/Manage" name="feature_type" id="feature_type" required="required">
             <option value="" disabled selected>Choose Property Feature</option>
             {% for key, value in property_feature_list.items %}
             <option value="{{key}}">{{value}}</option>
             {% endfor %}
-      </select>
+        </select>
+      </div>
     </div>
     
     <div class="ln_solid"></div>

@@ -57,23 +57,36 @@ $(".chat-middle").mCustomScrollbar({
 });
 
 $(document).ready(function () {
-    userType = (is_broker.toLowerCase() == 'true') ? 'broker': 'agent'
-
+    // userType = (is_broker.toLowerCase() == 'true') ? 'broker': 'agent'
+    userType = (user_type == 2 || user_type == 4) ? 'broker': 'agent';
+    if(user_id != undefined && user_id != ""){
+        var encryptedUserId = encryptUserId(String(user_id), encryptionKey);
+    }else{
+        var encryptedUserId = user_id;
+    }
     // initial call
     payload= {
-        "user_id":parseInt(user_id),
+        // "user_id":parseInt(user_id),
+        "user_id": encryptedUserId,
         "domain_id": parseInt(site_id),
         "user_type": userType,
         "filter_data": $('#filter_chat').val(),
         "last_msg_id": parseInt(first_msg_id)
     }
+    // console.log(payload);
     socket.emit("loadChatRooms", payload);
 
     // check for new chatroom every 5 seconds
     setInterval(function(){
     if(user_id && site_id && userType) {
+        if(user_id != undefined && user_id != ""){
+            var encryptedUserId = encryptUserId(String(user_id), encryptionKey);
+        }else{
+            var encryptedUserId = user_id;
+        }
         payload= {
-            "user_id":parseInt(user_id),
+            // "user_id":parseInt(user_id),
+            "user_id": encryptedUserId,
             "domain_id": parseInt(site_id),
             "user_type": userType,
             "filter_data": $('#filter_chat').val(),
@@ -87,8 +100,14 @@ $(document).ready(function () {
     // check for new conversation every 5 seconds
     setInterval(function(){
         if(user_id && site_id && userType) {
+            if(user_id != undefined && user_id != ""){
+                var encryptedUserId = encryptUserId(String(user_id), encryptionKey);
+            }else{
+                var encryptedUserId = user_id;
+            }
             payload= {
-                "user_id":parseInt(user_id),
+                // "user_id":parseInt(user_id),
+                "user_id": encryptedUserId,
                 "domain_id": parseInt(site_id),
                 "user_type": userType,
                 "last_msg_id": lastMessageId,
@@ -104,13 +123,12 @@ $(document).ready(function () {
         try {
             // check if no error or no message found
             if(response.error == 0 && response.data.length){
-
                 $('.chat-blank').hide()
                 $('.chat-bottom').show()
                 // check new message
                 // $('.chat-sidebar').mCustomScrollbar("destroy");
                 if(first_msg_id && response.msg_type != 'pre_msg'){
-                    reversedArray = response.data.reverse()
+                    reversedArray = response.data.reverse();
                     reversedArray.forEach(element => {
                         // check if any chatroom is already active
                         currentActiveChat = $('#chat_listings li.active').attr('data-id')
@@ -129,8 +147,20 @@ $(document).ready(function () {
                             }
                             // var objDivPosition = currActiveElement[0].offsetTop
                         }
+
                         $('.chat-sidebar').mCustomScrollbar("scrollTo","top",{scrollInertia:0});
                     });
+                    // ------------Make current thread active---------
+                    // currentActiveChat = $('#chat_listings li.active').attr('data-id');
+                    // if(currentActiveChat == undefined){
+                    //     try{
+                    //         $('#chat_listings li:first').trigger('click');
+                    //     }catch(ex){
+                    //         console.log(ex);
+                    //     }   
+                    // }else{
+                    //     $(".chat_rooms").attr('data-id', currentActiveChat).trigger('click');
+                    // }
                 } else {  // load first data
                     response.data.forEach(element => {
                         $('#chat_listings').append(genrateChatRoomHtml(element))
@@ -144,6 +174,8 @@ $(document).ready(function () {
                         }catch(ex){
                             console.log(ex);
                         }   
+                    }else{
+                        $(".chat_rooms").attr('data-id', currentActiveChat).trigger('click');
                     }
 
                 }
@@ -172,18 +204,22 @@ $(document).ready(function () {
         try {
             // check if no error or no message found
             if(response.error == 0 && response.data.length){
-
+                // console.log(response.data);
                 if(firstMessageId && response.msg_type != 'pre_msg'){
                     reversedArray = response.data.reverse()
                     reversedArray = filterChatRoomConversationsForDocument(reversedArray)
-                    reversedArray.forEach(element => {
-                        // // find and remove if already in chatroom listing
-                        if($('#chat_list li[data-id='+ element.id +']').length > 0){
-                            $('#chat_list li[data-id='+ element.id +']').remove()
-                        }
-                        // append with new message from top to bottom
-                        $("#chat_list").append(genrateConversationHtml(element));
-                    });
+                    let chat_master_id = parseInt(reversedArray[0]['master_id']);
+                    let active_chat_room_master_id = parseInt($(".chat_rooms.active").attr("data-id"));
+                    if(chat_master_id == active_chat_room_master_id){
+                        reversedArray.forEach(element => {
+                            // // find and remove if already in chatroom listing
+                            if($('#chat_list li[data-id='+ element.id +']').length > 0){
+                                $('#chat_list li[data-id='+ element.id +']').remove()
+                            }
+                            // append with new message from top to bottom
+                            $("#chat_list").append(genrateConversationHtml(element));
+                        });
+                    }
                 } else {  // load first data or load more
                     responseArray = filterChatRoomConversationsForDocument(response.data)
                     responseArray.forEach(element => {
@@ -495,13 +531,23 @@ function save_chat_message(){
     }else{
         if(!$('#send_msg_btn').attr('disabled')){
             $('#send_msg_btn').attr('disabled', 'disabled').html('Sending...');
+            if(user_id != undefined && user_id != ""){
+                var encryptedUserId = encryptUserId(String(user_id), encryptionKey);
+            }else{
+                var encryptedUserId = user_id;
+            }
             payload= {
-                "user_id":parseInt(user_id),
+                // "user_id":parseInt(user_id),
+                "user_id": encryptedUserId,
                 "domain_id": parseInt(site_id),
                 "message": usr_msg,
                 "master_id": master_id,
-                "chat_doc_ids": doc_ids
+                "chat_doc_ids": doc_ids,
+                "user_type": userType,
             }
+            // userType = (user_type == 2 || user_type == 4) ? 'broker': 'agent';
+            // console.log("user_type_id="+ user_type);
+            // console.log("My user type is="+userType);
             socket.emit("sendMessageToUser", payload);
         }
 
@@ -519,8 +565,14 @@ function loadMoreChatRooms(el) {
             return false;
 
         leftMsgProcessing = true;
+        if(user_id != undefined && user_id != ""){
+            var encryptedUserId = encryptUserId(String(user_id), encryptionKey);
+        }else{
+            var encryptedUserId = user_id;
+        }
         payload= {
-            "user_id":parseInt(user_id),
+            // "user_id":parseInt(user_id),
+            "user_id": encryptedUserId,
             "domain_id": parseInt(site_id),
             "user_type": userType,
             "filter_data": $('#filter_chat').val(),
@@ -540,8 +592,14 @@ var loadMoreMessages = function(el) {
         return false;       
     
     rightMessageProcessing = true
+    if(user_id != undefined && user_id != ""){
+        var encryptedUserId = encryptUserId(String(user_id), encryptionKey);
+    }else{
+        var encryptedUserId = user_id;
+    }
     payload= {
-        "user_id":parseInt(user_id),
+        // "user_id":parseInt(user_id),
+        "user_id": encryptedUserId,
         "domain_id": parseInt(site_id),
         "user_type": userType,
         "last_msg_id": firstMessageId,
@@ -567,8 +625,14 @@ filterChatListing =  () => {
     $(".chat-bottom-fixed").css('display', 'none');
     $("#chat_listings").empty();
 
+    if(user_id != undefined && user_id != ""){
+        var encryptedUserId = encryptUserId(String(user_id), encryptionKey);
+    }else{
+        var encryptedUserId = user_id;
+    }
     payload= {
-        "user_id":parseInt(user_id),
+        // "user_id":parseInt(user_id),
+        "user_id": encryptedUserId,
         "domain_id": parseInt(site_id),
         "user_type": userType,
         "filter_data": filter_chat,
@@ -601,10 +665,10 @@ active_chatroom =  (element) => {
     var masterChatName = $(element).attr('data-name');
     var masterChatImg = $(element).find('img').attr('src');
     var activeChatEmail = '<i class="fas fa-envelope"></i> '+$(element).attr('data-email');
-    var activeChatPhone = '<i class="fas fa-phone-alt"></i> '+formatPhoneNumber($(element).attr('data-phone'));
+    var activeChatPhone = '<i class="fas fa-phone-alt"></i>+971 '+formatPhoneNumberUae($(element).attr('data-phone'));
 
     var masterChatPropId = $(element).attr('data-property');
-    var masterChatPropName = $(element).attr('data-property-name');
+    var masterChatPropName = ($(element).attr('data-property-name') != 'null, null') ? $(element).attr('data-property-name'): "";
     if(masterChatPropId){
         var chat_name = masterChatName+'<br><span><a href="/asset-details/?property_id='+masterChatPropId+'" target="_blank">'+masterChatPropName+'</a><span>';
         $('.chat_name').html(chat_name);
@@ -630,8 +694,14 @@ active_chatroom =  (element) => {
 
 // load more conversation on scroll
 loadConversation = (messageId, mag_id='') => {
+    if(user_id != undefined && user_id != ""){
+        var encryptedUserId = encryptUserId(String(user_id), encryptionKey);
+    }else{
+        var encryptedUserId = user_id;
+    }
     payload= {
-        "user_id":parseInt(user_id),
+        // "user_id":parseInt(user_id),
+        "user_id": encryptedUserId,
         "domain_id": parseInt(site_id),
         "user_type": userType,
         "last_msg_id": mag_id,
@@ -662,13 +732,15 @@ genrateChatRoomHtml = (data) => {
             message = "[!Click to view document!]"
         }
 
-    return  '<li class="chat_rooms ' + unreadCounter + ' '+ isChatEnabled + ' " onclick="active_chatroom(this)" data-last-chat-id="'+ data.child_id +'" data-id="'+ data.id +'" data-name="'+ data.name +'" data-msg="' + data.message + '" data-email="' + data.email + '" data-phone="' + data.phone_no + '" data-property="'+ data.property_id +'" data-property-name="' + data.property_name + '">' +
+    // return  '<li class="chat_rooms ' + unreadCounter + ' '+ isChatEnabled + ' " onclick="active_chatroom(this)" data-last-chat-id="'+ data.child_id +'" data-id="'+ data.id +'" data-name="'+ data.name +'" data-msg="' + data.message + '" data-email="' + data.email + '" data-phone="' + data.phone_no + '" data-property="'+ data.property_id +'" data-property-name="' + data.property_name + '">' +
+    return  '<li class="chat_rooms ' + unreadCounter + ' '+ isChatEnabled + ' " onclick="active_chatroom(this)" data-last-chat-id="'+ data.child_id +'" data-id="'+ data.id +'" data-name="'+ data.first_name +'" data-msg="' + data.message + '" data-email="' + data.email + '" data-phone="' + data.phone_no + '" data-property="'+ data.property_id +'" data-property-name="' + data.prop_state_name + ', '+data.prop_community+'">' +
             '<figure>' +
             '<img src="' + userImage + '" alt="">' +
             '</figure>' +
             '<figcaption>' +
                 '<h6>' +
-                data.name + ' <span class="user-type">(' + userTypeText +')</span>' +
+                // data.name + ' <span class="user-type">(' + userTypeText +')</span>' +
+                data.first_name + ' <span class="user-type">(Seller/Buyer)</span>' +
                 '</h6>' +
                 '<p>' +
                 trimString(message, 30) +

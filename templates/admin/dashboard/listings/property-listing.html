@@ -28,7 +28,7 @@
                   <button type="button" id="searchPropertyBtn" tabindex="1" class="btn btn-primary btn-xs" onclick="propertyListingSearch(1);">Search</button>
                 </form>
                 <div class="btns">
-                  <a href="/admin/listing-settings/" tabindex="2" class="btn btn-secondary btn-xs property_setting"><i class="fas fa-wrench" aria-hidden="true" role="presentation"></i> Setting</a>
+                  {% if request.session.user_type == 2 or request.session.user_type == 4 %}<a href="/admin/listing-settings/" tabindex="2" class="btn btn-secondary btn-xs property_setting"><i class="fas fa-wrench" aria-hidden="true" role="presentation"></i> Setting</a>{% endif %}
                   <a href="/admin/add-listing/" tabindex="3" class="btn btn-primary btn-xs add_property"><i class="fas fa-plus" aria-hidden="true" role="presentation"></i> Add New Listing</a>
                   {% comment %} <a href="{% static 'admin/images/csv_template.csv' %}" tabindex="4" class="btn btn-secondary btn-sm" download><i class="fas fa-download" aria-hidden="true" role="presentation"></i> Download Bulk Upload CSV</a> {% endcomment %}
                   {% comment %} <div class="upload-btn-wrapper">
@@ -41,11 +41,56 @@
             </div>
 
             <div class="listing-bottom">
+              {% if request.session.user_type == 2 %}
+                <div class="block" >
+                  <select class="select form-control" aria-label="All Sub Admin" tabindex="7" name="filter_sub_admin" id="filter_sub_admin" onchange="propertyListingSearch(1);">
+                    <option value="">All Sub Admin</option>
+                    <option value="9">Super Admin</option>
+                    {% for sub_admin in sub_admin_list %}
+                    <option value="{{ sub_admin.id }}" {% if sub_admin_id == sub_admin.id%} selected {% endif %}>{{ sub_admin.first_name }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              {% endif %}
+              
+              {% if request.session.user_type == 2 or request.session.user_type == 4 %}
+                <div class="block" >
+                  <select class="select form-control" aria-label="All Developer" tabindex="7" name="filter_developer" id="filter_developer" onchange="propertyListingSearch(1);">
+                    <option value="">All Developers</option>
+                    {% for developer in developer_list %}
+                    <option value="{{ developer.id }}" {% if developer_id == developer.id%} selected {% endif %}>{{ developer.first_name }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              {% endif %}
+
+              {% if request.session.user_type == 2 or request.session.user_type == 4 or request.session.user_type == 6 %}
+                <div class="block" >
+                  <select class="select form-control" aria-label="All Employee" tabindex="7" name="filter_employee" id="filter_employee" onchange="propertyListingSearch(1);">
+                      <option value="">All Employee</option>
+                      {% for employee in employee_list %}
+                      <option value="{{ employee.id }}" {% if employee_id == employee.id %} selected {% endif %}>{{ employee.first_name }}</option>
+                      {% endfor %}
+                  </select>
+                </div>
+              {% endif %}
+
+              {% if request.session.user_type == 2 or request.session.user_type == 4 %}
+                <div class="block" >
+                  <select class="select form-control" aria-label="All Seller" tabindex="7" name="filter_seller" id="filter_seller" onchange="propertyListingSearch(1);">
+                      <option value="">All Seller</option>
+                      {% for seller in seller_list %}
+                      <option value="{{ seller.id }}" {% if seller_id == seller.id %} selected {% endif %}>{{ seller.first_name }}</option>
+                      {% endfor %}
+                  </select>
+                </div>
+              {% endif %}
+              
               <div class="block" >
-                <select class="select form-control" aria-label="All Developer" tabindex="7" name="filter_developer" id="filter_developer" onchange="propertyListingSearch(1);">
-                  <option value="">All Developers</option>
-                  {% for developer in developer_list %}
-                  <option value="{{ developer.id }}">{{ developer.first_name }}&nbsp;{{developer.last_name}}</option>
+                <select class="select form-control" aria-label="All Project" tabindex="7" name="filter_project" id="filter_project" onchange="propertyListingSearch(1);">
+                  <option value="">All Project</option>
+                  {% for project in project_list %}
+                  <option value="{{ project.id }}" {% if project_id == project.id%} selected {% endif %}>{{ project.project_name }}</option>
                   {% endfor %}
                 </select>
               </div>
@@ -69,14 +114,26 @@
               
               <div class="block">
                 <select class="select form-control" aria-label="All Status" tabindex="10" name="prop_filter_status" id="prop_filter_status" onchange="propertyListingSearch(1);">
-                  <option value="">All Status</option>
+                  <option value="" {% if status_id == "" %} selected {% endif %}>All Status</option>
                   {% if status_list %}
-                  {% for item in status_list %}
-                    <option value="{{ item.id }}" {% if item.id == property_details.status %}selected{% endif %} {% if item.id == status %}selected{% endif %}>{{ item.status_name }}</option>
-                  {% endfor %}
+                    {% for item in status_list %}
+                      <option value="{{ item.id }}" {% if status_id == item.id%} selected {% endif %}>{{ item.status_name }}</option>
+                    {% endfor %}
                   {% endif %}
                 </select>
               </div>
+
+              <!-- <div class="block">
+                <select class="select form-control" aria-label="All Closing Status" tabindex="10" name="closing_status" id="closing_status" onchange="propertyListingSearch(1);">
+                  <option value="">All Closing Status</option>
+                  {% if closing_status_list %}
+                    {% for item in closing_status_list %}
+                      <option value="{{ item.id }}">{{ item.status_name }}</option>
+                    {% endfor %}
+                  {% endif %}
+                </select>
+              </div> -->
+
               <div class="block" style="min-width: 130px;">
                 <select class="select form-control" aria-label="Record" tabindex="11" name="prop_num_record" id="prop_num_record" onchange="propertyListingSearch(1);">
                   <option value="">Record per page</option>
@@ -110,11 +167,11 @@
                     <li>
                       Listed By : {{ property.agent_name }}
   
-                      {% if property.domain != user_domain %}
+                      <!-- {% if property.domain != user_domain %}
                       <div class="connect">
                         <a href="javascript:void(0)" class="badge badge-default" data-toggle="modal" data-target="#connectchatModal" onclick="agent_chat_detail({{property.agent_id}});"><i class="fa-regular fa-comment" aria-hidden="true" role="presentation"></i> Connect</a>
                       </div>
-                      {% endif %}
+                      {% endif %} -->
                      </li>
                     {% if property.sale_by_type == 4 %}
                     <li>
@@ -150,6 +207,9 @@
                         <span class="convert_to_local_date_time_cst" data-value="{{ property.created_date|default:'' }}"></span>
                       </li>
                     {% endif %}
+                    <!-- <li>
+                      <i class="fa-solid fa-eye"></i> <span class="view-btn">Views</span> | {{ property.no_view }}
+                    </li> -->
                  </ul>
 
                   <ul class="top">
@@ -169,62 +229,77 @@
                               {{ property.property_type_name|default:'' }}
                             </span>
                           </div>
-                          <div class="item">
-                            <!-- <strong><label for="">Property Status</label></strong><br> -->
-                            <div class="{% if is_broker == 1 %}display_status{% endif %}" id="display_status_{{ property.id }}">
-                              <span class="badge {% if property.status_id == 2 %} badge-danger{% elif property.status_id == 4 %} badge-danger{% else %}badge-success{% endif %}" style="cursor:pointer;">
-                                {{ property.status }}
-                              </span>
+                          {% if property.status_id == 9 %}
+                            <div class="item">
+                              <div class="" id="display_closing_status_{{ property.id }}">
+                                <span class="badge badge-success">
+                                  {{ property.closing_status }}
+                                </span>
+                              </div>
                             </div>
-                            <div class="{% if is_broker == 1 %}change_status{% endif %}" id="change_status_{{ property.id }}" style="display:none;">
-                              <select class="select form-control listing_change_status" aria-label="Status" name="listing_change_status" id="listing_change_status_{{ property.id }}" onchange="change_property_status({{ property.id }},this)">
-                                {% if status_list %}
-                                {% for item in status_list %}
-                                  <option value="{{ item.id }}" {% if item.id == property.status_id %}selected{% endif %}>{{ item.status_name }}</option>
-                                {% endfor %}
-                                {% endif %}
-                              </select>
+                          {% else %}
+                            <div class="item">
+                              <!-- <strong><label for="">Property Status</label></strong><br> -->
+                              <div class="{% if is_broker == 1 or request.session.user_type == 2 or request.session.user_type == 4 %}display_status{% endif %}" id="display_status_{{ property.id }}">
+                                <span class="badge {% if property.status_id == 2 %} badge-danger{% elif property.status_id == 4 %} badge-danger{% else %}badge-success{% endif %}" style="cursor:pointer;">
+                                  {{ property.status }}
+                                </span>
+                              </div>
+                              {% if property.status_id != 8 %}
+                                <div class="{% if is_broker == 1 or request.session.user_type == 2 or request.session.user_type == 4 %}change_status{% endif %}" id="change_status_{{ property.id }}" style="display:none;">
+                                  <select class="select form-control listing_change_status" aria-label="Status" name="listing_change_status" id="listing_change_status_{{ property.id }}" onchange="change_property_status({{ property.id }},this)">
+                                    {% if status_list %}
+                                    {% for item in status_list %}
+                                      <option value="{{ item.id }}" {% if item.id == property.status_id %}selected{% endif %}>{{ item.status_name }}</option>
+                                    {% endfor %}
+                                    {% endif %}
+                                  </select>
+                                </div>
+                              {% endif %}
                             </div>
-                          </div>
+                          {% endif %}  
+
                         </div>
                         <h6>
-                          <a href="/admin/add-listing/?property_id={{ property.id }}">
+                          <!-- <a href="/admin/add-listing/?property_id={{ property.id }}"> -->
                             {% if property.property_name %}<span>{{property.property_name}}</span>{% endif %}
-                          </a>
+                          <!-- </a> -->
                         </h6>
                         <p class="location">
                           <i class="fas fa-map-marker-alt" aria-hidden="true" role="presentation"></i> {{ property.state_name }} - {{ property.community }} 
                         </p>
-                        <div class="approval-status">
-                          {% if is_broker == 1 %}
-                            
-                            <strong><label for="">Property Approval Status</label></strong>
-                            <div class="{% if is_broker == 1 %}approval_status{% endif %}" id="approval_status_{{ property.id }}">
-                              <span class="badge {% if property.seller_status == 28 %} badge-success{% else %}badge-warning{% endif %}" style="cursor:pointer;">
-                                {{ property.approval }}
-                              </span>
-                            </div>
-                            <div class="{% if is_broker == 1 %}change_approval{% endif %}" id="change_approval_{{ property.id }}" style="display:none;">
+                        {% if property.status_id != 9 %}
+                          <div class="approval-status">
+                            {% if is_broker == 1 or request.session.user_type == 2 or request.session.user_type == 4 %}
                               
-                              <select class="select form-control listing_change_approval" aria-label="Approval" name="listing_change_approval" id="listing_change_approval_{{ property.id }}" onchange="check_approval_status({{ property.id }}, this)">
-                                  <option value="24" {% if property.seller_status == 24 %}selected{% endif %}>Under Review</option>
-                                  <option value="28" {% if property.seller_status == 28 %}selected{% endif %}>Ready for Publish</option>
-                                  <option value="29" {% if property.seller_status == 29 %}selected{% endif %}>Returned for Update</option>
-                              </select>
-                            </div>
+                              <strong><label for="">Property Approval Status</label></strong>
+                              <div class="approval_status" id="approval_status_{{ property.id }}">
+                                <span class="badge {% if property.seller_status == 28 %} badge-success{% else %}badge-warning{% endif %}" style="cursor:pointer;">
+                                  {{ property.approval }}
+                                </span>
+                              </div>
+                              <div class="{% if is_broker == 1 %}change_approval{% endif %}" id="change_approval_{{ property.id }}" style="display:none;">
+                                
+                                <select class="select form-control listing_change_approval" aria-label="Approval" name="listing_change_approval" id="listing_change_approval_{{ property.id }}" onchange="check_approval_status({{ property.id }}, this)">
+                                    <option value="24" {% if property.seller_status == 24 %}selected{% endif %}>Under Review</option>
+                                    <option value="28" {% if property.seller_status == 28 %}selected{% endif %}>Ready for Publish</option>
+                                    <option value="29" {% if property.seller_status == 29 %}selected{% endif %}>Returned for Update</option>
+                                </select>
+                              </div>
+                              
+                            {% else %} 
                             
-                          {% else %} 
-                          
-                            <strong><label for="">Property Approval Status</label></strong>
-                            <div class="{% if is_broker == 1 %}approval_status{% endif %}" id="approval_status_{{ property.id }}">
-                              <span class="badge {% if property.seller_status == 28 %} badge-success{% else %}badge-warning{% endif %}" style="cursor:pointer;">
-                                {{ property.approval }}
-                              </span>
-                            </div>
-                          
-                          {% endif %}
+                              <strong><label for="">Property Approval Status</label></strong>
+                              <div class="{% if is_broker == 1 %}approval_status{% endif %}" id="approval_status_{{ property.id }}">
+                                <span class="badge {% if property.seller_status == 28 %} badge-success{% else %}badge-warning{% endif %}" style="cursor:pointer;">
+                                  {{ property.approval }}
+                                </span>
+                              </div>
+                            
+                            {% endif %}
 
                           </div>
+                        {% endif %}
                       </figcaption>
                     </li>
                     
@@ -238,23 +313,42 @@
                               <!-- <a href="{{site_detail.domain_react_url}}property/detail/{{ property.id }}/{{property.url_decorator}}" target="_blank"><i class="far fa-eye" aria-hidden="true" role="presentation"></i> View Listing</a> -->
                             </li>
                             <li>
-                              {% if request.session.is_broker %}
-                              <a href="/admin/add-listing/?property_id={{ property.id }}"><i class="far fa-edit" aria-hidden="true" role="presentation"></i> Edit Listing</a>
-                              {% elif property.seller_status == 27 %}
-                                <a href="/admin/auction-detail/?property_id={{ property.id }}"><i class="far fa-edit" aria-hidden="true" role="presentation"></i> Edit Listing</a>
-                              {% else %}
+                              <!-- {% if request.session.is_broker or request.session.user_type == 4 %}
                                 <a href="/admin/add-listing/?property_id={{ property.id }}"><i class="far fa-edit" aria-hidden="true" role="presentation"></i> Edit Listing</a>
+                              {% elif property.seller_status == 27 %}
+                                  <a href="/admin/auction-detail/?property_id={{ property.id }}"><i class="far fa-edit" aria-hidden="true" role="presentation"></i> Edit Listing</a>
+                              {% else %}
+                                  <a href="/admin/add-listing/?property_id={{ property.id }}"><i class="far fa-edit" aria-hidden="true" role="presentation"></i> Edit Listing</a>
+                              {% endif %} -->
+                              {% if request.session.is_broker or request.session.user_type == 4 %}
+                                <a href="/admin/add-listing/?property_id={{ property.id }}"><i class="far fa-edit" aria-hidden="true" role="presentation"></i> Edit Listing</a>
+                              {% else %}
+                                {% if property.status_id == 8 %}
+                                  <a href="/admin/add-listing/?property_id={{ property.id }}"><i class="far fa-edit" aria-hidden="true" role="presentation"></i> Edit Listing</a>
+                                {% elif property.status_id == 1 and property.can_edit_property %}
+                                  <a href="/admin/add-listing/?property_id={{ property.id }}"><i class="far fa-edit" aria-hidden="true" role="presentation"></i> Edit Listing</a>
+                                {% endif %}
                               {% endif %}
-                              
                             </li>
                             <li>
-                              <a href="javascript:void(0)" onclick="property_delete_confirmation({{ property.id }});"><i class="fas fa-trash" aria-hidden="true" role="presentation"></i> Delete Listing</a>
+                              {% if not request.session.is_broker and request.session.user_type != 4 %}
+                                {% if property.status_id == 1 and property.seller_status == 27 %}
+                                  <a href="/admin/auction-detail/?property_id={{ property.id }}"><i class="far fa-edit" aria-hidden="true" role="presentation"></i> Auction Details</a>
+                                {% elif property.can_relist or property.status_id == 8 %}
+                                  <!-- <a href="/admin/auction-detail/?property_id={{ property.id }}"><i class="far fa-edit" aria-hidden="true" role="presentation"></i> Relist </a> -->
+                                {% endif %}
+                              {% endif %}
                             </li>
+                            {% if property.seller_status == 24 or property.seller_status == 28 %}
+                              <li>
+                                <a href="javascript:void(0)" onclick="property_delete_confirmation({{ property.id }});"><i class="fas fa-trash" aria-hidden="true" role="presentation"></i> Delete Listing</a>
+                              </li>
+                            {% endif %}
                             {% if property.sale_by_type == 4 or property.sale_by_type == 6 or property.sale_by_type == 7  %}
-                            {% else %}
-                            <li>
-                              <a href="javascript:void(0)" onclick="get_listing_setting_details({{ property.id }})"><i class="fas fa-cogs" aria-hidden="true" role="presentation"></i> Settings</a>
-                            </li>
+                            {% elif property.closing_status_id != 9 %}
+                              <li>
+                                <a href="javascript:void(0)" onclick="get_listing_setting_details({{ property.id }})"><i class="fas fa-cogs" aria-hidden="true" role="presentation"></i> Settings</a>
+                              </li>
                             {% endif %}
                           </ul>
                         </span>
@@ -284,9 +378,18 @@
                           <div class="icon"><img src="{% static 'admin/images/bid-placed-icon.svg' %}" alt="real estate sales"></div>
                             <h4 class="circle bids-limit" tabindex="18" role="link" onclick="propertyBidHistorySearch({{ property.id }} ,1)">{{ property.bids }}</h4>
                             <h6>
-                              Bids Placed
+                              Bids
                             </h6>
                         </li>
+                        {% if property.parent_id %}
+                          <li>
+                            <div class="icon"><img src="{% static 'admin/images/bid-placed-icon.svg' %}" alt="real estate sales"></div>
+                              <h4 class="circle bids-limit" tabindex="18" role="link" onclick="propertyBidHistoryPreviousSearch({{  property.parent_id }} ,1)">{{ property.previous_bids }}</h4>
+                              <h6>
+                                Prevoius Bids
+                              </h6>
+                          </li>
+                        {% endif %}
                         
                         <li>
                           <div class="icon"><img src="{% static 'admin/images/watches-icon.svg' %}" alt="real estate sales"></div>
@@ -299,7 +402,27 @@
                         </li>
                         
                         <li>
-                          <div class="icon"><img src="{% static 'admin/images/views-icon.svg' %}" alt="real estate sales"></div>
+                          <div class="icon"><img src="{% static 'admin/images/favorite-icon.svg' %}" alt="real estate sales"></div>
+                          <h4 class="property_interest" role="link" tabindex="19" onclick="totalPropertyInterestSearch({{ property.id }} ,1)">
+                            {{ property.total_interest|default:0 }}
+                          </h4>
+                          <h6>
+                            Interest
+                          </h6>
+                        </li>
+
+                        <li>
+                          <div class="icon"><img src="{% static 'admin/images/buynow-icon.svg' %}" alt="buynow"></div>
+                          <h4 class="buy_now_request" role="link" tabindex="19" onclick="buyNowSearch({{ property.id }} ,1)">
+                            {{ property.total_buy_now|default:0 }}
+                          </h4>
+                          <h6>
+                            Buy Now
+                          </h6>
+                        </li>
+
+                        <li>
+                          <div class="icon"><img src="{% static 'admin/images/views-icon.svg' %}" alt="view"></div>
                           <h4 class="view-btn">
                             {{ property.no_view }}
                           </h4>
@@ -411,7 +534,10 @@
                   Phone
                 </div>
                 <div class="item">
-                  Amount
+                  Deposit Amount
+                </div>
+                <div class="item">
+                  Tax
                 </div>
                 <div class="item">
                   Approval Status
@@ -489,7 +615,7 @@
         <div class="modal-body">
 
           <div class="table-responsive">
-            <table width="100%" class="table bidderrecordTable" cellpadding="0" cellspacing="0" width="100%" data-table="Bidder Record Table" role="presentation">
+            <table width="100%" class="table biddrecordTable" cellpadding="0" cellspacing="0" width="100%" data-table="Bidder Record Table" role="presentation">
               <thead>
                 <tr role="row">
                   <th role="columnheader" scope="row">
@@ -501,17 +627,11 @@
                   <th role="columnheader" scope="row">
                     Bid Amount
                   </th>
-                  <!-- <th role="columnheader" scope="row">
-                    High Bids
-                  </th>
-                  <th role="columnheader" scope="row">
-                    Bids
-                  </th> -->
                   <th role="columnheader" scope="row">
                     Bidding Date
                   </th>
                   <th role="columnheader" scope="row">
-                    Approval Status
+                    Transaction Status
                   </th>
                 </tr>
               </thead>
@@ -519,7 +639,10 @@
               </tbody>
             </table>
           </div>
-
+          <div style="display: flex; gap: 10px; justify-content: right;">
+            <div class="make_relist right" style="display: none;"></div>
+            <div class="make_highest_bid right" style="display: none;"></div>
+          </div>
           <div class="pagination" id="bidHistoryPagination">
               <ul id="bidHistoryPaginationList">
                 {{ pagination_html }}
@@ -530,6 +653,47 @@
       </div>
     </div>
   </div><!-- End .bidderrecordModal -->
+
+  <div id="highestBidderDetailsModal" class="modal centered-modal personalModalwrap" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-sm" role="document">
+    <input type="hidden" name="" id="highestBidderDetailsPropertyId" value=""/>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="center">
+            Choose Highest Bid
+          </h5>
+          <p class="center">
+            Are you sure about buying this property at this price? Our representative will contact you.
+          </p>
+          <button type="button" role="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <ul class="highest-bid">
+            <li>
+              <h6>
+                <span class="text">Price</span>
+                <div class="">
+                  AED <span id="highest_bid_amount">0</span>
+                </div>
+              </h6>
+            </li>
+            <li>
+              <h6>
+                <span class="text">Highest bidder</span>
+                <div class="highest_biidder_name">-</div>
+              </h6>
+            </li>
+          </ul>
+          
+          <div class="clearfix pt20 center">
+            <button type="button" role="button" class="btn btn-primary" onclick="close_make_highest_popup()">Cancel</button> <button type="button" role="button" class="btn btn-secondary" onclick="makeHighestBidFromPopUp()">Confirm</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div><!-- End .highestBidderDetailModel -->
 
   <div id="tempbidderrecordModal" class="modal centered-modal personalModalwrap" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-lg" role="document">
@@ -775,6 +939,162 @@
     </div>
   </div><!-- End .AllFavouriteModal -->
 
+  <div id="property_interest_model" class="modal centered-modal personalModalwrap" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-laptop" role="document">
+    <input type="hidden" name="propertyTotalWatcher" id="propertyTotalWatcher" value=""/>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="center mb0">
+            Property Interest Records
+          </h5>
+          <div class="bidderrecord-top">
+            <figure>
+              <img src="{% static 'theme-2/images/default-img.png' %}" alt="real estate sales" id="propertyTotalInterestImage">
+            </figure>
+            <figcaption>
+              <h6 id="propertyTotalInterestName">
+                Loading...
+              </h6>
+            </figcaption>
+            <div class="listing-bottom" id="property_total_interest_section">
+              <div class="block right">
+                <form action="" class="search-field">
+                  <div class="search-icon"><i class="fas fa-search" aria-hidden="true" role="presentation"></i></div>
+                  <input type="text" name="search_property_favourite" aria-label="Search" id="search_property_interest" class="form-control input-sm"><button type="button" id="property_total_watcher_search_btn" class="btn btn-primary btn-xs">Search</button>
+                </form>
+              </div>
+              <div class="block last">
+                <button type="button" class="btn btn-primary btn-xs" onClick="window.location.href='/static/admin/export/Bidders_List.xls'"><i class="fas fa-file-export" aria-hidden="true" role="presentation"></i> Export</button>
+              </div>
+              
+            </div>
+          </div>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+
+          <div class="table-responsive">
+            <table width="100%" class="table bidderrecordTable" cellpadding="0" cellspacing="0" width="100%" data-table="Property Watcher Table" role="presentation">
+              <thead>
+                <tr role="row">
+                  <th role="columnheader" scope="row">
+                    #
+                  </th>
+                  <th role="columnheader" scope="row">
+                    Name
+                  </th>
+                  <th role="columnheader" scope="row">
+                    Email
+                  </th>
+                  <th role="columnheader" scope="row">
+                    Phone
+                  </th>
+                  <th role="columnheader" scope="row">
+                    Date
+                  </th>
+                </tr>
+              </thead>
+              <tbody id="propertyTotalInterestPaginationListList">
+              </tbody>
+            </table>
+          </div>
+
+          <div class="pagination" id="propertyTotalInterestPagination">
+              <ul id="propertyTotalInterestPaginationList">
+                {{ pagination_html }}
+              </ul>
+          </div><!-- End .pagination -->
+
+        </div>
+      </div>
+    </div>
+  </div><!-- End .AllInterestModal -->
+
+  <div id="buy_now_model" class="modal centered-modal personalModalwrap" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-laptop" role="document">
+      <input type="hidden" name="propertyBuyNow" id="propertyBuyNow" value=""/>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="center mb0">
+            Buy Now Records
+          </h5>
+          <div class="bidderrecord-top">
+            <figure>
+              <img src="{% static 'theme-2/images/default-img.png' %}" alt="real estate sales" id="propertyBuyNowImage">
+            </figure>
+            <figcaption>
+              <h6 id="propertyBuyNowName">
+                Loading...
+              </h6>
+            </figcaption>
+            <div class="listing-bottom" id="property_buy_now_section">
+              <div class="block right">
+                <form action="" class="search-field">
+                  <div class="search-icon"><i class="fas fa-search" aria-hidden="true" role="presentation"></i></div>
+                  <input type="text" name="search_property_buy_now" aria-label="Search" id="search_property_buy_now" class="form-control input-sm">
+                  <button type="button" id="property_total_watcher_search_btn" class="btn btn-primary btn-xs">Search</button>
+                </form>
+              </div>
+              <div class="block last">
+                <button type="button" class="btn btn-primary btn-xs" onClick="window.location.href=''"><i class="fas fa-file-export" aria-hidden="true" role="presentation"></i> Export</button>
+              </div>
+              
+            </div>
+          </div>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+
+          <div class="table-responsive">
+            <table width="100%" class="table bidderrecordTable" cellpadding="0" cellspacing="0" width="100%" data-table="Property Watcher Table" role="presentation">
+              <thead>
+                <tr role="row">
+                  <th role="columnheader" scope="row">
+                    #
+                  </th>
+                  <th role="columnheader" scope="row">
+                    Name
+                  </th>
+                  <th role="columnheader" scope="row">
+                    Email
+                  </th>
+                  <th role="columnheader" scope="row">
+                    Phone
+                  </th>
+                  <th role="columnheader" scope="row">
+                    Amount
+                  </th>
+                  <th role="columnheader" scope="row">
+                    Date
+                  </th>
+                  <th role="columnheader" scope="row">
+                    Action
+                  </th>
+                  <th role="columnheader" scope="row">
+                    Transaction Status
+                  </th>
+                </tr>
+              </thead>
+              <tbody id="propertyBuyNowPaginationListList">
+              </tbody>
+            </table>
+          </div>
+
+          <div class="pagination" id="propertyBuyNowPagination">
+              <ul id="propertyBuyNowPaginationList">
+                {{ pagination_html }}
+              </ul>
+          </div><!-- End .pagination -->
+
+        </div>
+      </div>
+    </div>
+  </div><!-- End .BuyNowModal -->
+
   <div id="emailRecordModalEmail" class="modal centered-modal personalModalwrap" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-sm" role="document">
       <div class="modal-content">
@@ -905,7 +1225,7 @@
           </ul>
 
           <div class="clearfix pt20 right">
-            <button class="btn btn-primary" id="emailAllSubmitBid" disabled="disabled" onclick="emailPropertyTotalBid()">Send</button>
+            <button type="button" class="btn btn-primary" id="emailAllSubmitBid" disabled="disabled" onclick="emailPropertyTotalBid()">Send</button>
           </div>
           </form>
         </div>
@@ -1038,7 +1358,7 @@
             <div class="">
 
               <div class="row">
-                <div class="col-md-6 col-sm-5">
+                <!-- <div class="col-md-6 col-sm-5">
                   <div class="form-group">
                     <label>
                       Auto Approval
@@ -1056,9 +1376,9 @@
                     <input id="Land" type="radio" aria-label="No" name="auto_approval" value="0" class="css-radio" checked>
                     <label for="Land" class="radio-label auto_approval_label">No</label>
                   </div>
-                </div>
+                </div> -->
 
-                <div class="col-md-6 col-sm-5">
+                <!-- <div class="col-md-6 col-sm-5">
                   <div class="form-group">
                     <label>
                       Deposit Required
@@ -1076,14 +1396,14 @@
                     <input id="is_deposit_required_no" type="radio" aria-label="No" name="is_deposit_required" value="0" class="css-radio" checked>
                     <label for="is_deposit_required_no" class="radio-label is_deposit_required_label">No</label>
                   </div>
-                </div>
+                </div> -->
               
                 <div class="col-md-6 col-sm-5">
                   <div class="form-group" >
                     <label>
                       Show Reserve Met
                       <div class="tooltipp"><i class="fas fa-question-circle" aria-hidden="true" role="presentation"></i>
-                        <span class="tooltipp__content right banner-tool">Help text</span>
+                        <span class="tooltipp__content right banner-tool">Set this to ‘Yes’ to Show to the Bidder if the Reserve Price for Listing is Met or Not </span>
                       </div>
                     </label>
                   </div>
@@ -1103,7 +1423,7 @@
                     <label>
                       Is Log Time Extension
                       <div class="tooltipp"><i class="fas fa-question-circle" aria-hidden="true" role="presentation"></i>
-                        <span class="tooltipp__content right banner-tool">Help text</span>
+                        <span class="tooltipp__content right banner-tool">Allow Bid Time Extension</span>
                       </div>
                     </label>
                   </div>
@@ -1118,7 +1438,7 @@
                   </div>
                 </div>
               
-                <div class="col-md-6 col-sm-5">
+                <!-- <div class="col-md-6 col-sm-5">
                   <div class="form-group">
                     <label for="" class="">
                       Timer Flash <span class="text-danger">*</span>
@@ -1133,14 +1453,14 @@
                     <input type="number" class="form-control" aria-label="Minutes" onkeypress="return isNumber(event)" name="timer_flash" min="1" id="timer_flash" placeholder="Timer flash" value="" maxlength="10" onkeydown="if(this.value.length==10 && event.keyCode!=8) return false;">
                     <div class="tagline">Minutes</div>
                   </div>
-                </div>
+                </div> -->
              
                 <div class="col-md-6 col-sm-5">
                   <div class="form-group">
                     <label for="" class="">
                       Log Time Extension <span class="text-danger">*</span>
                       <div class="tooltipp"><i class="fas fa-question-circle" aria-hidden="true" role="presentation"></i>
-                        <span class="tooltipp__content right banner-tool">Help text</span>
+                        <span class="tooltipp__content right banner-tool">This is how much extra time that will be added to the online bidding end time.</span>
                       </div>
                     </label>
                   </div>
@@ -1157,7 +1477,7 @@
                     <label for="" class="">
                       When to start adding <span class="text-danger">*</span>
                       <div class="tooltipp"><i class="fas fa-question-circle" aria-hidden="true" role="presentation"></i>
-                        <span class="tooltipp__content right banner-tool">Help text</span>
+                        <span class="tooltipp__content right banner-tool">If a bid is placed during this time the bid time is extended by ‘Bid Extension Duration’</span>
                       </div>
                     </label>
                   </div>
@@ -1174,7 +1494,7 @@
                     <label for="" class="">
                       Service Fee(%) <span class="text-danger">*</span>
                       <div class="tooltipp"><i class="fas fa-question-circle" aria-hidden="true" role="presentation"></i>
-                        <span class="tooltipp__content right banner-tool">Help text</span>
+                        <span class="tooltipp__content right banner-tool">A Service Fee (%) is a percentage-based charge applied to the transaction amount for providing a service, platform, or convenience.</span>
                       </div>
                     </label>
                   </div>
@@ -1190,18 +1510,19 @@
                     <label for="" class="">
                       Auction Fee <span class="text-danger">*</span>
                       <div class="tooltipp"><i class="fas fa-question-circle" aria-hidden="true" role="presentation"></i>
-                        <span class="tooltipp__content right banner-tool">Help text</span>
+                        <span class="tooltipp__content right banner-tool">An auction fee is a charge added on top of (or deducted from) the final sale price during an auction.</span>
                       </div>
                     </label>
                   </div>
                 </div>
                 <div class="col-md-6 col-sm-7">
-                  <div class="form-group timer">
+                  <div class="form-group fees">
+                    <span class="dollar">AED</span>
                     <input type="number" min="1" class="form-control" name="auction_fee" id="auction_fee" placeholder="Auction Fee" value="" maxlength="15" onkeypress="validateInput(event, this, 15);">
                   </div>
                 </div>
 
-                <div class="clearfix"></div>
+                <!-- <div class="clearfix"></div>
                 <div class="col-md-6 col-sm-5 bid_limit_section">
                   <div class="form-group">
                     <label for="bid_limit" class="lh46">
@@ -1217,10 +1538,10 @@
                     <span class="dollar">$</span>
                     <input type="number" class="form-control" name="bid_limit" id="bid_limit" aria-label="Bid Limit" placeholder="Bid Limit" min="0" onkeypress="return isNumber(event)" value="" maxlength="10" onkeydown="if(this.value.length==10 && event.keyCode!=8) return false;">
                   </div>
-                </div>
+                </div> -->
 
                 <div class="clearfix"></div>
-                <div class="col-md-6 col-sm-5 deposit_amount_section">
+                <!-- <div class="col-md-6 col-sm-5 deposit_amount_section">
                   <div class="form-group">
                     <label for="deposit_amount" class="lh46">
                       Deposit Amount <span class="text-danger">*</span>
@@ -1232,10 +1553,10 @@
                 </div>
                 <div class="col-md-6 col-sm-7 deposit_amount_section">
                   <div class="form-group deposit-amount bid-limit">
-                    <span class="dollar">$</span>
+                    <span class="dollar">AED</span>
                     <input type="number" class="form-control" aria-label="Listing Deposit Amount" name="listing_deposit_amount" id="listing_deposit_amount" placeholder="Deposit Amount" min="0" onkeypress="return isNumber(event)" value="" maxlength="10" onkeydown="if(this.value.length==10 && event.keyCode!=8) return false;">
                   </div>
-                </div>
+                </div> -->
               </div>
 
               <div class="clearfix pt10 center">
@@ -1884,28 +2205,7 @@
           <div class="row">
             <div class="col-md-12 col-sm-12">
               <div class="chat-list">
-<!--                <ul>-->
-<!--                  <li>-->
-<!--                    <div class="chat-align lft-chat">-->
-<!--                      <figure>-->
-<!--                        <img src="https://realtyonegroup.s3.us-west-1.amazonaws.com/profile_image/1634199426.8252876_9.jpeg" alt="real estate sales">-->
-<!--                      </figure>-->
-<!--                      <figcaption>-->
-<!--                        <p>Hey Gautam</p>-->
-<!--                      </figcaption>-->
-<!--                    </div>-->
-<!--                  </li>-->
-<!--                  <li>-->
-<!--                    <div class="chat-align rgt-chat">-->
-<!--                      <figcaption>-->
-<!--                        <p>Hey Gautam</p>-->
-<!--                      </figcaption>-->
-<!--                      <figure>-->
-<!--                        <img src="https://realtyonegroup.s3.us-west-1.amazonaws.com/profile_image/1634199426.8252876_9.jpeg" alt="real estate sales">-->
-<!--                      </figure>-->
-<!--                    </div>-->
-<!--                  </li>-->
-<!--                </ul>-->
+
               </div>
               <div class="chat-fixed">
                 <input type="hidden" name="agent_id" id="agent_id" value="">
@@ -1975,6 +2275,7 @@
 <!-- <script type="text/javascript" src="{% static 'admin/js/custom_js.js' %}?v=7.3"></script> -->
 <!-- <script type="text/javascript" src="{% static 'admin/js/properties.js' %}?v=6.4"></script> -->
 <!-- <script src="https://code.jquery.com/ui/1.14.0/jquery-ui.min.js"></script> -->
+<script type="text/javascript" src="{% static 'admin/js/listing_settings.js' %}?v=4.1"></script>
 <script type="text/javascript" src="{% static 'admin/js/custom-date-time.js' %}?v=1.1"></script>
 <script type="text/javascript" src="{% static 'admin/js/listing.js' %}?v=1.1"></script>
  

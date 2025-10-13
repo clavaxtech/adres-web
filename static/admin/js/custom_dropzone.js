@@ -49,7 +49,20 @@ function initdrozone(params){
             uploadMultiple: upload_multiple,
             url: action_url,
             paramName: field_name,
-            acceptedFiles: file_accepted,
+            // acceptedFiles: file_accepted,
+            accept: function(file, done) {
+                const allowedExts = file_accepted
+                    .split(',')
+                    .map(ext => ext.trim().toLowerCase());
+
+                const fileExt = '.' + file.name.split('.').pop().toLowerCase();
+
+                if (allowedExts.includes(fileExt)) {
+                    done(); // ✅ valid
+                } else {
+                    done(`Invalid file type. Only ${allowedExts.join(', ')} files are allowed.`); // ❌ error
+                }
+            },
             maxFiles: 100,
             //dictDefaultMessage: default_message,
             previewsContainer: element,
@@ -104,6 +117,16 @@ function initdrozone(params){
                   }
                 });
 
+                this.on('error', function(file, errorMessage) {
+                    // console.log("Dropzone error triggered", errorMessage);
+                    var error_msg = errorMessage + '<br> Allowed file types: ' + file_accepted;
+                    $.growl.error({ title: "Upload error", message: error_msg, size: 'large' });
+
+                    $(element).removeClass('dz-started');
+                    $(element).find('.dz-preview').remove();
+                    drop.removeFile(file);
+                });
+
             }
 
         });
@@ -113,7 +136,20 @@ function initdrozone(params){
             uploadMultiple: upload_multiple,
             url: action_url,
             paramName: field_name,
-            acceptedFiles: file_accepted,
+            // acceptedFiles: file_accepted,
+            accept: function(file, done) {
+                const allowedExts = file_accepted
+                    .split(',')
+                    .map(ext => ext.trim().toLowerCase());
+
+                const fileExt = '.' + file.name.split('.').pop().toLowerCase();
+
+                if (allowedExts.includes(fileExt)) {
+                    done(); // ✅ valid
+                } else {
+                    done(`Invalid file type. Only ${allowedExts.join(', ')} files are allowed.`); // ❌ error
+                }
+            },
             maxFiles: 1,
             //dictDefaultMessage: default_message,
             previewsContainer: element,
@@ -157,6 +193,16 @@ function initdrozone(params){
                   if (this.getUploadingFiles().length === 0 && this.getQueuedFiles().length === 0) {
                     this.removeAllFiles();
                   }
+                });
+
+                this.on('error', function(file, errorMessage) {
+                    // console.log("Dropzone error triggered", errorMessage);
+                    var error_msg = errorMessage + '<br> Allowed file types: ' + file_accepted;
+                    $.growl.error({ title: "Upload error", message: error_msg, size: 'large' });
+
+                    $(element).removeClass('dz-started');
+                    $(element).find('.dz-preview').remove();
+                    drop.removeFile(file);
                 });
 
             }
@@ -586,4 +632,11 @@ function delete_image(params){
         });
     }
 
+}
+
+function customCallBackFunc(callback, args){
+    //do stuff
+    //...
+    //execute callback when finished
+    callback.apply(this, args);
 }

@@ -1,7 +1,7 @@
 {% load static %}
 
 <div class="table-responsive">
-<table class="table table-striped table-responsive jambo_table bulk_action" cellpadding="0" cellspacing="0" width="100%" data-table="Advertisement List Table" role="table">
+<table class="table table-responsive jambo_table bulk_action" cellpadding="0" cellspacing="0" width="100%" data-table="Advertisement List Table" role="table">
     <thead>
         <tr role="row" class="headings" style="white-space: nowrap;">
             <th class="column-title" role="columnheader" scope="col">ID </th>
@@ -29,9 +29,7 @@
                 <td role="rowheader"><button class="btn btn-xs btn-round btn-primary"><i class="fa fa-eye" aria-hidden="true" role="presentation"></i> {{ ad.total_add_view|default:'0' }}</button></td>
                 <td role="rowheader"><span class="btn btn-xs btn-round {% if ad.status|lower == 'active' %} btn-success {% elif ad.status|lower == 'delete' %} btn-danger {% else %} btn-warning {% endif %}" id="statusText{{ad.id}}">{{ad.status}} </span> </td>
                 <td role="rowheader">
-                    <div class="btn-toolbar" role="toolbar" style="display:inline-flex;">
-                        <button  href="javascript:void(0)" type="button" data-id="{{ad.id}}" class="btn btn-sm btn-round btn-primary edit-advertisement"><i class="fa fa-edit" aria-hidden="true" role="presentation"></i> Manage</button>
-                    </div>
+                    <button  href="javascript:void(0)" type="button" data-id="{{ad.id}}" class="btn btn-xs btn-round btn-primary edit-advertisement"><i class="fa fa-edit" aria-hidden="true" role="presentation"></i> Manage</button>
                 </td>
             </tr>
         {% endfor %}

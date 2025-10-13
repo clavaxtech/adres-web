@@ -118,9 +118,9 @@
                             <li>
                               <a href="/admin/add-project-info/?project_id={{ project.id }}"><i class="far fa-edit" aria-hidden="true" role="presentation"></i> Edit Project</a>
                             </li>
-                            <li>
+                            <!-- <li>
                               <a href="javascript:void(0)" onclick="project_delete_confirmation({{ project.id }});"><i class="fas fa-trash" aria-hidden="true" role="presentation"></i> Delete Project</a>
-                            </li>
+                            </li> -->
                           </ul>
                         </span>
                       </div>
@@ -128,7 +128,9 @@
                         <li>
                           <div class="icon"><img src="{% static 'admin/images/views-icon.svg' %}" alt="real estate sales"></div>
                           <h4 class="view-btn">
-                            {{ project.no_of_property|default:0}}
+                            <a href="/admin/listing/?p_i={{project.id}}">
+                              {{ project.no_of_property|default:0}}
+                            </a>
                             
                           </h4>
                           <h6>
@@ -162,8 +164,8 @@
                 {% endif %}
               </div><!-- End .block -->
 {% block js_content %}
-  <script type="text/javascript" src="{% static 'admin/js/custom_js.js' %}?v=6.2"></script>
-  <script type="text/javascript" src="{% static 'admin/js/developer_project.js' %}?v=6.2"></script>
+<script type="text/javascript" src="{% static 'admin/js/custom-date-time.js' %}?v=6.2"></script>
+<script type="text/javascript" src="{% static 'admin/js/developer_project.js' %}?v=1.7"></script>
   <script>
     $('.select').chosen();
     try{

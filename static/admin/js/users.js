@@ -6,7 +6,19 @@ try{
     //console.log(ex);
 }
 $(document).ready(function(){
-
+    $('.convert_to_local_date_time').each(function(){
+        try{
+            var added_on = $(this).attr('data-value');
+            if(added_on.trim() != "" && added_on.trim() != "None"){
+                var local_date = getLocalDateFromUTC(added_on.trim(), 'mm-dd-yyyy','ampm');
+                $(this).html(local_date);
+            }else{
+                $(this).html('-');
+            }
+        }catch(ex){
+            //console.log(ex);
+        }
+    });
 
     $.validator.addMethod("uppercasepass",
         function(value, element, param) {
@@ -30,7 +42,7 @@ $(document).ready(function(){
     $('#make_agent_frm #agent_state').chosen();
     $("#make_agent_frm #usr_phone_no").inputmask('(999) 999-9999');
     $('#update_user_frm #user_state').chosen();
-    $("#update_user_frm #user_phone_no").inputmask('(999) 999-9999');
+    $("#update_user_frm #user_phone_no").inputmask('99 999 9999');
     user_image_params = {
         url: '/admin/save-images/',
         field_name: 'user_image',
@@ -85,6 +97,7 @@ $(document).ready(function(){
                 $.ajax({
                     url: '/admin/user-search-suggestion/',
                     type: 'post',
+                    headers: { 'X-CSRFToken': getCookie('csrftoken') },
                     dataType: 'json',
                     cache: false,
                     data: {'search': search},
@@ -126,6 +139,7 @@ $(document).ready(function(){
                     email:true,
                     remote:{
                         type: 'post',
+                        headers: { 'X-CSRFToken': getCookie('csrftoken') },
                         url: '/admin/check-user-exists/',
                         dataType: 'json',
                         async:false,
@@ -152,6 +166,7 @@ $(document).ready(function(){
                     required:true,
                     remote:{
                         type: 'post',
+                        headers: { 'X-CSRFToken': getCookie('csrftoken') },
                         url: '/admin/check-user-exists/',
                         dataType: 'json',
                         async:false,
@@ -447,48 +462,20 @@ $(document).ready(function(){
                 user_first_name:{
                     required: true,
                     acceptcharacters: true,
-                    noSpace:true,
-                    maxlength:40,
-                },
-                user_last_name:{
-                    required: true,
-                    acceptcharacters: true,
-                    noSpace:true,
+                    // noSpace:true,
                     maxlength:40,
                 },
                 user_phone_no:{
                     required:true,
-                    // remote:{
-                    //     type: 'post',
-                    //     url: '/admin/check-user-exists/',
-                    //     dataType: 'json',
-                    //     async:false,
-                    //     data: {
-                    //         check_type: function() {
-                    //             return "main";
-                    //         },
-                    //         user_id: function(){
-                    //             return $('#update_user_frm #update_user_id').val();
-                    //         }
-                    //     },
-                    //     dataFilter: function(data) {
-                    //         var response = JSON.parse(data);
-                    //         if(response.error == 0 && typeof(response.data.exists) != 'undefined'&& response.data.exists === true){
-                    //             return false;
-                    //         }else{
-                    //             return true;
-                    //         }
-
-                    //     }
-                    // },
-                    phoneminlength: 10,
-                    phonemaxlength: 10,
+                    phoneminlength: 9,
+                    phonemaxlength: 9,
                 },
                 usr_email:{
                     required:true,
                     email:true,
                     remote:{
                         type: 'post',
+                        headers: { 'X-CSRFToken': getCookie('csrftoken') },
                         url: '/admin/check-user-exists/',
                         dataType: 'json',
                         async:false,
@@ -677,7 +664,8 @@ function set_make_agent_address_by_zipcode(response){
     $('#make_agent_frm #agent_state').trigger("chosen:updated");
 }
 function set_user_image_details(response){
-
+    console.log("--------");
+    console.log(response);
     var image_name = '';
     var actual_image = '';
     var upload_id = '';
@@ -742,6 +730,7 @@ function user_delete_confirmation(row_id){
                 $.ajax({
                     url: '/admin/edit-user-details/',
                     type: 'post',
+                    headers: { 'X-CSRFToken': getCookie('csrftoken') },
                     dataType: 'json',
                     cache: false,
                     data: data,
@@ -790,8 +779,8 @@ function user_delete_confirmation(row_id){
                             }
                             if(data.profile_image.doc_file_name){
                                 doc_file_name = data.profile_image.doc_file_name;
-                                //img_src = azure_blob_url+''+data.profile_image.bucket_name+'/'+doc_file_name;
-                                img_src = doc_file_name;
+                                img_src = azure_blob_url+''+data.profile_image.bucket_name+'/'+doc_file_name;
+                                // img_src = doc_file_name;
                                 $('#editUserImg').show();
                                 $('#editUserImageDelBtn').show();
                                 $('#editUserImg').attr('src', img_src);
@@ -992,6 +981,7 @@ function userListingSearch(current_page, verification_type=""){
         $.ajax({
             url: '/admin/users/',
             type: 'post',
+            headers: { 'X-CSRFToken': getCookie('csrftoken') },
             dataType: 'json',
             cache: false,
             data: {search: search, perpage: recordPerpage, status: status, page: currpage, verification_type: verification_type},
@@ -1030,6 +1020,7 @@ function send_reset_password_link(user_id){
     $.ajax({
         url: '/admin/send-reset-password-link/',
         type: 'post',
+        headers: { 'X-CSRFToken': getCookie('csrftoken') },
         dataType: 'json',
         cache: false,
         data: {'reset_user_id': user_id},
@@ -1054,5 +1045,55 @@ function send_reset_password_link(user_id){
         complete: function(response){
             $('.overlay').hide();
         }
+    });
+}
+
+
+
+//-----------Users csv download--------
+function users_csv_download(){
+    var search = $('#user_search').val();
+    var currpage = $('#user_listing_pagination_list .active a').text();
+    var verification_type = $(".verification_type.active").data("verification-type");
+    if($('#user_num_record').val() != ""){
+        recordPerpage = $('#user_num_record').val();
+    }
+    var status = $('#user_filter_status').val();
+
+    $('.overlay').show();
+    fetch('/admin/users-csv-download/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest', // This is important for Django to identify it as an AJAX request
+            'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: JSON.stringify({
+                    search: search,
+                    perpage: recordPerpage,
+                    status: status,
+                    page: currpage,
+                    verification_type: verification_type
+                })
+    })
+    .then(response => {
+        if (response.ok) {
+            return response.blob();
+        }
+        throw new Error('Network response was not ok.');
+    })
+    .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = 'user.csv';;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        $('.overlay').hide();
+    })
+    .catch(error => {
+        console.error('There was a problem with the fetch operation:', error);
     });
 }

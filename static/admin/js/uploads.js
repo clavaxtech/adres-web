@@ -14,6 +14,7 @@ function set_property_deed_details(response){
             var j = 0
             $.each(response.uploaded_file_list, function(i, item) {
                 count = count+1;
+                const ext = item.ext;
                 // var j = parseInt(j) + 1;
                 // console.log(j);
                 var image_count = parseInt($("#propertyDeedList li").length) + 1; 
@@ -28,9 +29,16 @@ function set_property_deed_details(response){
                         upload_id = upload_id+','+item.upload_id;
                     }
                 }
-                if(item.file_name != ""){
+                if(item.file_name != "" && ext != ".pdf"){
                     var img_src = azure_blob_url+item.upload_to+"/"+item.file_name;
+                    var img_tag = '<figure><img class="slide-fixed" src="/static/admin/images/transparent.png" alt=""><img class="slide-img" src="'+img_src+'" alt=""></figure>';
+                }else if(item.file_name != "" && ext == ".pdf"){
+                    var img_src = "/static/admin/images/pdf_image.svg";
+                    var pdf_path = azure_blob_url+item.upload_to+"/"+item.file_name;
+                    var img_tag = '<figure><a href="'+pdf_path+'" target="_blank"><img class="slide-fixed" src="/static/admin/images/transparent.png" alt=""><img class="slide-img" src="'+img_src+'" alt=""></a></figure>';
                 }
+                
+
                 if(item.upload_date){
                     try{
                         var upload_date = new Date(item.upload_date);
@@ -53,7 +61,8 @@ function set_property_deed_details(response){
                     }
                 }
                 // $('#propertyDeedList').append('<li rel_id="'+item.upload_id+'" rel_position="'+count+'"><a href="javascript:void(0)" data-article-id="'+property_id+'" data-image-id="'+item.upload_id+'" data-image-name="'+item.file_name+'" data-image-section="'+item.upload_to+'"  class="close-btn confirm_image_delete"><i class="fas fa-times"></i></a><img src="'+img_src+'" alt=""><figcaption><h6>'+item.file_name+'</h6><p>File Size: '+item.file_size+' <br>Uploaded: '+timeStp+'</p><textarea id="photo_description_'+image_count+'" name="photo_description_'+image_count+'" rows="4" cols="20">Photo Description</textarea><div class="move"><i class="fas fa-expand-arrows-alt"></i> Move</div></figcaption></li>');
-                $('#propertyDeedList').append('<li rel_id="'+item.upload_id+'" rel_position="'+count+'"><a href="javascript:void(0)" data-article-id="'+property_id+'" data-image-id="'+item.upload_id+'" data-image-name="'+item.file_name+'" data-image-section="'+item.upload_to+'"  class="close-btn confirm_image_delete"><i class="fas fa-times"></i></a><img src="'+img_src+'" alt=""><figcaption><h6>'+item.file_name+'</h6><p>File Size: '+item.file_size+' <br>Uploaded: '+timeStp+'</p></figcaption></li>');
+                // $('#propertyDeedList').append('<li rel_id="'+item.upload_id+'" rel_position="'+count+'"><a href="javascript:void(0)" data-article-id="'+property_id+'" data-image-id="'+item.upload_id+'" data-image-name="'+item.file_name+'" data-image-section="'+item.upload_to+'"  class="close-btn confirm_image_delete"><i class="fas fa-times"></i></a><img src="'+img_src+'" alt=""><figcaption><h6>'+item.file_name+'</h6><p>File Size: '+item.file_size+' <br>Uploaded: '+timeStp+'</p></figcaption></li>');
+                $('#propertyDeedList').append('<li rel_id="'+item.upload_id+'" rel_position="'+count+'"><a href="javascript:void(0)" data-article-id="'+property_id+'" data-image-id="'+item.upload_id+'" data-image-name="'+item.file_name+'" data-image-section="'+item.upload_to+'"  class="close-btn confirm_image_delete"><i class="fas fa-times"></i></a>'+img_tag+'<figcaption><h6>'+item.file_name+'</h6><p>File Size: '+item.file_size+' <br>Uploaded: '+timeStp+'</p></figcaption></li>');
             });
             image_name = image_name+','+property_deed_name;
             upload_id = upload_id+','+property_deed_id;
@@ -102,6 +111,7 @@ function set_property_floor_plan_details(response){
             var j = 0
             $.each(response.uploaded_file_list, function(i, item) {
                 count = count+1;
+                const ext = item.ext;
                 // var j = parseInt(j) + 1;
                 // console.log(j);
                 var image_count = parseInt($("#propertyFloorPLanList li").length) + 1; 
@@ -116,10 +126,20 @@ function set_property_floor_plan_details(response){
                         upload_id = upload_id+','+item.upload_id;
                     }
                 }
-                if(item.file_name != ""){
-                    // var img_src = azure_blob_url+"property_image/"+item.file_name;
-                    var img_src = azure_blob_url+item.upload_to+"/"+item.file_name;
+                // if(item.file_name != "" && ext != ".pdf"){
+                //     // var img_src = azure_blob_url+"property_image/"+item.file_name;
+                //     var img_src = azure_blob_url+item.upload_to+"/"+item.file_name;
                     
+                // }else if(item.file_name != "" && ext == ".pdf"){
+                //     var img_src = "/static/admin/images/pdf_image.svg";
+                // }
+                if(item.file_name != "" && ext != ".pdf"){
+                    var img_src = azure_blob_url+item.upload_to+"/"+item.file_name;
+                    var img_tag = '<figure><img class="slide-fixed" src="/static/admin/images/transparent.png" alt=""><img class="slide-img" src="'+img_src+'" alt=""></figure>';
+                }else if(item.file_name != "" && ext == ".pdf"){
+                    var img_src = "/static/admin/images/pdf_image.svg";
+                    var pdf_path = azure_blob_url+item.upload_to+"/"+item.file_name;
+                    var img_tag = '<figure><a href="'+pdf_path+'" target="_blank"><img class="slide-fixed" src="/static/admin/images/transparent.png" alt=""><img class="slide-img" src="'+img_src+'" alt=""></a></figure>';
                 }
                 if(item.upload_date){
                     try{
@@ -143,7 +163,8 @@ function set_property_floor_plan_details(response){
                     }
                 }
                 // $('#propertyFloorPlanList').append('<li rel_id="'+item.upload_id+'" rel_position="'+count+'"><a href="javascript:void(0)" data-article-id="'+property_id+'" data-image-id="'+item.upload_id+'" data-image-name="'+item.file_name+'" data-image-section="'+item.upload_to+'"  class="close-btn confirm_image_delete"><i class="fas fa-times"></i></a><img src="'+img_src+'" alt=""><figcaption><h6>'+item.file_name+'</h6><p>File Size: '+item.file_size+' <br>Uploaded: '+timeStp+'</p><textarea id="photo_description_'+image_count+'" name="photo_description_'+image_count+'" rows="4" cols="20">Photo Description</textarea><div class="move"><i class="fas fa-expand-arrows-alt"></i> Move</div></figcaption></li>');
-                $('#propertyFloorPlanList').append('<li rel_id="'+item.upload_id+'" rel_position="'+count+'"><a href="javascript:void(0)" data-article-id="'+property_id+'" data-image-id="'+item.upload_id+'" data-image-name="'+item.file_name+'" data-image-section="'+item.upload_to+'"  class="close-btn confirm_image_delete"><i class="fas fa-times"></i></a><img src="'+img_src+'" alt=""><figcaption><h6>'+item.file_name+'</h6><p>File Size: '+item.file_size+' <br>Uploaded: '+timeStp+'</p></figcaption></li>');
+                // $('#propertyFloorPlanList').append('<li rel_id="'+item.upload_id+'" rel_position="'+count+'"><a href="javascript:void(0)" data-article-id="'+property_id+'" data-image-id="'+item.upload_id+'" data-image-name="'+item.file_name+'" data-image-section="'+item.upload_to+'"  class="close-btn confirm_image_delete"><i class="fas fa-times"></i></a><img src="'+img_src+'" alt=""><figcaption><h6>'+item.file_name+'</h6><p>File Size: '+item.file_size+' <br>Uploaded: '+timeStp+'</p></figcaption></li>');
+                $('#propertyFloorPlanList').append('<li rel_id="'+item.upload_id+'" rel_position="'+count+'"><a href="javascript:void(0)" data-article-id="'+property_id+'" data-image-id="'+item.upload_id+'" data-image-name="'+item.file_name+'" data-image-section="'+item.upload_to+'"  class="close-btn confirm_image_delete"><i class="fas fa-times"></i></a>'+img_tag+'<figcaption><h6>'+item.file_name+'</h6><p>File Size: '+item.file_size+' <br>Uploaded: '+timeStp+'</p></figcaption></li>');
             });
             image_name = image_name+','+property_upload_name;
             upload_id = upload_id+','+property_upload_id;
@@ -192,6 +213,7 @@ function set_property_cover_image_details(response){
             var j = 0
             $.each(response.uploaded_file_list, function(i, item) {
                 count = count+1;
+                const ext = item.ext;
                 // var j = parseInt(j) + 1;
                 // console.log(j);
                 var image_count = parseInt($("#propertyCoverImageList li").length) + 1; 
@@ -206,10 +228,20 @@ function set_property_cover_image_details(response){
                         upload_id = upload_id+','+item.upload_id;
                     }
                 }
-                if(item.file_name != ""){
-                    // var img_src = azure_blob_url+"property_image/"+item.file_name;
-                    var img_src = azure_blob_url+item.upload_to+"/"+item.file_name;
+                // if(item.file_name != "" && ext != ".pdf"){
+                //     // var img_src = azure_blob_url+"property_image/"+item.file_name;
+                //     var img_src = azure_blob_url+item.upload_to+"/"+item.file_name;
                     
+                // }else if(item.file_name != "" && ext == ".pdf"){
+                //     var img_src = "/static/admin/images/pdf_image.svg";
+                // }
+                if(item.file_name != "" && ext != ".pdf"){
+                    var img_src = azure_blob_url+item.upload_to+"/"+item.file_name;
+                    var img_tag = '<figure><img class="slide-fixed" src="/static/admin/images/transparent.png" alt=""><img class="slide-img" src="'+img_src+'" alt=""></figure>';
+                }else if(item.file_name != "" && ext == ".pdf"){
+                    var img_src = "/static/admin/images/pdf_image.svg";
+                    var pdf_path = azure_blob_url+item.upload_to+"/"+item.file_name;
+                    var img_tag = '<figure><a href="'+pdf_path+'" target="_blank"><img class="slide-fixed" src="/static/admin/images/transparent.png" alt=""><img class="slide-img" src="'+img_src+'" alt=""></a></figure>';
                 }
                 if(item.upload_date){
                     try{
@@ -233,7 +265,8 @@ function set_property_cover_image_details(response){
                     }
                 }
                 // $('#propertyCoverImageList').append('<li rel_id="'+item.upload_id+'" rel_position="'+count+'"><a href="javascript:void(0)" data-article-id="'+property_id+'" data-image-id="'+item.upload_id+'" data-image-name="'+item.file_name+'" data-image-section="'+item.upload_to+'"  class="close-btn confirm_image_delete"><i class="fas fa-times"></i></a><img src="'+img_src+'" alt=""><figcaption><h6>'+item.file_name+'</h6><p>File Size: '+item.file_size+' <br>Uploaded: '+timeStp+'</p><textarea id="photo_description_'+image_count+'" name="photo_description_'+image_count+'" rows="4" cols="20">Photo Description</textarea><div class="move"><i class="fas fa-expand-arrows-alt"></i> Move</div></figcaption></li>');
-                $('#propertyCoverImageList').append('<li rel_id="'+item.upload_id+'" rel_position="'+count+'"><a href="javascript:void(0)" data-article-id="'+property_id+'" data-image-id="'+item.upload_id+'" data-image-name="'+item.file_name+'" data-image-section="'+item.upload_to+'"  class="close-btn confirm_image_delete"><i class="fas fa-times"></i></a><img src="'+img_src+'" alt=""><figcaption><h6>'+item.file_name+'</h6><p>File Size: '+item.file_size+' <br>Uploaded: '+timeStp+'</p></figcaption></li>');
+                // $('#propertyCoverImageList').append('<li rel_id="'+item.upload_id+'" rel_position="'+count+'"><a href="javascript:void(0)" data-article-id="'+property_id+'" data-image-id="'+item.upload_id+'" data-image-name="'+item.file_name+'" data-image-section="'+item.upload_to+'"  class="close-btn confirm_image_delete"><i class="fas fa-times"></i></a><img src="'+img_src+'" alt=""><figcaption><h6>'+item.file_name+'</h6><p>File Size: '+item.file_size+' <br>Uploaded: '+timeStp+'</p></figcaption></li>');
+                $('#propertyCoverImageList').append('<li rel_id="'+item.upload_id+'" rel_position="'+count+'"><a href="javascript:void(0)" data-article-id="'+property_id+'" data-image-id="'+item.upload_id+'" data-image-name="'+item.file_name+'" data-image-section="'+item.upload_to+'"  class="close-btn confirm_image_delete"><i class="fas fa-times"></i></a>'+img_tag+'<figcaption><h6>'+item.file_name+'</h6><p>File Size: '+item.file_size+' <br>Uploaded: '+timeStp+'</p></figcaption></li>');
             });
             image_name = image_name+','+property_upload_name;
             upload_id = upload_id+','+property_upload_id;
@@ -282,6 +315,7 @@ function set_property_image_details(response){
             var j = 0
             $.each(response.uploaded_file_list, function(i, item) {
                 count = count+1;
+                const ext = item.ext;
                 // var j = parseInt(j) + 1;
                 // console.log(j);
                 var image_count = parseInt($("#propertyImageList li").length) + 1; 
@@ -296,10 +330,20 @@ function set_property_image_details(response){
                         upload_id = upload_id+','+item.upload_id;
                     }
                 }
-                if(item.file_name != ""){
-                    // var img_src = azure_blob_url+"property_image/"+item.file_name;
-                    var img_src = azure_blob_url+item.upload_to+"/"+item.file_name;
+                // if(item.file_name != "" && ext != ".pdf"){
+                //     // var img_src = azure_blob_url+"property_image/"+item.file_name;
+                //     var img_src = azure_blob_url+item.upload_to+"/"+item.file_name;
                     
+                // }else if(item.file_name != "" && ext == ".pdf"){
+                //     var img_src = "/static/admin/images/pdf_image.svg";
+                // }
+                if(item.file_name != "" && ext != ".pdf"){
+                    var img_src = azure_blob_url+item.upload_to+"/"+item.file_name;
+                    var img_tag = '<figure><img class="slide-fixed" src="/static/admin/images/transparent.png" alt=""><img class="slide-img" src="'+img_src+'" alt=""></figure>';
+                }else if(item.file_name != "" && ext == ".pdf"){
+                    var img_src = "/static/admin/images/pdf_image.svg";
+                    var pdf_path = azure_blob_url+item.upload_to+"/"+item.file_name;
+                    var img_tag = '<figure><a href="'+pdf_path+'" target="_blank"><img class="slide-fixed" src="/static/admin/images/transparent.png" alt=""><img class="slide-img" src="'+img_src+'" alt=""></a></figure>';
                 }
                 if(item.upload_date){
                     try{
@@ -323,7 +367,8 @@ function set_property_image_details(response){
                     }
                 }
                 // $('#propertyImageList').append('<li rel_id="'+item.upload_id+'" rel_position="'+count+'"><a href="javascript:void(0)" data-article-id="'+property_id+'" data-image-id="'+item.upload_id+'" data-image-name="'+item.file_name+'" data-image-section="'+item.upload_to+'"  class="close-btn confirm_image_delete"><i class="fas fa-times"></i></a><img src="'+img_src+'" alt=""><figcaption><h6>'+item.file_name+'</h6><p>File Size: '+item.file_size+' <br>Uploaded: '+timeStp+'</p><textarea id="photo_description_'+image_count+'" name="photo_description_'+image_count+'" rows="4" cols="20">Photo Description</textarea><div class="move"><i class="fas fa-expand-arrows-alt"></i> Move</div></figcaption></li>');
-                $('#propertyImageList').append('<li rel_id="'+item.upload_id+'" rel_position="'+count+'"><a href="javascript:void(0)" data-article-id="'+property_id+'" data-image-id="'+item.upload_id+'" data-image-name="'+item.file_name+'" data-image-section="'+item.upload_to+'"  class="close-btn confirm_image_delete"><i class="fas fa-times"></i></a><img src="'+img_src+'" alt=""><figcaption><h6>'+item.file_name+'</h6><p>File Size: '+item.file_size+' <br>Uploaded: '+timeStp+'</p></figcaption></li>');
+                // $('#propertyImageList').append('<li rel_id="'+item.upload_id+'" rel_position="'+count+'"><a href="javascript:void(0)" data-article-id="'+property_id+'" data-image-id="'+item.upload_id+'" data-image-name="'+item.file_name+'" data-image-section="'+item.upload_to+'"  class="close-btn confirm_image_delete"><i class="fas fa-times"></i></a><img src="'+img_src+'" alt=""><figcaption><h6>'+item.file_name+'</h6><p>File Size: '+item.file_size+' <br>Uploaded: '+timeStp+'</p></figcaption></li>');
+                $('#propertyImageList').append('<li rel_id="'+item.upload_id+'" rel_position="'+count+'"><a href="javascript:void(0)" data-article-id="'+property_id+'" data-image-id="'+item.upload_id+'" data-image-name="'+item.file_name+'" data-image-section="'+item.upload_to+'"  class="close-btn confirm_image_delete"><i class="fas fa-times"></i></a>'+img_tag+'<figcaption><h6>'+item.file_name+'</h6><p>File Size: '+item.file_size+' <br>Uploaded: '+timeStp+'</p></figcaption></li>');
             });
             image_name = image_name+','+property_upload_name;
             upload_id = upload_id+','+property_upload_id;

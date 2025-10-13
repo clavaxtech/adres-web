@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 from pathlib import Path
 from decouple import config
 import os
+from packages.keyvault import *
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,15 +21,89 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
+if config('IS_ACTIVE_KEY_VAULT') == '1':
+    # SECURITY WARNING: keep the secret key used in production secret!
+    SECRET_KEY = get_secret("WEB-SECRET-KEY")
+    ALLOWED_HOSTS = get_secret("WEB-ALLOWED-HOSTS")
+    CSRF_TRUSTED_ORIGINS = get_secret("WEB-BASE-URL")
+    CORS_ALLOWED_ORIGINS = get_secret("WEB-BASE-URL")
+    HTTPS = get_secret('WEB-HTTPS')
+    CACHE_TTL = get_secret('WEB-CACHE-TTL')
+    BASE_URL = get_secret('WEB-BASE-URL')
+    FRONT_URL = get_secret('WEB-FRONT-URL')
+    ALLOW_URL = get_secret('WEB-ALLOW-URL')
+    LOGIN_URL = get_secret('WEB-LOGIN-URL')
+    API_URL = get_secret('WEB-API-URL')
+    AUTH_TOKEN = get_secret('WEB-AUTH-TOKEN')
+    CALLBACK_LOGIN_URL = get_secret('WEB-CALLBACK-LOGIN-URL')
+    SERVER_SETUP = get_secret('WEB-SERVER-SETUP')
+    NOT_FOUND_REDIRECTION = get_secret('WEB-NOT-FOUND-REDIRECTION')
+    URL_SCHEME = get_secret('WEB-URL-SCHEME')
+    DOMAIN_NAME_URL = get_secret("WEB-DOMAIN-NAME-URL")
+    IS_SERVER = get_secret("WEB-IS-SERVER")
+    NODE_URL = get_secret("WEB-NODE-URL")
+    GOOGLE_RECAPTCHA_SECRET_KEY = get_secret('WEB-GOOGLE-RECAPTCHA-SECRET-KEY')
+    CAPTCHA_SITE_KEY = get_secret('WEB-CAPTCHA-SITE-KEY')
+    # ---------------Stripe Payment----------------
+    STRIPE_PUBLIC_KEY = get_secret('WEB-STRIPE-PUBLIC-KEY')
+    STRIPE_SECRET_KEY = get_secret('WEB-STRIPE-SECRET-KEY')
+    STRIPE_WEBHOOK_SECRET = get_secret('WEB-STRIPE-WEBHOOK-SECRET')
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config("SECRET_KEY")
+    GEOLOCATOR_EMAIL = get_secret('WEB-GEOLOCATOR-EMAIL')
+    SERVER_ON_MAINTENANCE = get_secret('WEB-SERVER-ON-MAINTENANCE')
+    GOOGLE_MAP_KEY = get_secret('WEB-GOOGLE-MAP-KEY')
+    # ---------------Azure blob storage----------------
+    AZURE_ACCOUNT_NAME = get_secret("WEB-AZURE-ACCOUNT-NAME")
+    AZURE_ACCOUNT_KEY = get_secret("WEB-AZURE-ACCOUNT-KEY")
+    AZURE_CONNECTION_STRING = get_secret("WEB-AZURE-CONNECTION-STRING")
+    AZURE_CONTAINER_NAME = get_secret("WEB-AZURE-CONTAINER-NAME")
+    AZURE_BLOB_URL = get_secret("WEB-AZURE-BLOB-URL")
+    SOCKET_AUTH_TOKEN = get_secret("WEB-SOCKET-AUTH-TOKEN")
+    ENCRYPTION_KEY = config("ENCRYPTION_KEY")
+else:
+    # SECURITY WARNING: keep the secret key used in production secret!
+    SECRET_KEY = config("SECRET_KEY")
+    ALLOWED_HOSTS = config("ALLOWED_HOSTS")
+    CSRF_TRUSTED_ORIGINS = config("BASE_URL")
+    CORS_ALLOWED_ORIGINS = config("BASE_URL")
+    HTTPS = config('HTTPS')
+    CACHE_TTL = config('CACHE_TTL')
+    BASE_URL = config('BASE_URL')
+    FRONT_URL = config('FRONT_URL')
+    ALLOW_URL = config('ALLOW_URL')
+    LOGIN_URL = config('LOGIN_URL')
+    API_URL = config('API_URL')
+    AUTH_TOKEN = config('AUTH_TOKEN')
+    CALLBACK_LOGIN_URL = config('CALLBACK_LOGIN_URL')
+    SERVER_SETUP = config('SERVER_SETUP')
+    NOT_FOUND_REDIRECTION = config('NOT_FOUND_REDIRECTION')
+    URL_SCHEME = config('URL_SCHEME')
+    DOMAIN_NAME_URL = config("DOMAIN_NAME_URL")
+    IS_SERVER = config("IS_SERVER")
+    NODE_URL = config("NODE_URL")
+    GOOGLE_RECAPTCHA_SECRET_KEY = config('GOOGLE_RECAPTCHA_SECRET_KEY')
+    CAPTCHA_SITE_KEY = config('CAPTCHA_SITE_KEY')
+    # ---------------Stripe Payment----------------
+    STRIPE_PUBLIC_KEY = config('STRIPE_PUBLIC_KEY')
+    STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY')
+    STRIPE_WEBHOOK_SECRET = config('STRIPE_WEBHOOK_SECRET')
 
+    GEOLOCATOR_EMAIL = config('GEOLOCATOR_EMAIL')
+    SERVER_ON_MAINTENANCE = config('SERVER_ON_MAINTENANCE')
+    GOOGLE_MAP_KEY = config('GOOGLE_MAP_KEY')
+
+    # ---------------Azure blob storage----------------
+    AZURE_ACCOUNT_NAME = config("AZURE_ACCOUNT_NAME")
+    AZURE_ACCOUNT_KEY = config("AZURE_ACCOUNT_KEY")
+    AZURE_CONNECTION_STRING = config("AZURE_CONNECTION_STRING")
+    AZURE_CONTAINER_NAME = config("AZURE_CONTAINER_NAME")
+    AZURE_BLOB_URL = config("AZURE_BLOB_URL")
+    SOCKET_AUTH_TOKEN = config("SOCKET_AUTH_TOKEN")
+    ENCRYPTION_KEY = config("ENCRYPTION_KEY")
+
+ALLOWED_HOSTS = [ALLOWED_HOSTS]
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-
-ALLOWED_HOSTS = [config("ALLOWED_HOSTS")]
-
 
 # Application definition
 
@@ -62,6 +137,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     # -------------Custom middleware------------
+    'subdomain.middleware.Redirect404Middleware',
     'subdomain.middleware.CheckSubdomainMiddleware',
     'subdomain.middleware.OAuth2TokenValidationMiddleware',
     'subdomain.middleware.CheckAdminValidUserMiddleware',
@@ -73,12 +149,13 @@ MIDDLEWARE = [
     # 'subdomain.middleware.CheckPayment',
     # 'subdomain.middleware.OAuth2TokenValidationMiddleware',
     'subdomain.middleware.AjaxMiddleware',
+    'subdomain.middleware.PermissionMiddleware',
 
 ]
 
 #CORS_ALLOW_ALL_ORIGINS = True
-CSRF_TRUSTED_ORIGINS = [config("BASE_URL"),]
-CORS_ALLOWED_ORIGINS = [config("BASE_URL"),]
+CSRF_TRUSTED_ORIGINS = [CSRF_TRUSTED_ORIGINS,]
+CORS_ALLOWED_ORIGINS = [CORS_ALLOWED_ORIGINS,]
 CORS_ALLOW_METHODS = ["GET", "POST", "PUT", "DELETE", "OPTIONS",]
 CORS_ALLOW_HEADERS = ["accept", "authorization", "content-type", "user-agent", "x-csrftoken", "x-requested-with",]
 ROOT_URLCONF = 'subdomain.urls'
@@ -101,6 +178,8 @@ TEMPLATES = [
                 'packages.context_processors.user_personal_info',
                 'packages.context_processors.azure_blob_url',
                 'packages.context_processors.node_url',
+                'packages.context_processors.socket_auth_token',
+                'packages.context_processors.socket_encryption_key',
             ],
         },
     },
@@ -189,35 +268,3 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'static'),
 )
-HTTPS = config('HTTPS')
-CACHE_TTL = config('CACHE_TTL')
-BASE_URL = config('BASE_URL')
-FRONT_URL = config('FRONT_URL')
-ALLOW_URL = config('ALLOW_URL')
-LOGIN_URL = config('LOGIN_URL')
-API_URL = config('API_URL')
-AUTH_TOKEN = config('AUTH_TOKEN')
-CALLBACK_LOGIN_URL = config('CALLBACK_LOGIN_URL')
-SERVER_SETUP = config('SERVER_SETUP')
-NOT_FOUND_REDIRECTION = config('NOT_FOUND_REDIRECTION')
-URL_SCHEME = config('URL_SCHEME')
-DOMAIN_NAME_URL = config("DOMAIN_NAME_URL")
-IS_SERVER = config("IS_SERVER")
-NODE_URL = config("NODE_URL")
-GOOGLE_RECAPTCHA_SECRET_KEY = config('GOOGLE_RECAPTCHA_SECRET_KEY')
-CAPTCHA_SITE_KEY = config('CAPTCHA_SITE_KEY')
-# ---------------Stripe Payment----------------
-STRIPE_PUBLIC_KEY = config('STRIPE_PUBLIC_KEY')
-STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY')
-STRIPE_WEBHOOK_SECRET = config('STRIPE_WEBHOOK_SECRET')
-
-GEOLOCATOR_EMAIL = config('GEOLOCATOR_EMAIL')
-SERVER_ON_MAINTENANCE = config('SERVER_ON_MAINTENANCE')
-GOOGLE_MAP_KEY = config('GOOGLE_MAP_KEY')
-
-# ---------------Azure blob storage----------------
-AZURE_ACCOUNT_NAME = config("AZURE_ACCOUNT_NAME")
-AZURE_ACCOUNT_KEY = config("AZURE_ACCOUNT_KEY")
-AZURE_CONNECTION_STRING = config("AZURE_CONNECTION_STRING")
-AZURE_CONTAINER_NAME = config("AZURE_CONTAINER_NAME")
-AZURE_BLOB_URL = config("AZURE_BLOB_URL")

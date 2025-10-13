@@ -70,16 +70,39 @@
                           
                             <div class="row">
 
+                              {% if property_details.can_relist %}
+                                <input type="hidden" name="relist" id="relist" value="1">
+                              {% endif %}
+
+                              <div class="col-lg-6 col-md-6">
+                                <div class="form-group">
+                                  <label for="start_price">Auction Type <span class="text-danger">*</span></label>
+                                  <div class="aedprefix">
+                                    {% if property_details.is_auction_start %}
+                                      <select class="start_price form-control select" aria-label="Auction Type" name="auction_type_showing" id="auction_type_showing" {% if property_details.is_auction_start %} disabled {% endif %}>
+                                        <option value="">Select Auction Type</option>
+                                        <option value="1" {% if property_details.property_for == 1 %} selected {% endif %}>Regular</option>
+                                        <option value="2" {% if property_details.property_for == 2 %} selected {% endif %}>Live</option>
+                                      </select>
+                                      <input type="hidden" name="auction_type" id="auction_type" value="{{property_details.property_for}}" />
+                                    {% else %}
+                                      <select class="start_price form-control select" aria-label="Auction Type" name="auction_type" id="auction_type">
+                                        <option value="">Select Auction Type</option>
+                                        <option value="1" {% if property_details.property_for == 1 %} selected {% endif %}>Regular</option>
+                                        <option value="2" {% if property_details.property_for == 2 %} selected {% endif %}>Live</option>
+                                      </select>
+                                    {% endif %}
+                                    </div>
+                                </div>
+                              </div>
+
                               <div class="col-lg-6 col-md-6">
                                 <div class="form-group">
                                   <label for="start_price">Min Starting Price <span class="text-danger">*</span></label>
                                   <div class="aedprefix">
                                     <span class="aed">AED</span>
-                                    <select class="start_price form-control select" aria-label="Min Starting Price" name="start_price" id="start_price">
-                                      {% for price in price_listing %}
-                                        <option value="{{ price }}" {% if property_details.start_price == price %} selected {% endif %}>{{ price }}</option>
-                                      {% endfor %}
-                                    </select>
+                                    <input type="text" class="form-control" name="start_price" id="start_price" value="{{ property_details.start_price|convert_num|intcomma|default:'' }}" placeholder="Enter starting price" {% if property_details.is_auction_start %} readonly {% endif %} oninput="this.value = this.value.replace(/[^0-9]/g, '')"/>
+                                    
                                     </div>
                                 </div>
                               </div>
@@ -89,11 +112,7 @@
                                   <label for="deposit_amount">Deposit Price <span class="text-danger">*</span></label>
                                   <div class="aedprefix">
                                     <span class="aed">AED</span>
-                                    <select class="deposit_amount form-control select" aria-label="Deposit Price" name="deposit_amount" id="deposit_amount">
-                                      {% for price in price_listing %}
-                                        <option value="{{ price }}" {% if property_details.deposit_amount == price %} selected {% endif %}>{{ price }}</option>
-                                      {% endfor %}
-                                    </select>
+                                    <input type="text" class="form-control" name="deposit_amount" id="deposit_amount" value="{% if property_details.deposit_amount %}{{ property_details.deposit_amount|convert_num|intcomma|default:'' }}{% endif %}" placeholder="Enter deposit amount" {% if property_details.is_auction_start %} readonly {% endif %} oninput="this.value = this.value.replace(/[^0-9]/g, '')" />
                                     </div>
                                 </div>
                               </div>
@@ -103,11 +122,7 @@
                                   <label for="reserve_amount">Reserved Price <span class="text-danger">*</span></label>
                                   <div class="aedprefix">
                                     <span class="aed">AED</span>
-                                    <select class="reserve_amount form-control select" aria-label="Reserved Price" name="reserve_amount" id="reserve_amount">
-                                      {% for price in price_listing %}
-                                        <option value="{{ price }}" {% if property_details.reserve_amount == price %} selected {% endif %}>{{ price }}</option>
-                                      {% endfor %}
-                                    </select>
+                                    <input type="text" class="form-control" name="reserve_amount" id="reserve_amount" value="{{ property_details.reserve_amount|convert_num|intcomma|default:'' }}" placeholder="Enter reserve amount" {% if property_details.is_auction_start %} readonly {% endif %} oninput="this.value = this.value.replace(/[^0-9]/g, '')" />
                                     </div>
                                 </div>
                               </div>
@@ -118,15 +133,15 @@
                                   <label for="buyer_preference">Buyer Preference <span class="text-danger">*</span></label>
                                   <div class="radioList">
                                     <div class="form-check">
-                                      <input type="radio" class="buyer_preference css-radio" id="cash" name="buyer_preference" value="1" {% if property_details.buyer_preference %}{% if property_details.buyer_preference == 1%}checked="checked"{% endif %}{% else %} checked="checked" {% endif %}>
+                                      <input type="radio" class="buyer_preference css-radio" id="cash" name="buyer_preference" value="1" {% if property_details.buyer_preference %}{% if property_details.buyer_preference == 1%}checked="checked"{% endif %}{% else %} checked="checked" {% endif %} {% if property_details.is_auction_start %} disabled {% endif %}>
                                       <label for="cash" class="radio-label">Cash</label>
                                     </div>
                                     <div class="form-check">
-                                      <input type="radio" class="buyer_preference css-radio" id="mortgage" name="buyer_preference" value="2" {% if property_details.buyer_preference == 2 %}checked="checked"{% endif %}>
+                                      <input type="radio" class="buyer_preference css-radio" id="mortgage" name="buyer_preference" value="2" {% if property_details.buyer_preference == 2 %}checked="checked"{% endif %} {% if property_details.is_auction_start %} disabled {% endif %}>
                                       <label for="mortgage" class="radio-label">Mortgage</label>
                                     </div>
                                     <div class="form-check">
-                                      <input type="radio" class="buyer_preference css-radio" id="both" name="buyer_preference" value="2" {% if property_details.buyer_preference == 2 %}checked="checked"{% endif %}>
+                                      <input type="radio" class="buyer_preference css-radio" id="both" name="buyer_preference" value="3" {% if property_details.buyer_preference == 3 %}checked="checked"{% endif %} {% if property_details.is_auction_start %} disabled {% endif %}>
                                       <label for="both" class="radio-label">Both</label>
                                     </div>
                                   </div>
@@ -139,7 +154,7 @@
                                   <div class="full-price">
                                     <label for="sell_at_full_amount_status">Sell at full price</label>
                                     <label title="Allow All Module Access" area-label="Allow All Module Access" class="switch small">
-                                      <input type="checkbox" class="sell_at_full_amount_status css-checkbox" id="sell_at_full_amount_status" name="sell_at_full_amount_status" value="1" {% if property_details.sell_at_full_amount_status %}checked{% endif %}>
+                                      <input type="checkbox" class="sell_at_full_amount_status css-checkbox" id="sell_at_full_amount_status" name="sell_at_full_amount_status" value="1" {% if property_details.sell_at_full_amount_status %}checked{% endif %} {% if property_details.is_auction_start %} disabled {% endif %}>
                                       <span class="slide round"></span>
                                     </label>
                                   </div>
@@ -151,11 +166,7 @@
                                 <div class="row form-group full_price_field" {% if property_details.sell_at_full_amount_status %} style="display: block;" {% else %} style="display: none;" {% endif %}>
                                   <div class="col-md-6 col-sm-6">
                                     <label for="full_amount">Full Price <span class="text-danger">*</span></label>
-                                    <select class="full_amount form-control select" aria-label="Full Price" name="full_amount" id="full_amount">
-                                      {% for price in price_listing %}
-                                        <option value="{{ price }}" {% if property_details.full_amount == price %} selected {% endif %}>{{ price }}</option>
-                                      {% endfor %}
-                                    </select>
+                                    <input type="text" class="form-control" name="full_amount" id="full_amount" value="{{ property_details.full_amount|convert_num|intcomma|default:'' }}" placeholder="Enter full price" {% if property_details.is_auction_start %} readonly {% endif %} oninput="this.value = this.value.replace(/[^0-9]/g, '')" />
                                   </div>
                                 </div>
                                 
@@ -164,29 +175,12 @@
                               <hr>
                               
                               <div class="col-md-12 col-sm-12">
-                                <div class="form-group">
-                                  <div class="full-price">
-                                    <label for="bid_increment_status">Bid Increment</label>
-                                    <label title="Allow All Module Access" area-label="Allow All Module Access" class="switch small">
-                                      <input type="checkbox" class="bid_increment_status css-checkbox" id="bid_increment_status" name="bid_increment_status" value="1" {% if property_details.bid_increment_status %}checked{% endif %}>
-                                      <span class="slide round"></span>
-                                    </label>
+                                <div class="row form-group bid_increment_field">
+                                  <div class="col-md-6 col-sm-6">
+                                    <label for="bid_increments">Bid Increment Price <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="bid_increments" id="bid_increments" value="{{ property_details.bid_increments|convert_num|intcomma|default:'' }}" placeholder="Enter bid price" {% if property_details.is_auction_start %} readonly {% endif %} oninput="this.value = this.value.replace(/[^0-9]/g, '')" />
                                   </div>
-                                  <p class="light-text mb0">
-                                    Bid content
-                                  </p>
                                 </div>
-                                  
-                                  <div class="row form-group bid_increment_field" {% if property_details.bid_increment_status %} style="display: block;" {% else %} style="display: none;" {% endif %}>
-                                    <div class="col-md-6 col-sm-6">
-                                      <label for="bid_increments">Bid Price <span class="text-danger">*</span></label>
-                                      <select class="bid_increments form-control select" aria-label="Bid Price" name="bid_increments" id="bid_increments">
-                                        {% for price in price_listing %}
-                                          <option value="{{ price }}" {% if property_details.bid_increments == price %} selected {% endif %}>{{ price }}</option>
-                                        {% endfor %}
-                                      </select>
-                                    </div>
-                                  </div>
                                 
                               </div><!-- End .col-md-12 -->
 
@@ -195,7 +189,7 @@
                               <div class="col-md-6 col-sm-6">
                                 <div class="form-group">
                                   <label for="start_date" class="start_date">Starting Date & Time <span class="text-danger">*</span></label>
-                                  <input type="text" name="start_date" class="form-control" id="start_date" value="{{property_details.start_date|default:''}}" />
+                                  <input type="text" name="start_date" class="form-control" id="start_date" value="{{property_details.start_date|default:''}}" placeholder="Please enter start date" {% if request.GET.property_id and property_details.status_id != 1 and not property_details.status_id %} disabled {% endif %} {% if property_details.is_auction_start %} readonly {% endif %}/>
                                   <input type="hidden" name="utc_start_date" class="form-control" id="utc_start_date" value="{{property_details.start_date|default:''}}" />
                                 </div>
                               </div><!-- End .col-md-6 -->
@@ -203,7 +197,7 @@
                               <div class="col-md-6 col-sm-6">
                                 <div class="form-group">
                                   <label for="end_date" class="start_date">Ending Date & Time <span class="text-danger">*</span></label>
-                                  <input type="text" name="end_date" class="form-control" id="end_date" value="{{property_details.end_date|default:''}}" />
+                                  <input type="text" name="end_date" class="form-control" id="end_date" value="{{property_details.end_date|default:''}}" placeholder="Please enter end date" {% if request.GET.property_id and property_details.status_id != 1 and not property_details.status_id %} disabled {% endif %}/>
                                   <input type="hidden" name="utc_end_date" class="form-control" id="utc_end_date" value="{{property_details.end_date|default:''}}" />
                                 </div>
                               </div><!-- End .col-md-6 -->
@@ -213,10 +207,10 @@
                                   <label for="is_featured">Would you like to feature your property? <span class="text-danger">*</span></label>
   
                                   <div class="clearfix">
-                                    <input type="radio" class="is_featured css-radio" id="is_featured_yes" name="is_featured" value="1" {% if property_details.is_featured %}{% if property_details.is_featured == 1%}checked="checked"{% endif %}{% else %} checked="checked" {% endif %}>
+                                    <input type="radio" class="is_featured css-radio" id="is_featured_yes" name="is_featured" value="1" {% if property_details.is_featured %}{% if property_details.is_featured == 1%}checked="checked"{% endif %}{% else %} checked="checked" {% endif %} {% if property_details.is_auction_start %} disabled {% endif %}>
                                     <label for="is_featured_yes" class="radio-label">Yes</label>
                                     &nbsp; 
-                                    <input type="radio" class="is_featured css-radio" id="is_featured_no" name="is_featured" value="0" {% if property_details.is_featured != 1 %}checked="checked"{% endif %}>
+                                    <input type="radio" class="is_featured css-radio" id="is_featured_no" name="is_featured" value="0" {% if property_details.is_featured != 1 %}checked="checked"{% endif %} {% if property_details.is_auction_start %} disabled {% endif %}>
                                     <label for="is_featured_no" class="radio-label">No</label>
                                   </div>
                                 </div>
@@ -272,18 +266,24 @@
                                 </div>
                               </div>
                             </div>
-                            <div class="col-md-6 col-sm-6">
-                              <div class="form-group">
-                                <label for="signature" class="signature">Signature <span class="text-danger">*</span></label>
-                                <input type="text" name="signature" class="form-control" id="signature" value="{% if property_details.signature %}{{property_details.signature|default:''}}{% else %}{{property_details.seller_name|default:''}}{% endif %}" />
-                              </div>
-                            </div><!-- End .col-md-6 -->
                             <div class="col-md-12 col-sm-12">
                               <div class="form-group agrement-text">
-                                <input type="checkbox" class="term_agreement " id="term_agreement" name="term_agreement" value="1" {% if property_details.term_agreement %}checked{% endif %}>
+                                {% if property_details.is_auction_start %}
+                                  <input type="checkbox" class="term_agreement " id="term_agreement_show" name="term_agreement_show" value="1" {% if property_details.term_agreement %}checked{% endif %} {% if property_details.is_auction_start %} disabled {% endif %}>
+                                  <input type="hidden" class="term_agreement " id="term_agreement" name="term_agreement" value="1" {% if property_details.term_agreement %}checked{% endif %}>
+                                {% else %}
+                                  <input type="checkbox" class="term_agreement " id="term_agreement" name="term_agreement" value="1" {% if property_details.term_agreement %}checked{% endif %}>
+                                {% endif %}
                                 <label for="term_agreement" class="">I have read and agree to the terms of the reservation agreement.</label>
                               </div>
                             </div><!-- End .col-md-12 -->
+
+                            <div class="col-md-6 col-sm-6">
+                              <div class="form-group">
+                                <label for="signature" class="signature">Signature <span class="text-danger">*</span></label>
+                                <input type="text" name="signature" class="form-control" id="signature" value="{% if property_details.signature %}{{property_details.signature|default:''}}{% else %}{{property_details.seller_name|default:''}}{% endif %}" placeholder="Enter signature" {% if property_details.is_auction_start %} readonly {% endif %}/>
+                              </div>
+                            </div><!-- End .col-md-6 -->
                           </div><!-- End .row -->
                       </div><!-- End .panel-body -->
                   </div><!-- End .panel-collapse -->

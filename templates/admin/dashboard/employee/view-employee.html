@@ -29,6 +29,17 @@
               </form>
             </li>
             
+            {% if is_broker == True %}
+              <li>
+                <select name="developer_id" aria-label="developer_id" id="developer_id" class="select form-control" onchange="listingSearch(1);">
+                  <option value="">Select Developer</option>
+                  {% for developer in developer_list %}
+                    <option value="{{ developer.id }}" {% if developer.id|add:"0" == developer_id|add:"0" %}selected{% endif %}>{{ developer.first_name }}</option>
+                  {% endfor %}
+                </select>
+              </li>
+            {% endif %}
+
             <li>
               <select name="filter_status" aria-label="Status" id="filter_status" class="select form-control" onchange="listingSearch(1);">
                 <option value="">All Status</option>
@@ -36,16 +47,7 @@
                 <option value="inactive" {% if request.GET.status and request.GET.status == 'inactive' %}selected{% endif %}>Inactive</option>
               </select>
             </li>
-            {% if is_broker == True %}
-              <li>
-                <select name="developer_id" aria-label="developer_id" id="developer_id" class="select form-control" onchange="listingSearch(1);">
-                  <option value="">Select Developer</option>
-                  {% for developer in developer_list %}
-                    <option value="{{ developer.id }}" {% if developer.id|add:"0" == developer_id|add:"0" %}selected{% endif %}>{{ developer.first_name }}&nbsp;{{developer.last_name}}</option>
-                  {% endfor %}
-                </select>
-              </li>
-            {% endif %}
+            
             <li>
               <select name="num_record" aria-label="Record" id="num_record" class="select form-control" onchange="listingSearch(1);">
                 <option value="">Record Per Page</option>
@@ -57,7 +59,10 @@
               </select>
             </li>
             <li>
-              <a href="/admin/add-employee/?developer_id={% if developer_id %}{{ developer_id }} {% endif %}" class="btn btn-primary btn-xs"><i class="fas fa-plus" aria-hidden="true" role="presentation"></i> New Employee</a>
+              <a href="/admin/add-employee/" class="btn btn-primary btn-xs"><i class="fas fa-plus" aria-hidden="true" role="presentation"></i> New Employee</a>
+            </li>
+            <li>
+              <a href="javascript:void(0)" onclick="employee_csv_download()" class="btn btn-primary btn-xs"></i>Download CSV</a>
             </li>
           </ul>
         </div>
@@ -79,7 +84,7 @@
                     {{ data.email|default:'' }}
                   </li>
                   <li>
-                    <i class="fa-solid fa-phone" aria-hidden="true" role="presentation"></i> {{ data.phone_no|default:''|format_phone }}
+                    <i class="fa-solid fa-phone" aria-hidden="true" role="presentation"></i>+{{data.phone_country_code|default:971}} {{ data.phone_no|default:''|format_phone }}
                   </li>
                   <li>
                     <i class="fa-solid fa-calendar-days" aria-hidden="true" role="presentation"></i> Create Date | <span class="convert_to_local_date_time" data-value="{{ data.added_on|default:'' }}">
@@ -101,7 +106,7 @@
                     <figcaption>
                       <h6>
                         <span>
-                          {{ data.first_name|default:'' }} {{ data.last_name|default:'' }}
+                          {{ data.first_name|default:'' }}
                           {% if data.is_upgrade %}
                           <a href="javascript:void(0)" data-toggle="tooltip" data-placement="bottom" title="User upgraded to Agent"><img src="{% static 'admin/images/up-arrow.svg' %}" alt="real estate sales"></a>
                           {% endif %}
@@ -120,9 +125,9 @@
                           <li>
                             <a href="/admin/add-employee/?id={{ data.id }}"><i class="fas fa-edit" aria-hidden="true" role="presentation"></i> Edit Employee</a>
                           </li>
-                          <li>
+                          <!-- <li>
                             <a href="javascript:void(0)" onclick="delete_confirmation({{ data.id }})"><i class="fas fa-trash" aria-hidden="true" role="presentation"></i> Delete Employee</a>
-                          </li>
+                          </li> -->
                         </ul>
                       </span>
                     </div>
@@ -140,7 +145,7 @@
                       <li>
                         <div class="icon"><i class="fa-solid fa-building fa-2x" aria-hidden="true" role="presentation"></i></div>
                         <h5 class="blue-text">
-                          {{ data.project_cnt|default:'NA' }}
+                          <a href="/admin/project-list/?e_i={{data.id}}">{{ data.project_cnt|default:'NA' }}</a>
                         </h5>
                         <h6 class="pt10">
                           No. Projects
@@ -149,7 +154,7 @@
                       <li>
                         <div class="icon"><i class="fa-solid fa-building fa-2x" aria-hidden="true" role="presentation"></i></div>
                         <h5 class="blue-text">
-                          {{ data.property_cnt|default:'NA' }}
+                          <a href="/admin/listing/?e_i={{data.id}}">{{ data.property_cnt|default:'NA' }}</a>
                         </h5>
                         <h6 class="pt10">
                           No. Property
@@ -224,8 +229,8 @@
     <script type="text/javascript" src="{% static 'admin/js/jquery.growl.js' %}"></script>
     <script type="text/javascript" src="{% static 'admin/js/autosuggestion.js' %}?v=1.9"></script>
     <script type="text/javascript" src="{% static 'admin/js/pagination.js' %}?v=1.1"></script>
-    <script type="text/javascript" src="{% static 'admin/js/custom_js.js' %}?v=4.2"></script>
-    <script type="text/javascript" src="{% static 'admin/js/employee.js' %}?v=5.1"></script>
+    <script type="text/javascript" src="{% static 'admin/js/custom-date-time.js' %}?v=4.2"></script>
+    <script type="text/javascript" src="{% static 'admin/js/employee.js' %}?v=5.2"></script>
     <script type="text/javascript" src="{% static 'admin/js/dropzone.js' %}"></script>
     <script type="text/javascript" src="{% static 'admin/js/custom_dropzone.js' %}?v=3.1"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-tour/0.11.0/js/bootstrap-tour.js"></script>

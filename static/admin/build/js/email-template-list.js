@@ -57,6 +57,7 @@ function ajax_email_template_list() {
     $.ajax({
         url: "/admin/ajax-email-template-list/",
         type: "POST",
+        headers: { 'X-CSRFToken': getCookie('csrftoken') },
         data: { 
             'page': page,
             'search': search,

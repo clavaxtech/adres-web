@@ -9,6 +9,93 @@ function set_datetimepicker(element){
 
 }
 
+function setCurrentFutureDateTimePicker(element){
+    try{
+        const $input = $(element);
+
+        // Destroy existing DateTimePicker instance first
+        if ($input.data("DateTimePicker")) {
+            $input.data("DateTimePicker").destroy();
+        }
+        
+        const currentValue = $input.val(); // Value from DB (e.g., "2025-07-05 04:00 PM")
+        const now = moment().startOf('day'); // Current date & time
+        let minDate = now; // Default to now
+        
+        if (currentValue) {
+            const dbMoment = moment(currentValue, 'YYYY-MM-DD hh:mm A');
+            // Use the earlier of current time or DB value
+            if (dbMoment.isBefore(now)) {
+                minDate = dbMoment;
+            }
+        }
+        $(element).datetimepicker({
+            format: 'YYYY-MM-DD hh:mm A',
+            minDate: minDate,
+            useCurrent: false,
+            // keepOpen: false,
+        });
+
+        let timeSetOnce = false; // Flag to avoid overwriting manually set times
+
+        // $input.on("dp.change", function (e) {
+        //     const selected = e.date;
+
+        //     if (!timeSetOnce && selected && selected.hour() === 0 && selected.minute() === 0) {
+        //         const now = moment();
+        //         selected.set({
+        //             hour: now.hour(),
+        //             minute: now.minute()
+        //         });
+
+        //         $input.data("DateTimePicker").date(selected);
+        //         timeSetOnce = true; // Avoid future overrides
+        //     }
+        // });
+
+        $input.on("dp.change", function (e) {
+            const selected = e.date;
+            const current = moment();
+
+            // Only reset if selected is in the past AND different from current
+            if (selected && selected.isBefore(current, 'minute')) {
+                // Set to current datetime
+                $input.data("DateTimePicker").date(current);
+            }
+        });
+
+    }catch(ex){
+        console.error("DateTimePicker init error:", ex);
+    }
+
+}
+
+
+function setCurrentFutureDateTimePicker__OLD(element){
+    try{
+        const $input = $(element);
+        const currentValue = $input.val(); // Value from DB (e.g., "2025-07-05 04:00 PM")
+        const now = moment(); // Current date & time
+        let minDate = now; // Default to now
+        
+        if (currentValue) {
+            const dbMoment = moment(currentValue, 'YYYY-MM-DD hh:mm A');
+            // Use the earlier of current time or DB value
+            if (dbMoment.isBefore(now)) {
+                minDate = dbMoment;
+            }
+        }
+        $(element).datetimepicker({
+            format: 'YYYY-MM-DD hh:mm A',
+            minDate: moment(),
+            useCurrent: true,
+        });
+    }catch(ex){
+        console.error("DateTimePicker init error:", ex);
+    }
+
+}
+
 function set_datepicker(element){
     try{
         $(element).datetimepicker({
@@ -70,12 +157,24 @@ function formatToLocalTime(utcDateStr) {
     return "";
 }
 
-function convertLocalToUTC(localDateTime) {
+function convertLocalToUTC_OLD(localDateTime) {
     var browserDate = new Date(localDateTime);
     var utcDate = moment(browserDate).utc().format();
     // console.log("Browser Date:", browserDate);
     // console.log("UTC Date:", utcDate);
     return utcDate;
+}
+
+function convertLocalToUTC(localDateTime) {
+    // Expecting format: "YYYY-MM-DD hh:mm A" (e.g. "2025-06-30 12:00 AM")
+    const localMoment = moment(localDateTime, "YYYY-MM-DD hh:mm A");
+
+    if (!localMoment.isValid()) {
+        console.error("Invalid date format:", localDateTime);
+        return null;
+    }
+
+    return localMoment.utc().format(); // ISO string in UTC
 }
 
 

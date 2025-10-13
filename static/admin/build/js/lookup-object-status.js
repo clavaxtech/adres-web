@@ -16,6 +16,7 @@ $(function() {
 
     // on select property feature
     $('#lookup_object').change(function(){
+        console.log("-----innnn");
         // clear search strings and filters
         $('#search').val('')
         if(this.value != '')
@@ -160,12 +161,14 @@ $(function() {
 
 
 const ajax_lookup_object_status = (value) => {
+    console.log(value);
     var page = $("#page-lookup-object-status").val();
     var search = $("#search").val();
     $(".loaderDiv").show();
     $.ajax({
-        url: "/admin/settings/ajax-lookup-object-status",
-        type: "GET",
+        url: "/admin/settings/ajax-lookup-object-new-status/",
+        type: "POST",
+        headers: { 'X-CSRFToken': getCookie('csrftoken') },
         data: { 'page': page, 'search': search, object_id: value, 'count': $('#per_page_record').val() },
         cache: false,
         success: function(data) {

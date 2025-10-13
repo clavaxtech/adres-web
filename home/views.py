@@ -426,7 +426,7 @@ def login(request):
                     request.session['first_name'] = response_data['first_name']
                     request.session['user_type'] = response_data['user_type']
                     request.session['is_admin'] = response_data['is_admin']
-                    request.session['is_admin'] = True if int(response_data['user_type']) == 2 or int(response_data['user_type']) == 5 or int(response_data['user_type']) == 4 else False
+                    request.session['is_admin'] = True if int(response_data['user_type']) in [2, 4, 5, 6] else False
                     request.session['is_broker'] = response_data['is_broker']
                     request.session['profile_image'] = response_data['profile_image']
                     request.session['user_type_name'] = response_data['user_type_name']
@@ -436,13 +436,21 @@ def login(request):
                     request.session['is_first_admin_login'] = 0
                     request.session['is_free_plan'] = response_data['is_free_plan']
                     request.session['account_verification_type'] = response_data['account_verification_type']
+                    request.session['first_time_log_in'] = response_data['first_time_log_in']
                     # append next link if any
                     response['next'] = request.POST['next'] if 'next' in request.POST and request.POST['next'] else ''
-                    if response_data['site_id'] or int(response_data['user_type']) in [2, 5]:
-                        request.session['demo_tour'] = 1
-                        response['next'] = "/admin/dashboard/"
+                    
+                    if int(response_data['user_type']) in [2, 4]:
+                        if response_data['first_time_log_in']:
+                            return HttpResponseRedirect('/admin/change-password/')
+                        else:
+                            return HttpResponseRedirect('/admin/dashboard/')
+                    else:
+                        if response_data['first_time_log_in']:
+                            response['next'] = "/admin/change-password/"
+                        else:
+                            response['next'] = "/admin/listing/"
                 return JsonResponse(response)
-
             except Exception as exp:
                 data = {'status': 403, 'msg': 'invalid request.'}
                 return JsonResponse(data)

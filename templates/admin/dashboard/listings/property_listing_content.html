@@ -16,11 +16,11 @@
                     <li>
                       Listed By :  {{ property.agent_name }}
                       
-                      {% if property.domain != user_domain %}
+                      <!-- {% if property.domain != user_domain %}
                       <div class="connect">
                         <a href="javascript:void(0)" class="badge badge-default" data-toggle="modal" data-target="#connectchatModal" onclick="agent_chat_detail({{property.agent_id}});"><i class="fa-regular fa-comment" aria-hidden="true" role="presentation"></i> Connect</a>
                       </div>
-                      {% endif %}
+                      {% endif %} -->
                     </li>
 
                     {% if property.sale_by_type == 4 %}
@@ -56,6 +56,11 @@
                         <span class="convert_to_local_date_time_cst" data-value="{{ property.created_date|default:'' }}"></span>
                       </li>
                     {% endif %}
+
+                    <!-- <li>
+                      <i class="fa-solid fa-eye"></i> <span class="view-btn">Views</span> | {{ property.no_view }}
+                    </li> -->
+
                   </ul>
 
                   <ul class="top">
@@ -71,14 +76,13 @@
                               {{ property.property_type_name|default:'' }}
                             </span>
                           </div>
-                          <div class="item">
-                            <!-- <strong><label for="">Property Status</label></strong><br> -->
-                            <div class="{% if is_broker == 1 %}display_status{% endif %}" id="display_status_{{ property.id }}">
+                          <!-- <div class="item">
+                            <div class="{% if is_broker == 1 or request.session.user_type == 2 or request.session.user_type == 4 %}display_status{% endif %}" id="display_status_{{ property.id }}">
                               <span class="badge {% if property.status_id == 2 %} badge-danger{% elif property.status_id == 4 %} badge-danger{% else %}badge-success{% endif %}" style="cursor:pointer;">
                                 {{ property.status }}
                               </span>
                             </div>
-                            <div class="{% if is_broker == 1 %}change_status{% endif %}" id="change_status_{{ property.id }}" style="display:none;">
+                            <div class="{% if is_broker == 1 or request.session.user_type == 2 or request.session.user_type == 4 %}change_status{% endif %}" id="change_status_{{ property.id }}" style="display:none;">
                               <select class="select form-control listing_change_status" aria-label="Status" name="listing_change_status" id="listing_change_status_{{ property.id }}" onchange="change_property_status({{ property.id }},this)">
                                 {% if status_list %}
                                 {% for item in status_list %}
@@ -88,17 +92,76 @@
                               </select>
                             </div>
                           </div>
+                          
+                          {% if property.status_id == 9 %}
+                            <div class="item">
+                              <div class="" id="display_closing_status_{{ property.id }}">
+                                <span class="badge badge-success">
+                                  {{ property.closing_status }}
+                                </span>
+                              </div>
+                            </div>
+                          {% endif %} -->
+
+                          {% if property.status_id == 9 %}
+                            <div class="item">
+                              <div class="" id="display_closing_status_{{ property.id }}">
+                                <span class="badge badge-success">
+                                  {{ property.closing_status }}
+                                </span>
+                              </div>
+                            </div>
+                          {% else %}
+                            <div class="item">
+                              <!-- <strong><label for="">Property Status</label></strong><br> -->
+                              <div class="{% if property.status_id != 8 %}{% if is_broker == 1 or request.session.user_type == 2 or request.session.user_type == 4 %}display_status{% endif %}{% endif %}" id="display_status_{{ property.id }}">
+                                <span class="badge {% if property.status_id == 2 %} badge-danger{% elif property.status_id == 4 %} badge-danger{% else %}badge-success{% endif %}" style="cursor:pointer;">
+                                  {{ property.status }}
+                                </span>
+                              </div>
+                              {% if property.status_id != 8 %}
+                                <div class="{% if is_broker == 1 or request.session.user_type == 2 or request.session.user_type == 4 %}change_status{% endif %}" id="change_status_{{ property.id }}" style="display:none;">
+                                  <select class="select form-control listing_change_status" aria-label="Status" name="listing_change_status" id="listing_change_status_{{ property.id }}" onchange="change_property_status({{ property.id }},this)">
+                                    {% if status_list %}
+                                    {% for item in status_list %}
+                                      <option value="{{ item.id }}" {% if item.id == property.status_id %}selected{% endif %}>{{ item.status_name }}</option>
+                                    {% endfor %}
+                                    {% endif %}
+                                  </select>
+                                </div>
+                              {% endif %}
+                            </div>
+                          {% endif %}
+
                         </div>
                         <h6>
-                          <a href="/admin/add-listing/?property_id={{ property.id }}">
+                          <!-- <a href="/admin/add-listing/?property_id={{ property.id }}"> -->
                             {% if property.property_name %}<span>{{property.property_name}}</span>{% endif %}
-                          </a>
+                          <!-- </a> -->
                         </h6>
                         <p class="location">
                           <i class="fas fa-map-marker-alt" aria-hidden="true" role="presentation"></i> {{ property.state_name }} - {{ property.community }} 
                         </p>
-                        <div class="approval-status">
-                          {% if is_broker == 1 %}
+                        {% if property.status_id != 9 %}
+                          <div class="approval-status">
+                            {% if is_broker == 1 or request.session.user_type == 2 or request.session.user_type == 4 %}
+                              
+                              <strong><label for="">Property Approval Status</label></strong>
+                              <div class="approval_status" id="approval_status_{{ property.id }}">
+                                <span class="badge {% if property.seller_status == 28 %} badge-success{% else %}badge-warning{% endif %}" style="cursor:pointer;">
+                                  {{ property.approval }}
+                                </span>
+                              </div>
+                              <div class="{% if is_broker == 1 %}change_approval{% endif %}" id="change_approval_{{ property.id }}" style="display:none;">
+                                
+                                <select class="select form-control listing_change_approval" aria-label="Approval" name="listing_change_approval" id="listing_change_approval_{{ property.id }}" onchange="check_approval_status({{ property.id }}, this)">
+                                  <option value="24" {% if property.seller_status == 24 %}selected{% endif %}>Under Review</option>
+                                  <option value="28" {% if property.seller_status == 28 %}selected{% endif %}>Ready for Publish</option>
+                                  <option value="29" {% if property.seller_status == 29 %}selected{% endif %}>Returned for Update</option>
+                                </select>
+                              </div>
+                              
+                            {% else %} 
                             
                             <strong><label for="">Property Approval Status</label></strong>
                             <div class="{% if is_broker == 1 %}approval_status{% endif %}" id="approval_status_{{ property.id }}">
@@ -106,27 +169,11 @@
                                 {{ property.approval }}
                               </span>
                             </div>
-                            <div class="{% if is_broker == 1 %}change_approval{% endif %}" id="change_approval_{{ property.id }}" style="display:none;">
-                              
-                              <select class="select form-control listing_change_approval" aria-label="Approval" name="listing_change_approval" id="listing_change_approval_{{ property.id }}" onchange="check_approval_status({{ property.id }}, this)">
-                                <option value="24" {% if property.seller_status == 24 %}selected{% endif %}>Under Review</option>
-                                <option value="28" {% if property.seller_status == 28 %}selected{% endif %}>Ready for Publish</option>
-                                <option value="29" {% if property.seller_status == 29 %}selected{% endif %}>Returned for Update</option>
-                              </select>
-                            </div>
                             
-                          {% else %} 
-                          
-                          <strong><label for="">Property Approval Status</label></strong>
-                          <div class="{% if is_broker == 1 %}approval_status{% endif %}" id="approval_status_{{ property.id }}">
-                            <span class="badge {% if property.seller_status == 28 %} badge-success{% else %}badge-warning{% endif %}" style="cursor:pointer;">
-                              {{ property.approval }}
-                            </span>
+                            {% endif %}
+                            
                           </div>
-                          
-                          {% endif %}
-                          
-                        </div>
+                        {% endif %}
                       </figcaption>
                     </li>
 
@@ -138,14 +185,43 @@
                             <!-- <li>
                               <a href="{{site_detail.domain_react_url}}property/detail/{{ property.id }}/{{property.url_decorator}}" target="_blank"><i class="far fa-eye" aria-hidden="true" role="presentation"></i> View Listing</a>
                             </li> -->
-                            <li>
+                            <!-- <li>
                               <a href="/admin/add-listing/?property_id={{ property.id }}"><i class="far fa-edit" aria-hidden="true" role="presentation"></i> Edit Listing</a>
+                            </li> -->
+                            <li>
+                              <!-- {% if request.session.is_broker or request.session.user_type == 4 %}
+                                <a href="/admin/add-listing/?property_id={{ property.id }}"><i class="far fa-edit" aria-hidden="true" role="presentation"></i> Edit Listing</a>
+                              {% elif property.seller_status == 27 %}
+                                  <a href="/admin/auction-detail/?property_id={{ property.id }}"><i class="far fa-edit" aria-hidden="true" role="presentation"></i> Edit Listing</a>
+                              {% else %}
+                                  <a href="/admin/add-listing/?property_id={{ property.id }}"><i class="far fa-edit" aria-hidden="true" role="presentation"></i> Edit Listing</a>
+                              {% endif %} -->
+                              {% if request.session.is_broker or request.session.user_type == 4 %}
+                                <a href="/admin/add-listing/?property_id={{ property.id }}"><i class="far fa-edit" aria-hidden="true" role="presentation"></i> Edit Listing</a>
+                              {% else %}
+                                {% if property.status_id == 8 %}
+                                  <a href="/admin/add-listing/?property_id={{ property.id }}"><i class="far fa-edit" aria-hidden="true" role="presentation"></i> Edit Listing</a>
+                                {% elif property.status_id == 1 and property.can_edit_property %}
+                                  <a href="/admin/add-listing/?property_id={{ property.id }}"><i class="far fa-edit" aria-hidden="true" role="presentation"></i> Edit Listing</a>
+                                {% endif %}
+                              {% endif %}
                             </li>
                             <li>
-                              <a href="javascript:void(0)" onclick="property_delete_confirmation({{ property.id }});"><i class="fas fa-trash" aria-hidden="true" role="presentation"></i> Delete Listing</a>
+                              {% if not request.session.is_broker and request.session.user_type != 4 %}
+                                {% if property.status_id == 1 and property.seller_status == 27 %}
+                                  <a href="/admin/auction-detail/?property_id={{ property.id }}"><i class="far fa-edit" aria-hidden="true" role="presentation"></i> Auction Details</a>
+                                {% elif property.can_relist or property.status_id == 8 %}
+                                  <!-- <a href="/admin/auction-detail/?property_id={{ property.id }}"><i class="far fa-edit" aria-hidden="true" role="presentation"></i> Relist </a> -->
+                                {% endif %}
+                              {% endif %}
                             </li>
+                            {% if property.seller_status == 24 or property.seller_status == 28 %}
+                              <li>
+                                <a href="javascript:void(0)" onclick="property_delete_confirmation({{ property.id }});"><i class="fas fa-trash" aria-hidden="true" role="presentation"></i> Delete Listing</a>
+                              </li>
+                            {% endif %}
                             {% if property.sale_by_type == 4 or property.sale_by_type == 6 or property.sale_by_type == 7  %}
-                            {% else %}
+                            {% elif property.closing_status_id != 9 %}
                             <li>
                               <a href="javascript:void(0)" onclick="get_listing_setting_details({{ property.id }})"><i class="fas fa-cogs" aria-hidden="true" role="presentation"></i> Settings</a>
                             </li>
@@ -177,9 +253,19 @@
                           <div class="icon"><img src="{% static 'admin/images/bid-placed-icon.svg' %}" alt="real estate sales"></div>
                           <h4 class="circle bids-limit" onclick="propertyBidHistorySearch({{ property.id }} ,1)">{{ property.bids }}</h4>
                           <h6>
-                            Bids Placed
+                            Bids
                           </h6>
                         </li>
+
+                        {% if property.parent_id %}
+                          <li>
+                            <div class="icon"><img src="{% static 'admin/images/bid-placed-icon.svg' %}" alt="real estate sales"></div>
+                              <h4 class="circle bids-limit" tabindex="18" role="link" onclick="propertyBidHistoryPreviousSearch({{  property.parent_id }} ,1)">{{ property.previous_bids }}</h4>
+                              <h6>
+                                Prevoius Bids
+                              </h6>
+                          </li>
+                        {% endif %}
                         
                         <li>
                           <div class="icon"><img src="{% static 'admin/images/watches-icon.svg' %}" alt="real estate sales"></div>
@@ -190,6 +276,27 @@
                             Favourite
                           </h6>
                         </li>
+                        
+                        <li>
+                          <div class="icon"><img src="{% static 'admin/images/favorite-icon.svg' %}" alt="real estate sales"></div>
+                          <h4 class="property_interest" role="link" tabindex="19" onclick="totalPropertyInterestSearch({{ property.id }} ,1)">
+                            {{ property.total_interest|default:0 }}
+                          </h4>
+                          <h6>
+                            Interest
+                          </h6>
+                        </li>
+
+                        <li>
+                          <div class="icon"><img src="{% static 'admin/images/buynow-icon.svg' %}" alt="real estate sales"></div>
+                          <h4 class="buy_now_request" role="link" tabindex="19" onclick="buyNowSearch({{ property.id }} ,1)">
+                            {{ property.total_buy_now|default:0 }}
+                          </h4>
+                          <h6>
+                            Buy Now
+                          </h6>
+                        </li>
+
                         <li>
                           <div class="icon"><img src="{% static 'admin/images/views-icon.svg' %}" alt="real estate sales"></div>
                           <h4 class="view-btn">

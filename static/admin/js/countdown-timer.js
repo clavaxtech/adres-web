@@ -6,17 +6,17 @@ $(document).ready(function(){
             var propertyId = $(this).attr('data-property');
             var start_date = $(this).attr('data-start-date');
             var end_date = $(this).attr('data-end-date');
-            // var local_start_date = getLocalDate(start_date, 'm j, Y','');
-            // var local_end_date = getLocalDate(end_date, 'm j, Y','');
-            var local_start_date = getCstDate(start_date, 'm j, Y','');
-            var local_end_date = getCstDate(end_date, 'm j, Y','');
+            // var local_start_date = getCstDate(start_date, 'm j, Y','');
+            // var local_end_date = getCstDate(end_date, 'm j, Y','');
+            var local_start_date = getLocalDateFromUTC(start_date, 'm j, Y','');
+            var local_end_date = getLocalDateFromUTC(end_date, 'm j, Y','');
             var count_down_start_date = new Date(local_start_date).getTime();
             var count_down_end_date = new Date(local_end_date).getTime();
             
-            //var now = new Date().getTime();
-            var now = new Date();
-            now = new Date(now.toLocaleString('en-US', { timeZone: 'America/Chicago' }));
-            now = now.getTime();
+            var now = new Date().getTime();
+            // var now = new Date();
+            // now = new Date(now.toLocaleString('en-US', { timeZone: 'America/Chicago' }));
+            // now = now.getTime();
             // Find the distance between now and the count down date
     
             var distance = count_down_start_date - now;

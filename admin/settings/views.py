@@ -142,7 +142,8 @@ def lookup_objects(request):
             api_url = settings.API_URL + '/api-settings/add-lookup-object/'
             payload = {
                 'object_name': request.POST['name'],
-                'is_active': int(request.POST['is_active']) if 'is_active' in request.POST and request.POST['is_active'] != '' else 1
+                'is_active': int(request.POST['is_active']) if 'is_active' in request.POST and request.POST['is_active'] != '' else 1,
+                'user_id': request.session['user_id']
             }
             #  check if edit
             if 'object_id' in request.POST and request.POST['object_id']:
@@ -164,7 +165,7 @@ def lookup_objects(request):
             data = []
             try:
                 response = call_api_post_method(
-                    {}, api_url, request.session['token']['access_token'])
+                    {'user_id': request.session['user_id']}, api_url, request.session['token']['access_token'])
                 if "error" in response and response['error'] == 0:
                     data = response['data']
                 else:
@@ -215,7 +216,8 @@ def lookup_status(request):
             payload = {
                 'status_name': request.POST['name'],
                 'is_active': int(request.POST['is_active']) if 'is_active' in request.POST and request.POST['is_active'] != '' else 1,
-                # 'object_id': request.POST['object_id']
+                # 'object_id': request.POST['object_id'],
+                'user_id': request.session['user_id']
             }
             #  check if edit
             if 'status_id' in request.POST and request.POST['status_id']:
@@ -237,7 +239,7 @@ def lookup_status(request):
             data = objectlist = []
             try:
                 response = call_api_post_method(
-                    {}, api_url, request.session['token']['access_token'])
+                    {'user_id': request.session['user_id']}, api_url, request.session['token']['access_token'])
                 if "error" in response and response['error'] == 0:
                     data = response['data']
                 else:
@@ -249,7 +251,7 @@ def lookup_status(request):
             api_url = settings.API_URL + '/api-settings/lookup-object-listing/'
             try:
                 response = call_api_post_method(
-                    {'is_active': True}, api_url, request.session['token']['access_token'])
+                    {'is_active': True, 'user_id': request.session['user_id']}, api_url, request.session['token']['access_token'])
                 if "error" in response and response['error'] == 0:
                     objectlist = response['data']
                 else:
@@ -301,12 +303,12 @@ def lookup_object_status(request):
             payload = {
                 'object_id': request.POST['object_id'],
                 'status_id': request.POST['status_id'],
-                'is_active': int(request.POST['is_active']) if 'is_active' in request.POST and request.POST['is_active'] != '' else 1
+                'is_active': int(request.POST['is_active']) if 'is_active' in request.POST and request.POST['is_active'] != '' else 1,
+                'user_id': request.session['user_id']
             }
             #  check if edit
             if 'status_object_id' in request.POST and request.POST['status_object_id']:
-                payload['status_object_id'] = int(
-                    request.POST['status_object_id'])
+                payload['status_object_id'] = int(request.POST['status_object_id'])
             try:
                 response = call_api_post_method(
                     payload, api_url, request.session['token']['access_token'])
@@ -321,20 +323,16 @@ def lookup_object_status(request):
             api_url = settings.API_URL + '/api-settings/lookup-object-listing/'
             object_list = []
             try:
-                response = call_api_post_method(
-                    {}, api_url, request.session['token']['access_token'])
+                token = request.session['token']['access_token']
+                payload = {'user_id': request.session['user_id']}
+                response = call_api_post_method(payload, api_url, token)
                 if "error" in response and response['error'] == 0:
                     object_list = response['data']
-                else:
-                    messages.error(request, response['msg'])
             except Exception as exp:
-                messages.error(request, exp)
+                print(exp)
 
-            return render(
-                request,
-                "admin/settings/lookup-object-status/lookup-object-status.html",
-                {"object_list":  object_list, "active_submenu": "lookup-object-status"}
-            )
+            context = {"object_list":  object_list, "active_submenu": "lookup-object-status"}
+            return render(request, "admin/settings/lookup-object-status/lookup-object-status.html", context)
     except Exception as exp:
         print(exp)
         return HttpResponse("Issue in views")
@@ -345,64 +343,130 @@ def ajax_lookup_object_status(request):
     """ This function is to load property lookup
     object status list
     """
-    feature_data = {}
-    pagination = {}
-    page_size = 20
-    page_size = int(request.GET.get('count', 20))
-    total_contacts = 0
-    current_page = int(request.GET.get('page', '1'))
-    # get object id
-    object_id = request.GET.get('object_id', '')
-    if object_id:
-        object_id = int(object_id)
-    api_url = settings.API_URL + '/api-settings/lookup-object-status-listing/'
-    params = {
-        'object_id': object_id,
-        'page': current_page,
-        'page_size': page_size,
-        'search': request.GET['search'] if 'search' in request.GET else ''
-    }
     try:
-        response = call_api_post_method(
-            params, api_url, request.session['token']['access_token'])
-
-    except Exception as exp:
-        response = {'msg': exp, 'status': 422}
-    else:
-        if "error" in response and response['error'] == 0:
-            feature_data = response['data']['data']
-            total_contacts = response['data']['total']
-            total_pages = total_contacts / page_size
-            if total_contacts % page_size != 0:
-                total_pages += 1  # adding one more page if the last page
-                # will contains less contacts
-
-            pagination = make_pagination_html(current_page, total_pages,
-                                              'lookup_object', 'lookup_object_list')
-
+        # print("hhhhhhhhhhhhh")
+        feature_data = {}
+        pagination = {}
+        page_size = 20
+        page_size = int(request.GET.get('count', 20))
+        total_contacts = 0
+        current_page = int(request.GET.get('page', '1'))
+        # get object id
+        object_id = request.GET.get('object_id', '')
+        if object_id:
+            object_id = int(object_id)
+        api_url = settings.API_URL + '/api-settings/lookup-object-status-listing/'
+        params = {
+            'object_id': object_id,
+            'page': current_page,
+            'page_size': page_size,
+            'search': request.GET['search'] if 'search' in request.GET else '',
+            'user_id': request.session['user_id']
+        }
         try:
-            object_details = []
-            api_url = settings.API_URL + '/api-settings/lookup-object-detail/'
-            response = call_api_post_method(
-                {'object_id': object_id}, api_url, request.session['token']['access_token'])
-            if "error" in response and response['error'] == 0:
-                object_details = response['data'][0]
+            response = call_api_post_method(params, api_url, request.session['token']['access_token'])
+
         except Exception as exp:
-            pass
+            response = {'msg': exp, 'status': 422}
+        else:
+            if "error" in response and response['error'] == 0:
+                feature_data = response['data']['data']
+                total_contacts = response['data']['total']
+                total_pages = total_contacts / page_size
+                if total_contacts % page_size != 0:
+                    total_pages += 1  # adding one more page if the last page
+                    # will contains less contacts
 
-        lookup_status_data = get_lookup_status_list(request)
-    context = {
-        'data': feature_data,
-        'pagination': pagination,
-        'total_contacts': total_contacts,
-        'search': request.GET['search'] if 'search' in request.GET else '',
-        'object_details': object_details,
-        'lookup_status_data': lookup_status_data,
-        'start_index': (current_page - 1) * page_size,
-        'page_size': page_size,
-    }
+                pagination = make_pagination_html(current_page, total_pages,
+                                                'lookup_object', 'lookup_object_list')
 
-    return render(request, 'admin/settings/lookup-object-status/ajax-lookup-object-status.html', context)
+            try:
+                object_details = []
+                api_url = settings.API_URL + '/api-settings/lookup-object-detail/'
+                response = call_api_post_method(
+                    {'object_id': object_id, 'user_id': request.session['user_id']}, api_url, request.session['token']['access_token'])
+                if "error" in response and response['error'] == 0:
+                    object_details = response['data'][0]
+            except Exception as exp:
+                pass
+
+            lookup_status_data = get_lookup_status_list(request)
+        context = {
+            'data': feature_data,
+            'pagination': pagination,
+            'total_contacts': total_contacts,
+            'search': request.GET['search'] if 'search' in request.GET else '',
+            'object_details': object_details,
+            'lookup_status_data': lookup_status_data,
+            'start_index': (current_page - 1) * page_size,
+            'page_size': page_size,
+        }
+        return render(request, 'admin/settings/lookup-object-status/ajax-lookup-object-status.html', context)
+    except Exception as exp:
+        print(exp)
+
+# @csrf_exempt
+def ajax_lookup_object_new_status(request):
+    """ This function is to load property lookup object status list
+    """
+    try:
+        feature_data = {}
+        pagination = {}
+        page_size = 20
+        page_size = int(request.POST.get('count', 20))
+        total_contacts = 0
+        current_page = int(request.POST.get('page', '1'))
+        # get object id
+        object_id = request.POST.get('object_id', '')
+        if object_id:
+            object_id = int(object_id)
+        api_url = settings.API_URL + '/api-settings/lookup-object-status-listing/'
+        params = {
+            'object_id': object_id,
+            'page': current_page,
+            'page_size': page_size,
+            'search': request.GET['search'] if 'search' in request.GET else '',
+            'user_id': request.session['user_id']
+        }
+        try:
+            response = call_api_post_method(params, api_url, request.session['token']['access_token'])
+        except Exception as exp:
+            response = {'msg': exp, 'status': 422}
+        else:
+            if "error" in response and response['error'] == 0:
+                feature_data = response['data']['data']
+                total_contacts = response['data']['total']
+                total_pages = total_contacts / page_size
+                if total_contacts % page_size != 0:
+                    total_pages += 1  # adding one more page if the last page
+                    # will contains less contacts
+
+                pagination = make_pagination_html(current_page, total_pages,
+                                                'lookup_object', 'lookup_object_list')
+
+            try:
+                object_details = []
+                api_url = settings.API_URL + '/api-settings/lookup-object-detail/'
+                response = call_api_post_method({'object_id': object_id, 'user_id': request.session['user_id']}, api_url, request.session['token']['access_token'])
+                if "error" in response and response['error'] == 0:
+                    object_details = response['data'][0]
+            except Exception as exp:
+                pass
+
+            lookup_status_data = get_lookup_status_list(request)
+        context = {
+            'data': feature_data,
+            'pagination': pagination,
+            'total_contacts': total_contacts,
+            'search': request.POST['search'] if 'search' in request.POST else '',
+            'object_details': object_details,
+            'lookup_status_data': lookup_status_data,
+            'start_index': (current_page - 1) * page_size,
+            'page_size': page_size,
+        }
+        return render(request, 'admin/settings/lookup-object-status/ajax-lookup-object-status.html', context)
+    except Exception as exp:
+        print(exp)      
 
 
 def active_inactive_object_status(request):
@@ -697,7 +761,8 @@ def user_type(request):
             api_url = settings.API_URL + '/api-settings/add-user-type/'
             payload = {
                 'user_type': request.POST['user_type'],
-                'is_active': int(request.POST['is_active']) if 'is_active' in request.POST and request.POST['is_active'] != '' else 1
+                'is_active': int(request.POST['is_active']) if 'is_active' in request.POST and request.POST['is_active'] != '' else 1,
+                'user_id': request.session['user_id']
             }
             #  check if edit
             if 'user_type_id' in request.POST and request.POST['user_type_id']:
@@ -716,8 +781,8 @@ def user_type(request):
                 return redirect('admin-user-type')
         else:
             data = get_user_type_list(request)
-
-            return render(request, "admin/settings/user-type.html", {"data":  data, "active_submenu": "user-types"})
+            
+        return render(request, "admin/settings/user-type.html", {"data":  data, "active_submenu": "user-types"})
     except Exception as exp:
         print(exp)
         return HttpResponse("Issue in views")
@@ -759,7 +824,8 @@ def user_permissions(request):
             payload = {
                 'name': request.POST['name'],
                 'permission_type': request.POST['permission_type'],
-                'is_active': int(request.POST['is_active']) if 'is_active' in request.POST and request.POST['is_active'] != '' else 1
+                'is_active': int(request.POST['is_active']) if 'is_active' in request.POST and request.POST['is_active'] != '' else 1,
+                'user_id': request.session['user_id']
             }
             #  check if edit
             if 'permission_id' in request.POST and request.POST['permission_id']:
@@ -891,7 +957,8 @@ def auction_type(request):
             api_url = settings.API_URL + '/api-settings/add-auction-type/'
             payload = {
                 'auction_type': request.POST['auction_type'],
-                'is_active': int(request.POST['is_active']) if 'is_active' in request.POST and request.POST['is_active'] != '' else 1
+                'is_active': int(request.POST['is_active']) if 'is_active' in request.POST and request.POST['is_active'] != '' else 1,
+                'user_id': request.session['user_id']
             }
             #  check if edit
             if 'auction_type_id' in request.POST and request.POST['auction_type_id']:
@@ -914,7 +981,7 @@ def auction_type(request):
             data = []
             try:
                 response = call_api_post_method(
-                    {}, api_url, request.session['token']['access_token'])
+                    {'user_id': request.session['user_id']}, api_url, request.session['token']['access_token'])
                 if "error" in response and response['error'] == 0:
                     data = response['data']
                 else:
@@ -963,7 +1030,8 @@ def document_type(request):
             api_url = settings.API_URL + '/api-settings/add-documents-type/'
             payload = {
                 'document_name': request.POST['document_name'],
-                'is_active': int(request.POST['is_active']) if 'is_active' in request.POST and request.POST['is_active'] != '' else 1
+                'is_active': int(request.POST['is_active']) if 'is_active' in request.POST and request.POST['is_active'] != '' else 1,
+                'user_id': request.session['user_id']
             }
             #  check if edit
             if 'documents_type_id' in request.POST and request.POST['documents_type_id']:
@@ -986,7 +1054,7 @@ def document_type(request):
             data = []
             try:
                 response = call_api_post_method(
-                    {}, api_url, request.session['token']['access_token'])
+                    {'user_id': request.session['user_id']}, api_url, request.session['token']['access_token'])
                 if "error" in response and response['error'] == 0:
                     data = response['data']
                 else:
@@ -1035,7 +1103,8 @@ def blog_category(request):
             api_url = settings.API_URL + '/api-blog/add-blog-category/'
             payload = {
                 'name': request.POST['name'],
-                'status': int(request.POST['status']) if 'status' in request.POST and request.POST['status'] != '' else 1
+                'status': int(request.POST['status']) if 'status' in request.POST and request.POST['status'] != '' else 1,
+                'user_id': request.session['user_id']
             }
             #  check if edit
             if 'category_id' in request.POST and request.POST['category_id']:
@@ -1057,7 +1126,7 @@ def blog_category(request):
             data = []
             try:
                 response = call_api_post_method(
-                    {}, api_url, request.session['token']['access_token'])
+                    {'user_id': request.session['user_id']}, api_url, request.session['token']['access_token'])
                 if "error" in response and response['error'] == 0:
                     data = response['data']
                 else:
@@ -1251,7 +1320,8 @@ def event_type(request):
             payload = {
                 'event_name': request.POST['event_name'],
                 'slug': request.POST['event_slug'],
-                'is_active': int(request.POST['is_active']) if 'is_active' in request.POST and request.POST['is_active'] != '' else 1
+                'is_active': int(request.POST['is_active']) if 'is_active' in request.POST and request.POST['is_active'] != '' else 1,
+                'user_id': request.session['user_id']
             }
             #  check if edit
             if 'event_id' in request.POST and request.POST['event_id']:
@@ -1313,7 +1383,8 @@ def site_setting(request):
             payload = {
                 'settings_name': request.POST['settings_name'],
                 'setting_value': request.POST['setting_value'],
-                'is_active': int(request.POST['is_active']) if 'is_active' in request.POST and request.POST['is_active'] != '' else 1
+                'is_active': int(request.POST['is_active']) if 'is_active' in request.POST and request.POST['is_active'] != '' else 1,
+                'user_id': request.session['user_id']
             }
             #  check if edit
             if 'setting_id' in request.POST and request.POST['setting_id']:
@@ -1335,7 +1406,7 @@ def site_setting(request):
             data = []
             try:
                 response = call_api_post_method(
-                    {}, api_url, request.session['token']['access_token'])
+                    {'user_id': request.session['user_id']}, api_url, request.session['token']['access_token'])
                 if "error" in response and response['error'] == 0:
                     data = response['data']
                 else:
@@ -1465,14 +1536,15 @@ def property_features(request):
                 'feature_type': request.POST['feature_type'],
                 'asset_id': request.POST['asset_id'],
                 'name': request.POST['name'],
-                'is_active': int(request.POST['is_active']) if 'is_active' in request.POST and request.POST['is_active'] != '' else 1
+                'is_active': int(request.POST['is_active']) if 'is_active' in request.POST and request.POST['is_active'] != '' else 1,
+                'user_id': request.session['user_id']
             }
             #  check if edit
             if 'feature_id' in request.POST and request.POST['feature_id']:
                 payload['feature_id'] = int(request.POST['feature_id'])
             try:
                 response = call_api_post_method(
-                    payload, api_url, request.session['admin_token']['access_token'])
+                    payload, api_url, request.session['token']['access_token'])
                 if "error" in response and response['error'] == 0:
                     return JsonResponse({"msg": response['msg'], "error": 0})
                 else:
@@ -1517,7 +1589,8 @@ def ajax_property_features_list(request):
         'asset_id': asset_id,
         'page': current_page,
         'page_size': page_size,
-        'search': request.GET.get('search') if 'search' in request.GET else ''
+        'search': request.GET.get('search') if 'search' in request.GET else '',
+        'user_id': request.session['user_id']
     }
     try:
         response = call_api_post_method(

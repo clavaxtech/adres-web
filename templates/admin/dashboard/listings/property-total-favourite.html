@@ -23,7 +23,7 @@
         </td>
         <td role="rowheader">
         {% if data.phone_no %}
-        {{data.phone_no|default:''|format_phone}}
+            +{{data.phone_country_code|default:971}} {{data.phone_no|default:''|format_phone}}
         {% else %}
             -
         {% endif %}

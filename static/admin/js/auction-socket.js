@@ -3,8 +3,11 @@ $(document).ready(function (key, value) {
     setInterval(function(){
     $('.block-item').each(function () {
         if($(this).data("property") && $(this).data("auction")) {
+            var encryptedUserId = encryptUserId(String(user_id), encryptionKey);
+            // console.log(encryptedUserId);
             payload= {
-                "user_id":parseInt(user_id),
+                // "user_id":parseInt(user_id),
+                "user_id": encryptedUserId,
                 "property_id": parseInt($(this).data("property")),
                 "auction_id": parseInt($(this).data("auction")),
                 "domain_id": parseInt(site_id)
@@ -93,9 +96,9 @@ $(document).ready(function (key, value) {
                     $('#highBidderParent'  + propertyId).attr('data-id', all_data.high_bidder_user_id)
                     // append if high bidder info is available and different user
                     if($('#highBid'+ propertyId).length > 0){
-                        $('#highBid'+ propertyId).html('$'+ numberWithCommas(Number(all_data.high_bid)))
+                        $('#highBid'+ propertyId).html('AED '+ numberWithCommas(Number(all_data.high_bid)))
                     } else {
-                        $("#highBidderParent" + propertyId).html('<span id="highBid'+ propertyId +'" >$'+ numberWithCommas(Number(all_data.high_bid)) + '</span><br />'); 
+                        $("#highBidderParent" + propertyId).html('<span id="highBid'+ propertyId +'" >AED '+ numberWithCommas(Number(all_data.high_bid)) + '</span><br />'); 
                     }
                     // check high bidder info and append if different user than previous 
                     highBidder = response.high_bidder_data
@@ -104,7 +107,7 @@ $(document).ready(function (key, value) {
                         city = (!highBidder.city)? '': highBidder.city + ', '
                         state = (!highBidder.state_name)? '': highBidder.state_name + ', '
                         postal_code = (!highBidder.postal_code)? '': highBidder.postal_code + ', '
-                        highBidDivContent = '<span id="highBid'+ propertyId +'" >$'+ numberWithCommas(Number(all_data.high_bid)) + '</span><br />' +
+                        highBidDivContent = '<span id="highBid'+ propertyId +'" >AED '+ numberWithCommas(Number(all_data.high_bid)) + '</span><br />' +
                             '<a href="javascript:void(0);" data-id="'+ propertyId +'" class="blue-text show-detailed-info"><strong>'+ highBidder.first_name + ' ' + highBidder.last_name  + ' <i class="fas fa-chevron-down" id="arrowPositionHighBidder'+ propertyId +'"></i></strong></a><br>' +
                             '<p id="showDetailedinfoBidder'+ propertyId +'" style="display:none">' +
                             address +
@@ -145,16 +148,16 @@ $(document).ready(function (key, value) {
                 // bid increment 
                 if(all_data.bid_increments){
                     // $('#bidIncremementValue' + propertyId).val(all_data.bid_increments);
-                    $('#bidIncText' + propertyId + ' span').html('$'+ numberWithCommas(Number(all_data.bid_increments)));
+                    $('#bidIncText' + propertyId + ' span').html('AED '+ numberWithCommas(Number(all_data.bid_increments)));
                 }
 
                 // reserve increment and no reserve amount
                 if(all_data.reserve_amount){
                     // $('#reservePriceValue' + propertyId).val(all_data.reserve_amount);
-                    $('#reservePriceText' + propertyId + ' span').html('$'+ numberWithCommas(Number(all_data.reserve_amount)));
+                    $('#reservePriceText' + propertyId + ' span').html('AED '+ numberWithCommas(Number(all_data.reserve_amount)));
                     $('#noReserveAuction' + propertyId).html('<span class="badge badge-success"> Yes</span>')
                 } else {
-                    $('#reservePriceText' + propertyId + ' span').html('$0');
+                    $('#reservePriceText' + propertyId + ' span').html('AED 0');
                     $('#noReserveAuction' + propertyId).html('<span class="badge badge-danger"> No</span>')
                 }
 
@@ -165,7 +168,7 @@ $(document).ready(function (key, value) {
                 } else {
                     nextBid = numberWithCommas(Number(all_data.start_price))
                 }
-                $('#nextBid' + propertyId).val('$' + nextBid)
+                $('#nextBid' + propertyId).val('AED ' + nextBid)
 
                 // reserve met text
                 if(all_data.high_bid && all_data.reserve_amount && all_data.high_bid >= all_data.reserve_amount ){
@@ -201,3 +204,12 @@ function isFutureDate(date)
     }
     return false
 }
+
+function formatPhoneNumber(phoneNumberString) {
+    var cleaned = ('' + phoneNumberString).replace(/\D/g, '');
+    var match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
+    if (match) {
+      return '(' + match[1] + ') ' + match[2] + '-' + match[3];
+    }
+    return null;
+  }

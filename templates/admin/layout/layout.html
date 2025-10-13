@@ -56,6 +56,7 @@
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
   <script type="text/javascript" src="{% static 'admin/js/phone_format.js' %}"></script>
   <script type="text/javascript" src="{% static 'admin/js/zipcode_format.js' %}"></script>
+  <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
 
   <!--<script type="text/javascript" src="{% static 'admin/js/custom_js.js' %}?v=3.5"></script>-->
   <!--[if lte IE 7]> <html class="ie7"> <![endif]-->
@@ -66,45 +67,84 @@
     var azure_blob_url = '{{ azure_blob_url }}';
     var site_id = "{{ site_detail.site_id }}";
     const socket_domain = "{{ NODE_URL }}";
+    var encryptionKey = "{{ ENCRYPTION_KEY }}";
+    var user_id = '{{ request.session.user_id }}';
+    var is_broker = '{{request.session.is_broker}}';
+    var user_type = '{{request.session.user_type}}';
+
+    function encryptUserId(userId, key) {
+      // Convert key to WordArray and ensure it's 256 bits
+      const keyBytes = CryptoJS.enc.Utf8.parse(key).toString(CryptoJS.enc.Hex).substring(0, 64); // 32 bytes (256 bits)
+      const keyWordArray = CryptoJS.enc.Hex.parse(keyBytes);
+
+      const iv = CryptoJS.lib.WordArray.random(16);
+
+      const encrypted = CryptoJS.AES.encrypt(userId, keyWordArray, {
+        iv: iv,
+        padding: CryptoJS.pad.Pkcs7,
+        mode: CryptoJS.mode.CBC
+      });
+
+      return {
+        iv: CryptoJS.enc.Base64.stringify(iv),
+        content: encrypted.ciphertext.toString(CryptoJS.enc.Base64)
+      };
+    }
+
     const socket = io.connect(socket_domain, {
         transports: ["websocket", "xhr-polling", "htmlfile", "jsonp-polling"],
         rejectUnauthorized: false,
         requestCert: false,
+        auth: { token: "{{SOCKET_AUTH_TOKEN}}"},
+        query: {user_id: user_id}
     });
-    // socket.on("connect", () => {
-    //     console.log("Connected to Node.js socket server");
-    // });
-    var user_id = '{{ request.session.user_id }}';
-    var is_broker = '{{request.session.is_broker}}';
+    socket.on("connect", () => {
+        console.log("Connected to Node.js socket server");
+    });
+
+    socket.on('connect_error', (err) => {
+      console.error('Connection failed:', err.message);
+    });
+
+    // var user_id = '{{ request.session.user_id }}';
+    // var is_broker = '{{request.session.is_broker}}';
 
     if(user_id && site_id && is_broker) {
+        var encryptedUserId = encryptUserId(String(user_id), encryptionKey);
         payload= {
-            "user_id":parseInt(user_id),
+            // "user_id":parseInt(user_id),
+            "user_id": encryptedUserId,
             "domain_id": parseInt(site_id),
-            "user_type": (is_broker.toLowerCase() == 'true') ? 'broker': 'agent',
+            // "user_type": (is_broker.toLowerCase() == 'true') ? 'broker': 'agent',
+            user_type: (user_type == 2 || user_type == 4) ? 'broker': 'agent',
         }
         socket.emit("userMessageCount", payload);
     }
 
     setInterval(function(){
         if(user_id && site_id && is_broker) {
+        var encryptedUserId = encryptUserId(String(user_id), encryptionKey);  
         payload= {
-            "user_id":parseInt(user_id),
+            // "user_id":parseInt(user_id),
+            "user_id": encryptedUserId,
             "domain_id": parseInt(site_id),
-            "user_type": (is_broker.toLowerCase() == 'true') ? 'broker': 'agent',
+            // "user_type": (is_broker.toLowerCase() == 'true') ? 'broker': 'agent',
+            user_type: (user_type == 2 || user_type == 4) ? 'broker': 'agent',
         }
         socket.emit("userMessageCount", payload);
     }
-    }, 1500);
+    }, 5000);
 
     socket.on('userMessageCount',function(response) {
       if(response.error == 0 && parseInt(response.data[0].count) > 0){
-          $('#adminDashboardChatCount').html(response.data[0].count);
-          $('#adminDashboardChatCount').css('display', 'inline-block');
+          $('#adminChatCount').html(response.data[0].count);
+          $('#adminChatCount').css('display', 'inline-block');
       }else{
-          $('#adminDashboardChatCount').css('display', 'none');
+          $('#adminChatCount').css('display', 'none');
       }
   });
+
+  
 
   </script>
   <!-- Start of HubSpot Embed Code -->
@@ -174,6 +214,24 @@
       $('[data-toggle="tooltip"]').tooltip()
     });
     var google_map_key = "{{site_detail.google_map_key}}";
+
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== "") {
+          const cookies = document.cookie.split(";");
+
+          for (let i = 0; i < cookies.length; i++) {
+              const cookie = cookies[i].trim();
+
+              if (cookie.startsWith(name + "=")) {
+                  cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                  break;
+              }
+          }
+      }
+      return cookieValue;
+    }
+    
   </script>
   <script type="text/javascript" src="{% static 'admin/js/toggle-nav.js' %}?v=2.3"></script>
 {% block js_content %}

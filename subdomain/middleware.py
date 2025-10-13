@@ -6,6 +6,10 @@ from django.shortcuts import redirect
 from django.http import HttpResponseRedirect
 from subdomain.services import call_api_get_method, call_api_post_method
 from django.utils.deprecation import MiddlewareMixin
+from packages.context_processors import subdomain_site_details, subdomain_admin_settings
+from packages.constants import url_for_permission
+from django.http import HttpResponseNotFound
+
 class CheckSubdomainMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
@@ -294,4 +298,35 @@ class OAuth2TokenValidationMiddleware(MiddlewareMixin):
                 # return HttpResponseRedirect(f"{settings.FRONT_URL}/logout/")
                 pass      
         except Exception as exp:
-            return HttpResponseRedirect(f"{settings.FRONT_URL}/logout/")       
+            return HttpResponseRedirect(f"{settings.FRONT_URL}/logout/")
+
+
+class PermissionMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+    def __call__(self, request):
+        try:
+            response = self.get_response(request)
+            user_permission = subdomain_admin_settings(request).get('access_permission_list', None)
+            path = request.META['PATH_INFO'].split("/")[1]
+            path_2 = request.META['PATH_INFO'].split("/")[2] if int(len(request.META['PATH_INFO'].split("/"))) > 2 else ""
+            if "user_id" in request.session and request.session['user_id'] > 0 and path == "admin" and path_2 in url_for_permission and url_for_permission[path_2] not in user_permission:
+                return HttpResponseRedirect(settings.FRONT_URL)
+            return response
+        except Exception as exp:
+            print(exp)
+            return HttpResponseRedirect(settings.FRONT_URL)
+        
+
+class Redirect404Middleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+        
+        # Check if it's a 404 response
+        if isinstance(response, HttpResponseNotFound):
+            return HttpResponseRedirect(settings.FRONT_URL)
+
+        return response      

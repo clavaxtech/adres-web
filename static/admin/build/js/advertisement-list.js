@@ -98,6 +98,7 @@ $(function() {
         dataId= $(this).data("id")
         $.ajax({
             type: 'POST',
+            headers: { 'X-CSRFToken': getCookie('csrftoken') },
             url: '/admin/ajax-get-advertisement-details/',
             dataType: 'json',
             async: false,
@@ -440,6 +441,7 @@ function ajax_ads_list(listing_id='') {
     $.ajax({
         url: "/admin/ajax-advertisement-list/",
         type: "POST",
+        headers: { 'X-CSRFToken': getCookie('csrftoken') },
         data: { 
             'page': page,
             'search': search,

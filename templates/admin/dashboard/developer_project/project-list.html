@@ -30,18 +30,33 @@
                     <div class="btns">
                         <a href="/admin/add-project-info/" tabindex="3" class="btn btn-primary btn-xs add_project"><i class="fas fa-plus" aria-hidden="true" role="presentation"></i> Add New Project</a>
                     </div>
+                    <div class="btns">
+                        &#x00A0;&#x00A0;<a href="javascript:void(0)" onclick="project_csv_download()" class="btn btn-primary btn-xs"></i>Download CSV</a>
+                    </div>
                 </div>
             </div>
 
             <div class="listing-bottom" >
-                <div class="block" >
-                    <select class="select form-control" aria-label="All Developers" tabindex="7" name="filter_developer" id="filter_developer" onchange="projectListingSearch(1);">
-                        <option value="">All Developers</option>
-                        {% for developer in developer_list %}
-                        <option value="{{ developer.id }}">{{ developer.first_name }}&nbsp;{{developer.last_name}}</option>
-                        {% endfor %}
-                    </select>
-                </div>
+                {% if request.session.user_type == 2 or request.session.user_type == 4 %}
+                    <div class="block" >
+                        <select class="select form-control" aria-label="All Developers" tabindex="7" name="filter_developer" id="filter_developer" onchange="projectListingSearch(1);">
+                            <option value="">All Developers</option>
+                            {% for developer in developer_list %}
+                            <option value="{{ developer.id }}" {% if developer_id == developer.id %} selected {% endif %}>{{ developer.first_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                {% endif %}
+                {% if request.session.user_type == 2 or request.session.user_type == 4 or request.session.user_type == 6 %}
+                    <div class="block" >
+                        <select class="select form-control" aria-label="All Employee" tabindex="7" name="filter_employee" id="filter_employee" onchange="projectListingSearch(1);">
+                            <option value="">All Employee</option>
+                            {% for employee in employee_list %}
+                            <option value="{{ employee.id }}" {% if employee_id == employee.id %} selected {% endif %}>{{ employee.first_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                {% endif %}
                 <div class="block project-type">
                     <select class="select form-control" aria-label="All Projects" tabindex="8" name="filter_project_type" id="filter_project_type" onchange="projectListingSearch(1);">
                         <option value="">All Projects</option>
@@ -55,15 +70,15 @@
                         <option value="">Project Status</option>
                         {% if project_status_list %}
                         {% for item in project_status_list %}
-                        <option value="{{ item.id }}" {% if item.id == project_details.project_status_id %}selected{% endif %} {% if item.id == status %}selected{% endif %}>{{ item.status_name }}</option>
+                        <option value="{{ item.id }}">{{ item.status_name }}</option>
                         {% endfor %}
                         {% endif %}
                     </select>
                 </div>
                 <div class="block">
                     <select class="select form-control" aria-label="All Status" tabindex="10" name="proj_status" id="proj_status" onchange="projectListingSearch(1);">
-                        <option value="">All Status</option>
-                        <option value="1">Active</option>
+                        <option value="" {% if status == ""%} selected {% endif %}>All Status</option>
+                        <option value="1" {% if status == 1%} selected {% endif %}>Active</option>
                         <option value="2">Inactive</option>
                     </select>
                 </div>
@@ -209,9 +224,9 @@
                             <li>
                               <a href="/admin/add-project-info/?project_id={{ project.id }}"><i class="far fa-edit" aria-hidden="true" role="presentation"></i> Edit Project</a>
                             </li>
-                            <li>
+                            <!-- <li>
                               <a href="javascript:void(0)" onclick="project_delete_confirmation({{ project.id }});"><i class="fas fa-trash" aria-hidden="true" role="presentation"></i> Delete Project</a>
-                            </li>
+                            </li> -->
                           </ul>
                         </span>
                                 </div>
@@ -219,7 +234,9 @@
                                     <li>
                                         <div class="icon"><img src="{% static 'admin/images/views-icon.svg' %}" alt="project projects"></div>
                                         <h4 class="view-btn">
-                                            {{ project.no_of_property|default:0}}
+                                            <a href="/admin/listing/?p_i={{project.id}}">
+                                                {{ project.no_of_property|default:0}}
+                                            </a>
                                         </h4>
                                         <h6>
                                             Listing
@@ -320,16 +337,17 @@
 <script type="text/javascript" src="{% static 'admin/js/jquery.growl.js' %}"></script>
 <script type="text/javascript" src="{% static 'admin/js/pagination.js' %}?v=1.0"></script>
 <script type="text/javascript" src="{% static 'admin/js/autosuggestion.js' %}?v=2.0"></script>
-<script type="text/javascript" src="{% static 'admin/js/custom_js.js' %}?v=6.2"></script>
-<script type="text/javascript" src="{% static 'admin/js/developer_project.js' %}?v=1.7"></script>
-<script type="text/javascript" src="{% static 'admin/js/dropzone.js' %}"></script>
-<script type="text/javascript" src="{% static 'admin/js/custom_dropzone.js' %}?v=3.1"></script>
+<script type="text/javascript" src="{% static 'admin/js/custom-date-time.js' %}?v=6.2"></script>
+<script type="text/javascript" src="{% static 'admin/js/developer_project.js' %}?v=1.8"></script>
+<!-- <script type="text/javascript" src="{% static 'admin/js/dropzone.js' %}"></script>
+<script type="text/javascript" src="{% static 'admin/js/custom_dropzone.js' %}?v=3.1"></script> -->
 <script src="https://code.jquery.com/ui/1.14.0/jquery-ui.min.js"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-tour/0.11.0/js/bootstrap-tour.js"></script>
-<script type="text/javascript" src="{% static 'admin/js/listing_tour.js' %}?v=3.1"></script>
 
 <script>
     var is_first_login = {{request.session.is_first_admin_login}};
+    // var developer_id = {{request.GET.d_i|default:""}};
+    // $('#filter_developer').val(developer_id).trigger("chosen:updated");
 </script>
 {% endblock %}

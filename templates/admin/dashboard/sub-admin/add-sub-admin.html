@@ -17,7 +17,7 @@
             {% csrf_token %}
           <div class="col-md-12 col-sm-12">
             <div class="back-btn">
-              <a href="/admin/agents/"><i class="fas fa-chevron-left" aria-hidden="true" role="presentation"></i> Back</a>
+              <a href="/admin/sub-admin/"><i class="fas fa-chevron-left" aria-hidden="true" role="presentation"></i> Back</a>
             </div>
 
             <h6>
@@ -28,28 +28,18 @@
                 <input type="hidden" name="agent_id" id="agent_id" value="{{ agent_details.id|default:'' }}"/>
                 <div class="col-lg-4 col-md-6">
                   <div class="form-group">
-                    <label for="agent_first_name">First Name <span class="text-danger">*</span></label>
-                    <input type="text" aria-label="First Name" class="form-control alphaAccpt" name="agent_first_name" id="agent_first_name" placeholder="Enter First Name" value="{{ agent_details.first_name|default:'' }}" maxlength="40">
+                    <label for="agent_first_name">Name <span class="text-danger">*</span></label>
+                    <input type="text" aria-label="First Name" class="form-control" name="agent_first_name" id="agent_first_name" placeholder="Enter First Name" value="{{ agent_details.first_name|default:'' }}" maxlength="40">
                   </div>
                 </div>
+
                 <div class="col-lg-4 col-md-6">
                   <div class="form-group">
-                    <label for="agent_last_name">Last Name <span class="text-danger">*</span></label>
-                    <input type="text" aria-label="Last Name" class="form-control alphaAccpt" name="agent_last_name" id="agent_last_name" placeholder="Enter Last Name" value="{{ agent_details.last_name|default:'' }}" maxlength="40">
+                    <label for="agent_first_name_ar">Name In Arabic<span class="text-danger">*</span></label>
+                    <input type="text" aria-label="First Name" class="form-control" name="agent_first_name_ar" id="agent_first_name_ar" placeholder="Enter First Name In Arabic" value="{{ agent_details.first_name_ar|default:'' }}" maxlength="40">
                   </div>
                 </div>
-                <!-- <div class="col-lg-4 col-md-6">
-                  <div class="form-group">
-                    <label for="agent_company">Company Name <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" name="agent_company" id="agent_company" placeholder="Enter Company Name" value="{{ agent_details.company_name|default:'' }}">
-                  </div>
-                </div> -->
-                <!-- <div class="col-lg-4 col-md-6">
-                  <div class="form-group">
-                    <label for="agent_license_no">License Number </label>
-                    <input type="text" class="form-control" name="agent_license_no" id="agent_license_no" placeholder="Enter License Number" value="{{ agent_details.licence_no|default:'' }}">
-                  </div>
-                </div> -->
+                
                 <div class="col-lg-4 col-md-6">
                   <div class="form-group">
                     <label for="user_email">Email <span class="text-danger">*</span></label>
@@ -59,7 +49,12 @@
                 <div class="col-lg-4 col-md-6">
                   <div class="form-group">
                     <label for="usr_phone_no">Phone <span class="text-danger">*</span></label>
-                    <input type="text" aria-label="Phone" class="form-control" name="usr_phone_no" id="usr_phone_no" placeholder="Phone" value="{{ agent_details.phone_no|default:'' }}" data-inputmask="'mask': '99 999 9999'" data-inputmask-clearincomplete="true">
+                    <div class="ph-code">
+                      <select name="phone_country_code" class="select">
+                        <option value="971">+971</option>
+                      </select>
+                      <input type="text" aria-label="Phone" class="form-control" name="usr_phone_no" id="usr_phone_no" placeholder="Phone" value="{{ agent_details.phone_no|default:'' }}" data-inputmask="'mask': '99 999 9999'" data-inputmask-clearincomplete="true">
+                    </div>
                   </div>
                 </div>
                 <div class="col-lg-4 col-md-6">
@@ -69,12 +64,12 @@
                   </div>
                 </div>
 
-                <div class="col-lg-4 col-md-6">
+                <!-- <div class="col-lg-4 col-md-6">
                   <div class="form-group">
                     <label for="zip_code">Zip Code <span class="text-danger">*</span></label>
                     <input type="text" aria-label="Zip" class="form-control" name="zip_code" id="zip_code" autocomplete="nope" placeholder="Enter Zip Code" value="{{ agent_details.address.0.postal_code|default:'' }}" maxlength="10">
                   </div>
-                </div>
+                </div> -->
                 <div class="col-lg-4 col-md-6">
                   <div class="form-group">
                     <label for="agent_state">State <span class="text-danger">*</span></label>
@@ -172,8 +167,8 @@
                             <label for="check_permission_{{ forloop.counter0 }}">
                               {{ perm.name }}
                             </label>
-                            <label title="{{ perm.name }}" area-label="{{ perm.name }}" class="switch small {% if perm.id == 7 or perm.id == 11 or perm.id == 6 or perm.id == 4 %}disable_checkbox{% endif %}">
-                              <input type="checkbox" area-label="{{ perm.name }}" class="check_permission {% if perm.id == 7 or perm.id == 11 or perm.id == 6 or perm.id == 4 %}disabled_checkbox{% endif %}" rel_permission="{{ perm.id|default:'' }}" id="check_permission_{{ forloop.counter0 }}" name="check_permission_{{ forloop.counter0 }}" value="1" {% if perm.is_permission %}checked{% endif %} {% if perm.id in checked_permission %}checked disabled switch_disable{% endif %}/>
+                            <label title="{{ perm.name }}" area-label="{{ perm.name }}" class="switch small {% if perm.id == 25 or perm.id == 7 or perm.id == 11 or perm.id == 6 or perm.id == 4 %}disable_checkbox{% endif %}">
+                              <input type="checkbox" area-label="{{ perm.name }}" class="check_permission {% if perm.id == 25 or perm.id == 7 or perm.id == 11 or perm.id == 6 or perm.id == 4 %}disabled_checkbox{% endif %}" rel_permission="{{ perm.id|default:'' }}" id="check_permission_{{ forloop.counter0 }}" name="check_permission_{{ forloop.counter0 }}" value="1" {% if perm.is_permission %}checked{% endif %} {% if perm.id in checked_permission %}checked disabled switch_disable{% endif %}/>
                               <span class="slide round"></span>
                             </label>
                           </div>
@@ -189,8 +184,9 @@
                             <label for="check_permission_{{ forloop.counter0 }}">
                               {{ perm.name }}
                             </label>
-                            <label title="{{ perm.name }}" area-label="{{ perm.name }}" class="switch small {% if perm.id == 7 or perm.id == 11 or perm.id == 6 or perm.id == 4 %}disable_checkbox{% endif %}">
-                              <input type="checkbox" area-label="{{ perm.name }}" class="check_permission {% if perm.id == 7 or perm.id == 11 or perm.id == 6 or perm.id == 4 %}disabled_checkbox{% endif %}" rel_permission="{{ perm.id|default:'' }}" id="check_permission_{{ forloop.counter0 }}" name="check_permission_{{ forloop.counter0 }}" value="1" {% if perm.id in checked_permission %}checked disabled switch_disable{% endif %}/>
+                            
+                            <label title="{{ perm.name }}" area-label="{{ perm.name }}" class="switch small {% if perm.id == 25 or perm.id == 7 or perm.id == 11 or perm.id == 6 or perm.id == 4 %}disable_checkbox{% endif %}">
+                              <input type="checkbox" area-label="{{ perm.name }}" class="check_permission {% if perm.id == 25 or perm.id == 7 or perm.id == 11 or perm.id == 6 or perm.id == 4 %}disabled_checkbox{% endif %}" rel_permission="{{ perm.id|default:'' }}" id="check_permission_{{ forloop.counter0 }}" name="check_permission_{{ forloop.counter0 }}" value="1" {% if perm.id in checked_permission %}checked disabled switch_disable{% endif %}/>
                               <span class="slide round"></span>
                             </label>
                           </div>

@@ -46,6 +46,7 @@ function ajax_faq_list() {
     $.ajax({
         url: "/admin/ajax-faq-list/",
         type: "POST",
+        headers: { 'X-CSRFToken': getCookie('csrftoken') },
         data: { 
             'page': page,
             'search': search,

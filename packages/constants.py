@@ -92,3 +92,33 @@ PROPERTY_FEATURE_LOOKUPS = {
     "irrigation_system": 'Irrigation System',
     "recreation": 'Recreation',
 }
+
+url_for_permission = {
+    "sub-admin": 1,
+    "add-sub-admin": 1,
+    "users": 4,
+    "developers": 26,
+    "add-developer": 26,
+    "employee": 27,
+    "add-employee": 27,
+    "business-info": 7,
+    "project-list": 24,
+    "add-project-info": 24,
+    "listing": 6,
+    "add-listing": 6,
+    "listing-settings": 6,
+    "auction-dashboard": 25,
+    "bidder-registration": 2,
+    "settings": 17,
+    "cms-list": 16,
+    "blogs": 16,
+    "faq-list": 16,
+    "email-template-list": 16,
+    "add-email-template": 16,
+    "add-cms": 16,
+    "add-blog": 16,
+    "add-faq": 16,
+    "advertisement-list": 22,
+    "chat": 18,
+    "contact-listing": 12
+}

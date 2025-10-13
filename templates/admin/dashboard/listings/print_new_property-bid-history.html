@@ -15,7 +15,7 @@
         
         <p id="bidding-record-data{{bids.id}}" style="display:none">
             {% if bids.bidder_detail %}
-                {{bids.bidder_detail.phone_no|default:''|format_phone}}
+                +{{bids.bidder_detail.phone_country_code|default:971}} {{bids.bidder_detail.phone_no|default:''|format_phone}}
             {% endif %}
             <br>
             {% if bids.bidder_detail %}

@@ -8,27 +8,20 @@ try{
 }
 
 $(document).ready(function(){
-
-    /*user_image_params = {
-        url: '/admin/save-images/',
-        field_name: 'user_image',
-        file_accepted: '.png, .jpg, .jpeg, .svg',
-        element: 'editUserImgFrm',
-        upload_multiple: false,
-        max_files: 1,
-        call_function: set_user_image_details,
-        default_message: '<i class="fa fa-upload" aria-hidden="true"></i> Upload Favicon',
-    }
-    $('#updateEditUserModal').on('shown.bs.modal', function (e) {
+    $('.convert_to_local_date_time').each(function(){
         try{
-            initdrozone(user_image_params);
+            var added_on = $(this).attr('data-value');
+            if(added_on.trim() != "" && added_on.trim() != "None"){
+                var local_date = getLocalDateFromUTC(added_on.trim(), 'mm-dd-yyyy','ampm');
+                $(this).html(local_date);
+            }else{
+                $(this).html('-');
+            }
         }catch(ex){
-            console.log(ex);
+            //console.log(ex);
         }
-    });*/
-
-
-
+    });
+    
     agent_image_params = {
         url: '/admin/save-images/',
         field_name: 'agent_image',
@@ -65,24 +58,23 @@ $(document).ready(function(){
                 agent_first_name:{
                     required: true,
                     acceptcharacters: true,
-                    noSpace:true,
+                    // noSpace:true,
                     maxlength:40
                 },
-                agent_last_name:{
+
+                agent_first_name_ar:{
                     required: true,
                     acceptcharacters: true,
-                    noSpace:true,
+                    // noSpace:true,
                     maxlength:40
                 },
-                // agent_company:{
-                //     required: true
-                // },
 
                 user_email:{
                     required:true,
                     email:true,
                     remote:{
                         type: 'post',
+                        headers: { 'X-CSRFToken': getCookie('csrftoken') },
                         url: '/admin/check-user-exists/',
                         dataType: 'json',
                         async:false,
@@ -132,6 +124,12 @@ $(document).ready(function(){
                     noSpace: "Please enter valid First Name",
                     maxlength:"Please enter at most 40 char"
                 },
+                agent_first_name_ar:{
+                    required: "First Name is required.",
+                    acceptcharacters: "Please enter valid First Name",
+                    noSpace: "Please enter valid First Name",
+                    maxlength:"Please enter at most 40 char"
+                },
                 agent_last_name:{
                     required: "Last Name is required.",
                     acceptcharacters: "Please enter valid Last Name",
@@ -176,13 +174,6 @@ $(document).ready(function(){
             },
             submitHandler: function(form){
                 var flag = true;
-                /*var agent_image = $('#agent_img_name').val();
-                if(agent_image == ""){
-                    $('#agent_image_error').show();
-                    flag = false;
-                }else{
-                    $('#agent_image_error').hide();
-                }*/
 
                 if(flag === true && $('#add_agent_form').valid() === true){
                     $.ajax({
@@ -198,7 +189,7 @@ $(document).ready(function(){
                             $('.overlay').hide();
                             if(response.error == 0 || response.status == 200 || response.status == 201){
 
-                                $.growl.notice({title: "Agent ", message: response.msg, size: 'large'});
+                                $.growl.notice({title: "Sub Admin ", message: response.msg, size: 'large'});
 
                                 window.setTimeout(function () {
                                     window.location.href = '/admin/sub-admin/';
@@ -232,7 +223,7 @@ $(document).ready(function(){
 
                     $('#agent_list #row_'+row_id).remove();
                     $.ajax({
-                        url: '/admin/delete-agent/',
+                        url: '/admin/delete-sub-admin/',
                         type: 'post',
                         dataType: 'json',
                         cache: false,
@@ -255,7 +246,7 @@ $(document).ready(function(){
 
                                 $("#agent_listing_pagination_list").html(response.pagination_html);
                                 window.setTimeout(function () {
-                                    $.growl.notice({title: "Agents ", message: response.msg, size: 'large'});
+                                    $.growl.notice({title: "Sub Admin ", message: response.msg, size: 'large'});
 
                                 }, 2000);
                             }else{
@@ -264,7 +255,7 @@ $(document).ready(function(){
                                 $('#del_agent_false').removeAttr('rel_id');
                                 $('#confirmAgentDeleteModal').modal('hide');
                                 window.setTimeout(function () {
-                                    $.growl.error({title: "Agents ", message: response.msg, size: 'large'});
+                                    $.growl.error({title: "Sub Admin ", message: response.msg, size: 'large'});
                                 }, 2000);
 
                             }
@@ -321,6 +312,7 @@ $(document).ready(function(){
                     required:true,
                     remote:{
                         type: 'post',
+                        headers: { 'X-CSRFToken': getCookie('csrftoken') },
                         url: '/admin/check-user-exists/',
                         dataType: 'json',
                         async:false,
@@ -448,6 +440,7 @@ $(document).ready(function(){
                 $.ajax({
                     url: '/admin/sub-admin-search-suggestion/',
                     type: 'post',
+                    headers: { 'X-CSRFToken': getCookie('csrftoken') },
                     dataType: 'json',
                     cache: false,
                     data: {'search': search},
@@ -472,7 +465,7 @@ $(document).ready(function(){
                 'zip_code': zip_code,
                 'call_function': set_agent_address_by_zipcode,
             }
-            get_address_by_zipcode(params);
+            // get_address_by_zipcode(params);
            }
       });
 
@@ -684,6 +677,7 @@ function agentListingSearch(current_page){
         $.ajax({
             url: '/admin/sub-admin/',
             type: 'post',
+            headers: { 'X-CSRFToken': getCookie('csrftoken') },
             dataType: 'json',
             cache: false,
             data: {search: search, perpage: recordPerpage, status: status, page: currpage},
@@ -717,3 +711,49 @@ function agentListingSearch(current_page){
           $('#confirmAgentDeleteModal').modal('show');
           $('.del_agent_btn').attr('rel_id', row_id);
       }
+
+
+    //-----------sub admin csv download--------
+    function sub_admin_csv_download(){
+        var search = $('#agent_search').val();
+        var currpage = $('#agent_listing_pagination_list .active a').text();
+        if($('#agent_num_record').val() != ""){
+            recordPerpage = $('#agent_num_record').val();
+        }
+        var status = $('#agent_filter_status').val();
+        $('.overlay').show();
+        fetch('/admin/sub-admin-csv-download/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest', // This is important for Django to identify it as an AJAX request
+                'X-CSRFToken': getCookie('csrftoken'),
+            },
+            body: JSON.stringify({
+                        search: search,
+                        perpage: recordPerpage,
+                        status: status,
+                        page: currpage
+                    })
+        })
+        .then(response => {
+            if (response.ok) {
+                return response.blob();
+            }
+            throw new Error('Network response was not ok.');
+        })
+        .then(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = 'sub_admin.csv';;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            $('.overlay').hide();
+        })
+        .catch(error => {
+            console.error('There was a problem with the fetch operation:', error);
+        });
+    } 

@@ -1,6 +1,20 @@
 var currpage = 1;
 var recordPerpage = 10;
 $(document).ready(function(){
+    $('.convert_to_local_date_time_cst').each(function(){
+        try{
+            var added_on = $(this).attr('data-value');
+            if(added_on.trim() != "" && added_on.trim() != "None"){
+                var local_date = getLocalDateFromUTC(added_on.trim(), 'mm-dd-yyyy','ampm');
+                $(this).html(local_date);
+            }else{
+                $(this).html('-');
+            }
+        }catch(ex){
+            //console.log(ex);
+        }
+    });
+
     $(document).on("click","#del_prop_false",function() {
         $('#confirmPropertyDeleteModal').modal('hide');
     });
@@ -72,8 +86,10 @@ $(document).ready(function(){
 
     add_icon_dropdown_new_feature();
 
-    cst_convert_bidding_date('registration_date');
-    cst_convert_bidding_date('completion_date');
+    // cst_convert_bidding_date('registration_date');
+    // cst_convert_bidding_date('completion_date');
+    convert_date('registration_date');
+    convert_date('completion_date');
 
     // Assuming multiple Dropzones with IDs like 'uploadFloorPlanImgFrm_1', 'uploadFloorPlanImgFrm_2', etc.
     document.querySelectorAll('.dropzone').forEach((dropzoneElement) => {
@@ -151,6 +167,97 @@ $(document).ready(function(){
         $(this).hide();
     });
 
+    $(document).on('change', '#city', function(){
+        var city = $(this).val();
+        $.ajax({
+            url: '/admin/get-municipality/',
+            type: 'post',
+            dataType: 'json',
+            cache: false,
+            data: {prop_city: city},
+            beforeSend: function(){
+                $('.overlay').show();
+            },
+            success: function(response){
+                $('.overlay').hide();
+                if(response.error == 0){
+                    $('#municipality').empty();
+                    $('#district').empty();
+                    $('#municipality').append('<option value="">Select</option>');
+                    $.each(response.municipality, function(i, item) {
+                        $('#municipality').append('<option value="'+item.id+'">'+item.municipality_name+'</option>');
+                    });
+                    $('#municipality').trigger("chosen:updated");
+                    // -------Enable next section-------
+                    var href = $("#section_two").data('href');
+                    $("#section_two").attr('href', "#"+href);
+                    $("#section_two").removeClass('collapsed');
+                    $("#"+href).removeClass('collapse').addClass("in");
+                }
+            }
+        });
+    });
+
+    $(document).on('change', '#municipality', function(){
+        var municipality = $(this).val();
+        $.ajax({
+            url: '/admin/get-district/',
+            type: 'post',
+            dataType: 'json',
+            cache: false,
+            data: {municipality: municipality},
+            beforeSend: function(){
+                $('.overlay').show();
+            },
+            success: function(response){
+                $('.overlay').hide();
+                if(response.error == 0){
+                    $('#district').empty();
+                    $('#district').append('<option value="">Select</option>');
+                    $.each(response.district, function(i, item) {
+                        $('#district').append('<option value="'+item.id+'">'+item.district_name+'</option>');
+                    });
+                    $('#district').trigger("chosen:updated");
+                }
+            }
+        });
+    });
+
+    $(document).on('change', '#district', function(){
+        var district = $(this).val();
+        var prop_city = $("#city").val();
+        if (prop_city != 83){
+            $(".community_text").show();
+            $('.community_dropdown').hide();
+            return false;
+        }
+
+        $.ajax({
+            url: '/admin/get-community/',
+            type: 'post',
+            dataType: 'json',
+            cache: false,
+            data: {district},
+            beforeSend: function(){
+                $('.overlay').show();
+            },
+            success: function(response){
+                $('.overlay').hide();
+                
+                if(response.error == 0){
+                    $(".community_text").hide();
+                    $('.community_dropdown').show();
+                    $('#community_data').empty();
+                    $('#community_data').append('<option value="">Select</option>');
+                    $.each(response.community, function(i, item) {
+                        $('#community_data').append('<option value="'+item.community_name+'">'+item.community_name+'</option>');
+                    });
+                    $('#community_data').trigger("chosen:updated");
+                }
+            }
+        });
+    });
+
     $(document).on('click', 'input[name="project_type"]', function(){
         var asset_id = $(this).val();
         $('p.error').hide();
@@ -192,7 +299,14 @@ $(document).ready(function(){
                     }
                 }
             },
-            project_name:{required: true},
+            project_name:{
+                required: true,
+                atLeastOneAlpha: true,
+            },
+            project_name_ar:{
+                required: true,
+                // atLeastOneAlpha: true,
+            },
             registration_number:{required: true},
             country:{
                 required: function () {
@@ -204,34 +318,111 @@ $(document).ready(function(){
                 }
             },
             city:{required: true},
-            neighborhood:{required: true},
-            community:{required: true},
-            postal_code: {required: true},
-            address_one:{required: true},
+            municipality:{required: true},
+            district:{ required: true},
+            neighborhood:{
+                required: function(){
+                    if($("#city").val() != '83'){
+                        return true;
+                    }else{
+                        return false;
+                    }
+                },
+                atLeastOneAlpha: function(){
+                    if($("#city").val() != '83'){
+                        return true;
+                    }else{
+                        return false;
+                    }
+                },
+            },
+            community:{
+                required: function(){
+                    if($("#city").val() != '83'){
+                        return true;
+                    }else{
+                        return false;
+                    }
+                },
+                atLeastOneAlpha: function(){
+                    if($("#city").val() != '83'){
+                        return true;
+                    }else{
+                        return false;
+                    }
+                },
+            },
+            community_data:{
+                required: function(){
+                    if($("#city").val() == '83'){
+                        return true;
+                    }else{
+                        return false;
+                    }
+                },
+            },
+            // postal_code: {required: true},
+            address_one:{
+                required: true,
+                atLeastOneAlpha: true,
+            },
             virtual_registration_date :{required: true},
             virtual_completion_date:{required: true},
             starting_price:{required: true},
             project_status:{
                 required: function () {
                     if ($('option:selected','#project_status').val() == "" || typeof($('option:selected','#project_status').val())  === "undefined") {
-                        $("#project_status").parent().append('<p id="project_status-error" class="error">Project Status is required</p>');
+                        $("#project_status").parent().append('<p id="project_status-error" class="error">Project Construction Status is required</p>');
                     } else {
                         return false
                     }
                 }
             },
-            // proj_listing_status:{
-            // required: function () {
-            //     if ($('option:selected','#proj_listing_status').val() == "" || typeof($('option:selected','#proj_listing_status').val())  === "undefined") {
-            //         $("#proj_listing_status").parent().append('<p id="proj_listing_status-error" class="error">Status is required</p>');
-            //     } else {
-            //         return false
-            //     }
-            // }
+
+            main_project_status:{
+                required: function () {
+                    if ($('option:selected','#main_project_status').val() == "" || typeof($('option:selected','#main_project_status').val())  === "undefined") {
+                        $("#main_project_status").parent().append('<p id="main_project_status-error" class="error">Project Status is required</p>');
+                    } else {
+                        return false
+                    }
+                }
+            },
+
+            // total_units:{
+            //     required: true,
+            //     min: function(){
+            //         if($("#units_for_sale").val() != ""){
+            //             return $("#units_for_sale").val();
+            //         }
+            //     },
             // },
-            total_units:{required: true},
-            units_for_sale:{required: true},
-            units_type:{required: true},
+            // units_for_sale:{
+            //     required: true,
+            //     max: function(){
+            //         if($("#total_units").val() != ""){
+            //             return $("#total_units").val();
+            //         }
+            //     },
+            // },
+            total_units: {
+                required: true,
+                min: function() {
+                    var sale = parseInt($("#units_for_sale").val(), 10);
+                    return isNaN(sale) ? 0 : sale;
+                }
+            },
+            units_for_sale: {
+                required: true,
+                max: function() {
+                    var total = parseInt($("#total_units").val(), 10);
+                    return isNaN(total) ? Infinity : total;
+                }
+            },
+            units_type:{
+                required: true,
+                atLeastOneAlpha: true,
+            },
             property_size:{required: true},
         },
         messages:{
@@ -239,12 +430,15 @@ $(document).ready(function(){
             project_name:{required: "Project Name is required"},
             registration_number:{required: "Registration Number is required"},
             neighborhood:{required: "Neighborhood is required"},
+            municipality:{required: "Municipality is required"},
+            district:{ required: "District is required"},
             community:{required: "Community is required"},
+            community_data:{required: "Community is required"},
             address_one:{
                 required: "Address is required"
             },
             city:{required: "City is required"},
-            postal_code:{required: "Postal Code is required"},
+            // postal_code:{required: "Postal Code is required"},
             virtual_registration_date:{required: "Registration Date is required"},
             virtual_completion_date: {required: "Completion/Handover Date is required"},
             starting_price:{required: "Starting Price is required"},
@@ -286,7 +480,19 @@ $(document).ready(function(){
     });
     $("#project_info_frm").validate();
     $("#project_map_view_frm").validate();
-    $("#project_photo_video_frm").validate();
+    // $("#project_photo_video_frm").validate();
+    $('#project_photo_video_frm').validate({
+        ignore: [],
+        errorElement: 'p',
+        rules:{
+            project_image_id:{
+                required: true,
+            },
+        },
+        messages:{
+            
+        }
+    });
 
     $('#facility_info_submit_btn').on('click', function() {
         $('.error').text('');
@@ -295,7 +501,7 @@ $(document).ready(function(){
 
         // Get input field values
         const facility_name = $('#facility_name').val();
-        const facility_img_id = $('#facility_img_id').val() ? $('#facility_img_id').val() : 1;
+        const facility_img_id = $('#facility_img_id').val() ? $('#facility_img_id').val() : "";
         const project_id = $('#project_id').val();
 
         let isValid = true;
@@ -373,47 +579,50 @@ $(document).ready(function(){
     })
 
     $(document).on('click', '#project_info_submit_next_btn', function(){
-        console.log("project_info_submit_next_btn enter")
-        $('#next_url').val('/admin/project-map-view/');
+            console.log("project_info_submit_next_btn enter")
+            $('#next_url').val('/admin/project-map-view/');
             try {
                 var start_dates = $("#virtual_registration_date").val();
                 var end_dates = $("#virtual_completion_date").val();
-                if (start_dates != "") {
-                    var actualStartDate = start_dates.split(" ");
-                    var change_format = actualStartDate[0].split("-");
-                    var new_format = change_format[2]+"-"+change_format[0]+"-"+change_format[1];
-                    actualStartDate = new_format + ' ' + convert_to_24h(actualStartDate[1] + ' ' + actualStartDate[2]);
-                    var actualStartDateUtc = actualStartDate;
-                    $("#registration_date").val(actualStartDateUtc);
-                    $("#registration_date_local").val(actualStartDate);
-                }else{
-                    $("#virtual_registration_date").val('');
-                    $("#registration_date").val('');
-                    $("#registration_date_local").val('');
-                }
-                if (end_dates != "") {
-                    var actualEndDate = end_dates.split(" ");
-                    var change_format = actualEndDate[0].split("-");
-                    var new_format = change_format[2]+"-"+change_format[0]+"-"+change_format[1];
-                    actualEndDate = new_format + ' ' + convert_to_24h(actualEndDate[1] + ' ' + actualEndDate[2]);
-                    var actualEndDateUtc = actualEndDate;
-                    $("#completion_date").val(actualEndDateUtc);
-                    $("#completion_date_local").val(actualEndDate);
-                }
+                // if (start_dates != "") {
+                //     var actualStartDate = start_dates.split(" ");
+                //     var change_format = actualStartDate[0].split("-");
+                //     var new_format = change_format[2]+"-"+change_format[0]+"-"+change_format[1];
+                //     actualStartDate = new_format + ' ' + convert_to_24h(actualStartDate[1] + ' ' + actualStartDate[2]);
+                //     var actualStartDateUtc = actualStartDate;
+                //     $("#registration_date").val(actualStartDateUtc);
+                //     $("#registration_date_local").val(actualStartDate);
+                // }else{
+                //     $("#virtual_registration_date").val('');
+                //     $("#registration_date").val('');
+                //     $("#registration_date_local").val('');
+                // }
+                // if (end_dates != "") {
+                //     var actualEndDate = end_dates.split(" ");
+                //     var change_format = actualEndDate[0].split("-");
+                //     var new_format = change_format[2]+"-"+change_format[0]+"-"+change_format[1];
+                //     actualEndDate = new_format + ' ' + convert_to_24h(actualEndDate[1] + ' ' + actualEndDate[2]);
+                //     var actualEndDateUtc = actualEndDate;
+                //     $("#completion_date").val(actualEndDateUtc);
+                //     $("#completion_date_local").val(actualEndDate);
+                // }
+
             } catch (ex){
                     //console.log(ex);
             }
 
-            if($('#project_info_frm').valid() && $("#proj_listing_status").val() != "" ){
-            if (parseInt($('input[name="project_type"]:checked').val()) != "") {
-                if($("#project_type").val() != "" && $("#state").val() != ""){
+            // if($('#project_info_frm').valid() && $("#proj_listing_status").val() != "" ){
+            if($('#project_info_frm').valid() && $("#project_status").val() != "" && $("#main_project_status").val() != "" ){
+                if (parseInt($('input[name="project_type"]:checked').val()) != "") {
+                    if($("#project_type").val() != "" && $("#state").val() != ""){
+                        save_project('project_info_frm');
+                    }
+                } else {
                     save_project('project_info_frm');
                 }
-            } else {
-                save_project('project_info_frm');
-            }
-        } else{
-                console.log("project_info_submit_next_btn")
+            } else{
+                return false;
+                // console.log("project_info_submit_next_btn")
             }
     });
 
@@ -460,17 +669,18 @@ $(document).ready(function(){
 
     $(document).on('click', '#submit_project', function(e){
         let isFormValid = true;
-        $(".section").each(function () {
-            if (!validateSection(this)) {
-                isFormValid = false;
-            }
-        });
+        // $(".section").each(function () {
+        //     if (!validateSection(this)) {
+        //         isFormValid = false;
+        //     }
+        // });
         if (!isFormValid) {
             e.preventDefault();
         } else {
-            if($('#project_document_frm').valid()){
-                save_project('project_document_frm');
-            }
+            // if($('#project_document_frm').valid()){
+            //     save_project('project_document_frm');
+            // }
+            save_project('project_document_frm');
         }
     });
 
@@ -485,6 +695,7 @@ $(document).ready(function(){
             $.ajax({
                 url: '/admin/save-project-video/',
                 type: 'post',
+                headers: { 'X-CSRFToken': getCookie('csrftoken') }, 
                 dataType: 'json',
                 cache: false,
                 data: {project_id: project_id, video_url: video_url},
@@ -599,7 +810,18 @@ function save_project(element){
         success: function(response){
             $('.overlay').hide();
             if(response.error == 0){
-                $.growl.notice({title: "Project ", message: response.msg, size: 'large'});
+                let message = ""
+                if (parseInt(response.step) ==1){
+                    message = "Project Information saved successfully.";
+                }else if(parseInt(response.step) == 2){
+                    message = "Map location saved successfully.";
+                }else if(parseInt(response.step) == 3){
+                    message = "Photos uploaded successfully.";
+                }else if(parseInt(response.step) == 4){
+                    message = "Documents saved successfully.";
+                }
+                // $.growl.notice({title: "Project ", message: response.msg, size: 'large'});
+                $.growl.notice({title: "Project ", message: message, size: 'large'});
                 try{
                     var project_id = response.data.data.project_id;
                 }catch(ex){
@@ -608,7 +830,8 @@ function save_project(element){
 
                 if(response.project_id == ""){
                     custom_response = {
-                        'user_id': response.data.data.user_id,
+                        // 'user_id': response.data.data.user_id,
+                        'user_id': encryptUserId(String(response.data.data.user_id), encryptionKey),
                     };
                     customCallBackFunc(update_notification_socket, [custom_response]);
                 }    
@@ -914,9 +1137,10 @@ function projectListingSearch(current_page){
     if($('#proj_num_record').val() != ""){
         recordPerpage = $('option:selected','#proj_num_record').val();
     }
-    var status = $('option:selected','#proj_filter_status').val();
+    var proj_filter_status = $('option:selected','#proj_filter_status').val();
     var project_type = $('option:selected','#filter_project_type').val();
     var developer = $('option:selected','#filter_developer').val();
+    var employee_id = $('option:selected','#filter_employee').val();
     var proj_status = $('option:selected','#proj_status').val();
 
     try{
@@ -932,9 +1156,10 @@ function projectListingSearch(current_page){
     $.ajax({
         url: '/admin/project-list/',
         type: 'post',
+        headers: { 'X-CSRFToken': getCookie('csrftoken') },
         dataType: 'json',
         cache: false,
-        data: {search: search, perpage: recordPerpage, status: status, page: currpage, project_type: project_type, developer: developer, project_status: proj_status},
+        data: {search: search, perpage: recordPerpage, status: proj_status, page: currpage, project_type: project_type, developer: developer, project_status: proj_filter_status, employee_id: employee_id},
         beforeSend: function(){
             $('.overlay').show();
         },
@@ -1105,7 +1330,8 @@ function isNumber(evt) {
 function init_auction_start_date(){
     try{
         $('#datetimepicker1').datetimepicker({
-            format: 'MM-DD-YYYY hh:mm A',
+            // format: 'MM-DD-YYYY hh:mm A',
+            format: 'MM-DD-YYYY',
         });
     }catch(ex){
     }
@@ -1130,7 +1356,8 @@ function init_auction_end_date(){
     if(new_min_date != "" && new_max_date != ""){
         try{
             $("#datetimepicker2").datetimepicker({
-                format: 'MM-DD-YYYY hh:mm A',
+                // format: 'MM-DD-YYYY hh:mm A',
+                format: 'MM-DD-YYYY',
                 //   maxDate: new_max_date,
                 //   minDate: new_min_date,
             }).on('dp.change',function(e){
@@ -1139,6 +1366,7 @@ function init_auction_end_date(){
                 var dates = $("#"+virtual_date_element).val();
                 if(dates != ""){
                     var actualStartDate = dates.split(" ");
+                    var actualDate = actualStartDate
                     //new lines
                     var mdy_format = actualStartDate[0].split("-");
                     mdy_date = mdy_format[2]+"-"+mdy_format[0]+"-"+mdy_format[1];
@@ -1147,8 +1375,13 @@ function init_auction_end_date(){
                     actualStartDate = actualStartDate[0]+' '+convert_to_24h(actualStartDate[1]+' '+actualStartDate[2]);
 
                     var utc_date = convert_to_utc_date(actualStartDate, 'mm-dd-yyyy', 'datetime');
-                    $("#"+date_element+"_local").val(actualStartDate);
-                    $("#"+date_element).val(utc_date);
+                    // $("#"+date_element+"_local").val(actualStartDate);
+                    // $("#"+date_element).val(utc_date);
+
+                    // var actualDate = convert_to_date_format(actualStartDate);
+                    actualDate = convert_to_date_format(actualDate);
+                    $("#"+date_element+"_local").val(actualDate);
+                    $("#"+date_element).val(actualDate);
                 }
             });
         }catch(ex){
@@ -1158,7 +1391,8 @@ function init_auction_end_date(){
     }else{
         try{
             $('#datetimepicker2').datetimepicker({
-                format: 'MM-DD-YYYY hh:mm A',
+                // format: 'MM-DD-YYYY hh:mm A',
+                format: 'MM-DD-YYYY',
             }).on('dp.change',function(e){
                 var virtual_date_element = $(this).find('input:first').attr('id');
                 var date_element = $(this).find('input:last').attr('id');
@@ -1329,35 +1563,35 @@ function addMoreSection(button, project_type_id) {
                 <input type="hidden" name="project_type_id[]" value="${project_type_id}">
                 <div class="col-md-6 col-sm-6">
                     <div class="form-group">
-                        <label for="floor_heading_${uniqueId}">Floor Heading <span class="text-danger">*</span></label>
+                        <label for="floor_heading_${uniqueId}">Floor Heading </label>
                         <input type="text" required class="form-control" name="floor_heading[]" id="floor_heading_${uniqueId}" placeholder="Floor heading" value="">
                     </div>
                 </div>
 
                 <div class="col-md-6 col-sm-6">
                     <div class="form-group">
-                        <label for="floor_bed_rooms_${uniqueId}">Bedrooms <span class="text-danger">*</span></label>
+                        <label for="floor_bed_rooms_${uniqueId}">Bedrooms </label>
                         <input type="number" onkeypress="return event.charCode >= 48 && event.charCode <= 57" required class="form-control" name="floor_bed_rooms[]" id="floor_bed_rooms_${uniqueId}" placeholder="Bedrooms" value="">
                     </div>
                 </div>
 
                 <div class="col-md-6 col-sm-6">
                     <div class="form-group">
-                        <label for="floor_available_units_${uniqueId}">Available units <span class="text-danger">*</span></label>
+                        <label for="floor_available_units_${uniqueId}">Available units </label>
                         <input type="number" onkeypress="return event.charCode >= 48 && event.charCode <= 57" required class="form-control" name="floor_available_units[]" id="floor_available_units_${uniqueId}" placeholder="Available units" value="">
                     </div>
                 </div>
 
                 <div class="col-md-6 col-sm-6">
                     <div class="form-group">
-                        <label for="floor_bedroom_desc_${uniqueId}">Floor Description <span class="text-danger">*</span></label>
+                        <label for="floor_bedroom_desc_${uniqueId}">Floor Description </label>
                         <input type="text" required class="form-control" name="floor_bedroom_desc[]" id="floor_bedroom_desc_${uniqueId}" placeholder="Floor Description" value="">
                     </div>
                 </div>
 
                 <div class="col-md-12 col-sm-12">
                     <div class="form-group">
-                        <label for="floor_area_${uniqueId}">Area Square feet <span class="text-danger">*</span></label>
+                        <label for="floor_area_${uniqueId}">Area Square feet </label>
                         <input type="number" onkeypress="return event.charCode >= 48 && event.charCode <= 57" required class="form-control" name="floor_area[]" id="floor_area_${uniqueId}" placeholder="Floor Area (Sqft)" value="">
                     </div>
                 </div>
@@ -1567,7 +1801,8 @@ function change_apporval_status(project_id, element){
                 $('#change_approval_'+project_id).hide();
                 $('#approval_status_'+project_id).html('<span class="badge '+badge_class+'" style="cursor:pointer;">'+approval_name+'</span>').show();
                 custom_response = {
-                    'user_id': response.data.user_id,
+                    // 'user_id': response.data.user_id,
+                    'user_id': encryptUserId(String(response.data.user_id), encryptionKey),
                 };
                 customCallBackFunc(update_notification_socket, [custom_response]);
                 window.setTimeout(function () {
@@ -1584,4 +1819,58 @@ function change_apporval_status(project_id, element){
 
 function update_notification_socket(response){
     socket.emit("getNotifications", {"user_id": response.user_id});
+}
+
+
+
+//-----------Projects csv download--------
+function project_csv_download(){
+    var search = $('#proj_search').val();
+    var currpage = $('#proj_listing_pagination_list .active a').text();
+    if($('#proj_num_record').val() != ""){
+        recordPerpage = $('#proj_num_record').val();
+    }
+    var status = $('#proj_status').val();
+    var proj_filter_status = $('#proj_filter_status').val();
+    var filter_project_type = $('#filter_project_type').val();
+    var filter_developer = $('#filter_developer').val();
+
+    $('.overlay').show();
+    fetch('/admin/projects-csv-download/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest', // This is important for Django to identify it as an AJAX request
+            'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: JSON.stringify({
+                    search: search,
+                    perpage: recordPerpage,
+                    status: status,
+                    page: currpage,
+                    proj_filter_status: proj_filter_status,
+                    filter_project_type: filter_project_type,
+                    filter_developer: filter_developer
+                })
+    })
+    .then(response => {
+        if (response.ok) {
+            return response.blob();
+        }
+        throw new Error('Network response was not ok.');
+    })
+    .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = 'project.csv';;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        $('.overlay').hide();
+    })
+    .catch(error => {
+        console.error('There was a problem with the fetch operation:', error);
+    });
 }

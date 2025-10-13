@@ -1,11 +1,30 @@
 $(document).ready(function(){
     $('.select').chosen();
-    set_datetimepicker('#start_date');
-    set_datetimepicker('#end_date');
+    // set_datetimepicker('#start_date');
+    // set_datetimepicker('#end_date');
+    setCurrentFutureDateTimePicker('#start_date');
+    setCurrentFutureDateTimePicker('#end_date');
+
     randerAddListingUtcToLocal("#utc_start_date", "#start_date"); // Rander datetime for start date
     randerAddListingUtcToLocal("#utc_end_date", "#end_date"); // Rander datetime for end date
     randerUtcToLocal("#auction_date_text_one"); // Rander datetime for reservation agreement
     randerUtcToLocal("#auction_date_text_two"); // Rander datetime for reservation agreement
+
+    function formatInternationalNumber(x) {
+        x = x.replace(/,/g, ''); // remove existing commas
+        if (isNaN(x) || x === "") return x;
+        return Number(x).toLocaleString("en-US"); // UAE uses international style
+    }
+
+    $("#start_price, #deposit_amount, #reserve_amount, #full_amount, #bid_increments").on("input", function () {
+        let value = $(this).val();
+        $(this).val(formatInternationalNumber(value));
+    });
+
+    $("#start_price, #deposit_amount, #reserve_amount, #full_amount, #bid_increments").on("input", function () {
+        let value = $(this).val();
+        $(this).val(formatInternationalNumber(value));
+    });
 
     $("#sell_at_full_amount_status").on("change", function(){
         if($(this).is(':checked')){
@@ -18,8 +37,10 @@ $(document).ready(function(){
     $("#bid_increment_status").on("change", function(){
         if($(this).is(':checked')){
             $(".bid_increment_field").show();
+            $(".bid_increment_required_msg").hide();
         }else{
             $(".bid_increment_field").hide();
+            $(".bid_increment_required_msg").show();
         }
     });
 
@@ -50,6 +71,18 @@ $(document).ready(function(){
         }
     });
 
+    $(document).on('change', "#relist", function () {
+        var relist = $(this).val();
+        if (relist == 1){
+            $("#start_date, #end_date").prop("disabled", false);
+            $("#start_date, #end_date").val("");
+            setCurrentFutureDateTimePicker('#start_date');
+            setCurrentFutureDateTimePicker('#end_date');
+        }else{
+            location.reload();
+        }
+    });
+
     //  ----------------Form Submit-----------
     $(document).on('click', '#property_info_submit_next_btn, #property_info_submit_exit_btn', function(){
         // ----------Adding Validation Rule Here For Owner----------
@@ -69,6 +102,9 @@ $(document).ready(function(){
         ignore: [],
         errorElement: 'p',
         rules:{
+            auction_type:{
+                required: false,
+            },
             start_price:{
                 required: false,
             },
@@ -145,6 +181,7 @@ function save_property(element, redirection_url=""){
     for (instance in CKEDITOR.instances){
         CKEDITOR.instances[instance].updateElement();
     }
+    $("#property_info_submit_next_btn, #property_info_submit_exit_btn").attr("disabled", true);
     //return false;
     $.ajax({
         url: '/admin/save-listing/',
@@ -177,7 +214,7 @@ function save_property(element, redirection_url=""){
                         'auction_id': auction_id,
                         'auction_type': auction_type,
                       };
-                        // customCallBackFunc(update_bidder_socket, [custom_response]);
+                      customCallBackFunc(update_bidder_socket, [custom_response]);
                     }catch(ex){
                         //console.log(ex);
                     }
@@ -191,6 +228,7 @@ function save_property(element, redirection_url=""){
                     }
                 }, 2000);
             }else{
+                $("#property_info_submit_next_btn, #property_info_submit_exit_btn").removeAttr("disabled");
                 if(typeof(response.data) != 'undefined' && typeof(response.data.msg) != 'undefined'){
                     var msg = response.data.msg;
                 }else{
@@ -224,22 +262,42 @@ function save_property(element, redirection_url=""){
 
 function update_bidder_socket(response){
     if(typeof(response.auction_type) != 'undefined' && parseInt(response.auction_type) == 2){
-        socket.emit("checkInsiderBid", {"user_id": response.user_id, "property_id": response.property_id, "auction_id": response.auction_id, "domain_id": response.site_id});
+        if("user_id" in response && response.user_id != ""){
+            var encryptedUserId = encryptUserId(str(response.user_id), encryptionKey);
+        }else{
+            var encryptedUserId = response.user_id;
+        }
+        // socket.emit("checkInsiderBid", {"user_id": response.user_id, "property_id": response.property_id, "auction_id": response.auction_id, "domain_id": response.site_id});
+        socket.emit("checkInsiderBid", {"user_id": encryptedUserId, "property_id": response.property_id, "auction_id": response.auction_id, "domain_id": response.site_id});
     }else{
-        socket.emit("checkBid", {"user_id": response.user_id, "property_id": response.property_id, "auction_id": response.auction_id, "domain_id": response.site_id});
+        if("user_id" in response && response.user_id != ""){
+            var encryptedUserId = encryptUserId(str(response.user_id), encryptionKey);
+        }else{
+            var encryptedUserId = response.user_id;
+        }
+        // socket.emit("checkBid", {"user_id": response.user_id, "property_id": response.property_id, "auction_id": response.auction_id, "domain_id": response.site_id});
+        socket.emit("checkBid", {"user_id": encryptedUserId, "property_id": response.property_id, "auction_id": response.auction_id, "domain_id": response.site_id});
     }
 
 }
 
 
-
 function section_one_validate(){
     $('#auction_detail_frm').validate().settings.rules = {
+        auction_type:{
+            required: true,
+        },
         start_price:{
             required: true,
+            normalizer: function (value) {
+                return value.replace(/,/g, ''); // remove commas before validation
+            }
         },
         deposit_amount:{
             required: true,
+            normalizer: function (value) {
+                return value.replace(/,/g, ''); // remove commas before validation
+            }
         },
         reserve_amount:{
             required: true,
@@ -250,6 +308,9 @@ function section_one_validate(){
                     return false;
                 }
             },
+            normalizer: function (value) {
+                return value.replace(/,/g, ''); // remove commas before validation
+            }
         },
         buyer_preference:{
             required: true,
@@ -265,7 +326,14 @@ function section_one_validate(){
                 } else {
                     return false;
                 }
-            }
+            },
+            timeDifferenceValid: function(){
+                if ($('#auction_type').val() == 2) {
+                    return "#start_date";
+                } else {
+                    return false;
+                }
+            },
         },
         is_featured:{
             required: true,
@@ -273,26 +341,82 @@ function section_one_validate(){
         full_amount: {
             required: function() {
                 return $("#sell_at_full_amount_status").is(":checked");
+            },
+            normalizer: function (value) {
+                return value.replace(/,/g, ''); // remove commas before validation
+            }
+            
+        },
+        bid_increment_status:{
+            required: true,
+        },
+        
+        bid_increments:{
+            required: true,
+            normalizer: function (value) {
+                return value.replace(/,/g, ''); // remove commas before validation
             }
         },
-        bid_increments:{
-            required: function(){
-                return $("#bid_increment_status").is(":checked");
-            },
-        },
+        // bid_increments:{
+        //     required: function(){
+        //         return $("#bid_increment_status").is(":checked");
+        //     },
+        // },
     };
 }
 
 function section_two_validate(){
     $('#auction_detail_frm').validate().settings.rules = {
-        start_price:{
+        auction_type:{
             required: true,
         },
-        deposit_amount:{
+        start_price: {
             required: true,
+            number: {
+                depends: function(element) {
+                    return $(element).val() !== "";  // Only validate if not empty
+                }
+            },
+            min: {
+                param: 1,
+                depends: function(element) {
+                    return $(element).val() !== "";  // Only validate if not empty
+                }
+            },
+            normalizer: function (value) {
+                return value.replace(/,/g, ''); // remove commas before validation
+            }
         },
-        reserve_amount:{
+        deposit_amount: {
             required: true,
+            number: {
+                depends: function(element) {
+                    return $(element).val() !== "";  // Only validate if not empty
+                }
+            },
+            min: {
+                param: 1,
+                depends: function(element) {
+                    return $(element).val() !== "";  // Only validate if not empty
+                }
+            },
+            normalizer: function (value) {
+                return value.replace(/,/g, ''); // remove commas before validation
+            }
+        },
+        reserve_amount: {
+            required: true,
+            number: {
+                depends: function(element) {
+                    return $(element).val() !== "";  // Only validate if not empty
+                }
+            },
+            min: {
+                param: 1,
+                depends: function(element) {
+                    return $(element).val() !== "";  // Only validate if not empty
+                }
+            },
             greaterThanValue: function(){
                 if ($('#reserve_amount').val() != "") {
                     return '#start_price';
@@ -300,6 +424,9 @@ function section_two_validate(){
                     return false;
                 }
             },
+            normalizer: function (value) {
+                return value.replace(/,/g, ''); // remove commas before validation
+            }
         },
         buyer_preference:{
             required: true,
@@ -315,7 +442,14 @@ function section_two_validate(){
                 } else {
                     return false;
                 }
-            }
+            },
+            timeDifferenceValid: function(){
+                if ($('#auction_type').val() == 2) {
+                    return "#start_date";
+                } else {
+                    return false;
+                }
+            },
         },
         is_featured:{
             required: true,
@@ -323,13 +457,48 @@ function section_two_validate(){
         full_amount: {
             required: function() {
                 return $("#sell_at_full_amount_status").is(":checked");
+            },
+            number: {
+                depends: function(element) {
+                    return $(element).val() !== "";  // Only validate if not empty
+                }
+            },
+            min: {
+                param: 1,
+                depends: function(element) {
+                    return $(element).val() !== "";  // Only validate if not empty
+                }
+            },
+            normalizer: function (value) {
+                return value.replace(/,/g, ''); // remove commas before validation
             }
         },
-        bid_increments:{
-            required: function(){
-                return $("#bid_increment_status").is(":checked");
-            },
+        bid_increment_status:{
+            required: true,
         },
+        
+        bid_increments: {
+            required: true,
+            number: {
+                depends: function(element) {
+                    return $(element).val() !== "";  // Only validate if not empty
+                }
+            },
+            min: {
+                param: 1,
+                depends: function(element) {
+                    return $(element).val() !== "";  // Only validate if not empty
+                }
+            },
+            normalizer: function (value) {
+                return value.replace(/,/g, ''); // remove commas before validation
+            }
+        },
+        // bid_increments:{
+        //     required: function(){
+        //         return $("#bid_increment_status").is(":checked");
+        //     },
+        // },
         signature:{
             required: true,
         },

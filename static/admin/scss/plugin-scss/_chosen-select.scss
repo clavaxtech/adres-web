@@ -15,8 +15,19 @@
   }
 
   &.chosen-container-multi {
+    position: relative;
     height: auto;
     min-height: 50px;
+
+    &:before {
+      content: "";
+      position: absolute;
+      right: 12px;
+      top: 20px;
+      width: 14px;
+      height: 8px;
+      background: url(../images/select-down-arrow.svg) no-repeat;
+    }
 
     &:after {
       right: 10px !important;
@@ -29,6 +40,14 @@
       justify-content: space-between;
       padding: 10px 20px;
       font-size: $font14;
+
+      .closeIcon {
+        background: url(../images/close.svg) no-repeat scroll 0 5px;
+        width: 10px;
+        height: 15px;
+        text-indent: -999px;
+        display: inline-block;
+      }
     }
   }
 

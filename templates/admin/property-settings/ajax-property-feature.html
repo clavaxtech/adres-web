@@ -8,19 +8,41 @@
       </div>
 
       <div class="block">
+        <form action="" class="search-field last top_search">
+            <div class="search-icon"><i class="fas fa-search" aria-hidden="true" role="presentation"></i></div>
+            <input type="text" id="search" class="form-control input-sm" aria-label="Search" placeholder="Search for..." value="{{search}}" aria-label="Search for ...">
+            <button class="btn btn-primary btn-xs searchBtn"  type="submit" aria-label="Go">Go!</button>
+        </form>
+      </div>
+
+      <div class="block filters">
         <ul>
           <li>
-            <form action="" class="search-field last top_search">
-                <div class="search-icon"><i class="fas fa-search" aria-hidden="true" role="presentation"></i></div>
-                <input type="text" id="search" class="form-control input-sm" aria-label="Search" placeholder="Search for..." value="{{search}}" aria-label="Search for ...">
-                <button class="btn btn-primary btn-xs searchBtn"  type="submit" aria-label="Go">Go!</button>
-            </form>
+            <select class="form-control" aria-label="Asset Types" name="asset_id" id="asset_id" required="required">
+              <option value="" {% if asset_id == '' %}selected="selected" {% endif %} >Asset Types</option>
+              {% for data in asset_data %}
+              <option value="{{data.id}}" {% if asset_id and asset_id == data.id %} selected="selected" {% endif %} >{{data.name}}</option>
+              {% endfor %}
+            </select>
+          </li>
+          <li>
+            <select class=" form-control" aria-label="Records" name="per_page_record" id="per_page_record">
+                  <option value="10" {% if page_size == 10%} selected {% endif %}>10 Records</option>
+                  <option value="20" {% if page_size == 20%} selected {% endif %}>20 Records</option>
+                  <option value="30" {% if page_size == 30%} selected {% endif %}>30 Records</option>
+                  <option value="40" {% if page_size == 40%} selected {% endif %}>40 Records</option>
+                  <option value="50" {% if page_size == 50%} selected {% endif %}>50 Records</option>
+            </select>
+          </li>
+          <li>
+            <a type="button" role="link" class="btn btn-primary btn-xs" tabindex="4" area-label="Add {{feature_type_name}}" title="Add {{feature_type_name}}" data-toggle="modal" data-target=".add-property-feature-modal" ><i class="fa fa-user-plus" aria-hidden="true" role="presentation"></i> Add {{feature_type_name}}</a>
           </li>
         </ul>
       </div>
+      
     </div>
 
-    <div class="listing-bottom">
+    <!-- <div class="listing-bottom">
       
       <div class="block">
         <select class="form-control" aria-label="Asset Types" name="asset_id" id="asset_id" required="required">
@@ -42,7 +64,7 @@
       <div class="block">
         <a type="button" role="link" class="btn btn-primary btn-xs" tabindex="4" area-label="Add {{feature_type_name}}" title="Add {{feature_type_name}}" data-toggle="modal" data-target=".add-property-feature-modal" ><i class="fa fa-user-plus" aria-hidden="true" role="presentation"></i> Add {{feature_type_name}}</a>
       </div>
-    </div>
+    </div> -->
     
     {% if messages %}
         {% for message in messages %}
@@ -54,7 +76,7 @@
     {% endif %}
 
     <div class="table-responsive">
-        <table class="table table-striped jambo_table bulk_action" cellpadding="0" cellspacing="0" width="100%" data-table="Property Feature Table" role="table">
+        <table class="table jambo_table bulk_action" cellpadding="0" cellspacing="0" width="100%" data-table="Property Feature Table" role="table">
             <thead>
             <tr class="headings" role="row">
                 <th class="column-title" role="columnheader" scope="col">ID </th>

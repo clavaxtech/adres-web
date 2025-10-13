@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """This file contains general view functions for this module
 """
+import os
 import re
 import json
 import time
@@ -41,6 +42,8 @@ from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
 from openpyxl.utils import get_column_letter
 from django.template.defaulttags import register
 from django.contrib.auth import logout
+import csv
+from dateutil import parser
 CACHE_TTL = getattr(settings, 'CACHE_TTL', DEFAULT_TIMEOUT)
 
 
@@ -65,10 +68,6 @@ def admin_login(request):
             }
             try:
                 response = call_api_post_method(payload, api_url)
-                # user_type = int(response_data['user_type'])
-                # if user_type not in [2, 5]:
-                #     return HttpResponseRedirect(site_detail['site_detail']['domain_react_url'])
-
                 if "error" in response and response['error'] == 0:
                     response_data = response['data']
                     expires_in = int(response_data['auth_token']['expires_in'])
@@ -79,8 +78,7 @@ def admin_login(request):
                     request.session['token'] = response_data['auth_token']
                     request.session['first_name'] = response_data['first_name']
                     request.session['user_type'] = response_data['user_type']
-                    request.session['is_admin'] = response_data['is_admin']
-                    request.session['is_admin'] = True if int(response_data['user_type']) == 2 or int(response_data['user_type']) == 5 or int(response_data['user_type']) == 4 else False
+                    request.session['is_admin'] = True if int(response_data['user_type']) in [2, 4, 5, 6] else False
                     request.session['is_broker'] = response_data['is_broker']
                     request.session['profile_image'] = response_data['profile_image']
                     request.session['user_type_name'] = response_data['user_type_name']
@@ -90,7 +88,17 @@ def admin_login(request):
                     request.session['is_first_admin_login'] = 0
                     request.session['is_free_plan'] = response_data['is_free_plan']
                     request.session['account_verification_type'] = response_data['account_verification_type']
-                    return HttpResponseRedirect('/admin/dashboard/')
+                    request.session['first_time_log_in'] = response_data['first_time_log_in']
+                    if int(response_data['user_type']) in [2, 4]:
+                        if response_data['first_time_log_in']:
+                            return HttpResponseRedirect('/admin/change-password/')
+                        else:
+                            return HttpResponseRedirect('/admin/dashboard/')
+                    else:
+                        if response_data['first_time_log_in']:
+                            return HttpResponseRedirect('/admin/change-password/')
+                        else:
+                            return HttpResponseRedirect('/admin/listing/')
                 else:
                     return HttpResponseRedirect('/') 
             except Exception as exp:
@@ -253,6 +261,9 @@ def dashboard(request):
 def dashboard_data(request):
     try:
         token = request.GET.get('token', None)
+        if request.session.get("user_type") not in [2, 4]:
+            return HttpResponseRedirect("/admin/listing/")
+        
         try:
             is_free = subdomain_admin_settings(request)
             if is_free['settings_data']['is_free']:
@@ -416,7 +427,8 @@ def admin_logout(request):
         for key in list(request.session.keys()):
             del request.session[key]
         request.session['is_admin'] = 1   
-        redirect_url = settings.FRONT_URL+"/logout"
+        # redirect_url = settings.FRONT_URL+"/logout"
+        redirect_url = settings.FRONT_URL+"/sign-in"
         return HttpResponseRedirect(redirect_url)
     except Exception as exp:
         http_host = request.META['HTTP_HOST']
@@ -503,7 +515,7 @@ def business_info(request):
                     'site_id': site_id,
                     'user_id': user_id,
                     'first_name': request.POST['business_first_name'],
-                    'last_name': request.POST['business_last_name'],
+                    # 'last_name': request.POST['business_last_name'],
                     'company_name': request.POST['company_name'],
                     'mobile_no': re.sub('\D', '', request.POST['business_mobile']),
                     'phone_no': re.sub('\D', '', request.POST['business_phone']),
@@ -512,6 +524,8 @@ def business_info(request):
                     'licence_no': request.POST['broker_license_no'],
                     'company_logo': request.POST['business_logo_img_id'] if 'business_logo_img_id' in request.POST and request.POST['business_logo_img_id'] != "" else None,
                     'country': request.POST['country'],
+                    'phone_country_code': request.POST['phone_country_code'],
+                    'mobile_country_code': request.POST['mobile_country_code'],
                 }
                 update_business_url = settings.API_URL + '/api-users/update-business-info/'
                 business_response = call_api_post_method(business_params, update_business_url, token)
@@ -953,15 +967,15 @@ def website(request):
         print(exp)
         return HttpResponse("Issue in views")
 
-@csrf_exempt
+# @csrf_exempt
 def developers(request):
     try:
-        print("Inside developer")
-        is_permission = check_permission(request, 1)
-        if not is_permission:
-            http_host = request.META['HTTP_HOST']
-            redirect_url = settings.URL_SCHEME + str(http_host)
-            return HttpResponseRedirect(redirect_url)
+        # print("Inside developer")
+        # is_permission = check_permission(request, 1)
+        # if not is_permission:
+        #     http_host = request.META['HTTP_HOST']
+        #     redirect_url = settings.URL_SCHEME + str(http_host)
+        #     return HttpResponseRedirect(redirect_url)
 
         try:
             site_detail = subdomain_site_details(request)
@@ -1075,7 +1089,7 @@ def developers(request):
         print(exp)
         return HttpResponse("Issue in views")
 
-@csrf_exempt
+# @csrf_exempt
 def sub_admin(request):
     try:
         is_permission = check_permission(request, 1)
@@ -1196,7 +1210,7 @@ def sub_admin(request):
         print(exp)
         return HttpResponse("Issue in views")        
 
-@csrf_exempt
+# @csrf_exempt
 def users(request):
     try:
         is_permission = check_permission(request, 4)
@@ -1258,17 +1272,19 @@ def users(request):
                 "status": status,
                 "search": user_search,
                 "verification_type": request.POST.get('verification_type', ""),
+                "admin_id": user_id,
             }
             sno = (int(page) - 1) * int(page_size) + 1
             list_url = settings.API_URL + '/api-users/subdomain-user-listing/'
             list_data = call_api_post_method(list_param, list_url, token)
-
+            
             if 'error' in list_data and list_data['error'] == 0:
                 user_listing = list_data['data']['data']
                 total = list_data['data']['total']
                 verified_count = list_data['data']['verified_count']
                 under_review_count = list_data['data']['under_review_count']
                 rejected_count = list_data['data']['rejected_count']
+                pending_count = list_data['data']['pending_count']
                 all_count = list_data['data']['all_count']
             else:
                 user_listing = []
@@ -1276,6 +1292,7 @@ def users(request):
                 verified_count = 0
                 under_review_count = 0
                 rejected_count = 0
+                pending_count = 0
                 all_count = 0
             context = {'user_list': user_listing, 'total': total, "azure_blob_url": settings.AZURE_BLOB_URL, 'sno': sno}
 
@@ -1295,7 +1312,7 @@ def users(request):
             data = {'user_listing_html': user_listing_html, 'status': 200, 'msg': '', 'error': 0, 'total': total,
                     "pagination_html": pagination_html, 'pagination_id': 'user_listing_pagination_list',
                       "verified_count": verified_count, "under_review_count": under_review_count, "rejected_count": rejected_count,
-                        "all_count": all_count}
+                        "pending_count": pending_count, "all_count": all_count}
             return JsonResponse(data)
         else:
             list_param = {
@@ -1304,18 +1321,19 @@ def users(request):
                 "page_size": page_size,
                 "status": [1],
                 "search": '',
-                "verification_type": "verified",
+                "verification_type": "all",
+                "admin_id": user_id,
             }
             sno = (int(page) - 1) * int(page_size) + 1
             list_url = settings.API_URL + '/api-users/subdomain-user-listing/'
             list_data = call_api_post_method(list_param, list_url, token)
-
             if 'error' in list_data and list_data['error'] == 0:
                 user_listing = list_data['data']['data']
                 total = list_data['data']['total']
                 verified_count = list_data['data']['verified_count']
                 under_review_count = list_data['data']['under_review_count']
                 rejected_count = list_data['data']['rejected_count']
+                pending_count = list_data['data']['pending_count']
                 all_count = list_data['data']['all_count']
             else:
                 user_listing = []
@@ -1323,6 +1341,7 @@ def users(request):
                 verified_count = 0
                 under_review_count = 0
                 rejected_count = 0
+                pending_count = 0
                 all_count = 0
             # ---------------Pagination--------
             pagination_html = ''
@@ -1334,7 +1353,7 @@ def users(request):
                                    "pagination_id": "user_listing_pagination_list"}
                 pagination_html = pagination_template.render(pagination_data)
             context = {'user_list': user_listing, 'total': total, "pagination_html": pagination_html,
-                       "pagination_id": "user_listing_pagination_list", "active_menu": "user setting", "active_submenu": "users", "state_list": state_list, "sno": sno, "verified_count": verified_count, "under_review_count": under_review_count, "rejected_count": rejected_count, "all_count": all_count}
+                       "pagination_id": "user_listing_pagination_list", "active_menu": "user setting", "active_submenu": "users", "state_list": state_list, "sno": sno, "verified_count": verified_count, "under_review_count": under_review_count, "rejected_count": rejected_count, "pending_count": pending_count, "all_count": all_count}
 
 
             return render(request, "admin/dashboard/users/view-users.html", context)
@@ -1342,7 +1361,7 @@ def users(request):
         print(exp)
         return HttpResponse("Issue in views")
 
-@csrf_exempt
+# @csrf_exempt
 def project_list(request):
     try:
         # listing_type = request.GET.get('auction_type', None)
@@ -1397,6 +1416,17 @@ def project_list(request):
             developer_list = auction_type_data['data']['data']
         except:
             developer_list = []
+
+        try:
+            param = {
+                'site_id': site_id,
+                "user_id": user_id,
+            }
+            api_url = settings.API_URL + '/api-users/employee-list/'
+            response = call_api_post_method(param, api_url, token)
+            employee_list = response['data']
+        except:
+            employee_list = []    
         
         page_size = 10
         if request.is_ajax() and request.method == 'POST':
@@ -1437,7 +1467,8 @@ def project_list(request):
                 "search": search,
                 "status": status,
                 "developer_id": developer,
-                "project_status": project_status
+                "project_status": project_status,
+                "employee_id": request.POST.get('employee_id', "")
             }
             list_url = settings.API_URL + '/api-project/project-listing/'
             list_data = call_api_post_method(list_param, list_url, token)
@@ -1466,7 +1497,7 @@ def project_list(request):
                 pagination_html = pagination_template.render(pagination_data)
 
             data = {'project_listing_html': project_listing_html, 'status': 200, 'msg': '', 'error': 0, 'total': total,
-                    "pagination_html": pagination_html, 'pagination_id': 'proj_listing_pagination_list', "sno": sno, "page": page, 'status': status}
+                    "pagination_html": pagination_html, 'pagination_id': 'proj_listing_pagination_list', "sno": sno, "page": page, 'status': status, "developer_id": developer}
             return JsonResponse(data)
         else:
             page = 1
@@ -1480,12 +1511,12 @@ def project_list(request):
                 "user_id": user_id,
                 "project_type": "",
                 "search": search,
-                "status": status
+                "status": 1 if "d_i" not in request.GET and "e_i" not in request.GET else "",
+                "developer_id": request.GET.get("d_i", ""),
+                "employee_id": request.GET.get("e_i", "")
             }
-
             asset_type_id = ''
             project_param['asset_id'] = ''
-
             project_url = settings.API_URL + '/api-project/project-listing/'
             project_data = call_api_post_method(project_param, project_url, token)
 
@@ -1528,18 +1559,22 @@ def project_list(request):
                 "is_broker": is_broker,
                 "sno": sno,
                 "project_type": "",
-                "status": int(status) if status else "",
+                # "status": int(status) if status else "",
+                "status": "" if "d_i" in request.GET or "e_i" in request.GET else 1,
                 "search": search,
                 "page_size": int(page_size),
-                "user_domain": user_domain
+                "user_domain": user_domain,
+                "developer_id": int(request.GET.get("d_i", "")) if "d_i" in request.GET else "",
+                "employee_list": employee_list,
+                "employee_id": int(request.GET.get("e_i", "")) if "e_i" in request.GET else "",
             }
             return render(request, "admin/dashboard/developer_project/project-list.html", context)
     except Exception as exp:
         print(exp)
-        return (HttpResponse("Issue in views")
+        return (HttpResponse("Issue in views"))
 
 
-@csrf_exempt)
+@csrf_exempt
 def add_project_info(request):
     project_id = request.GET.get('project_id', None)
     is_permission = check_permission(request, 6)
@@ -1562,6 +1597,9 @@ def add_project_info(request):
             project_type_list = []
 
         country_id = 4
+        state_id = ""
+        municipality_id = ""
+        district_id = ""
         if project_id is not None:
             project_detail_param = {"site_id": site_id, "project_id": project_id, "step_id": 1}
             project_detail_url = settings.API_URL + '/api-project/developer-project-detail/'
@@ -1570,7 +1608,9 @@ def add_project_info(request):
             try:
                 project_details = project_detail_data['data']
                 country_id = project_details['country']
-
+                state_id = project_details['city']
+                municipality_id = project_details['municipality']
+                district_id = project_details['district']
                 project_details['project_type'] = [int(item['feature_id']) for item in
                                                     project_details['project_type'] if
                                                                  'project_type' in project_details and len(
@@ -1586,6 +1626,9 @@ def add_project_info(request):
         else:
             project_details = {}
             country_id = 4
+            state_id = ""
+            municipality_id = ""
+            district_id = ""
 
         try:
             status_url = settings.API_URL + '/api-settings/lookup-developer-project-status-listing/'
@@ -1611,6 +1654,46 @@ def add_project_info(request):
             country_list = []
 
         try:
+            url = settings.API_URL + '/api-settings/get-munciplity/'
+            params = {
+                'state_id': state_id
+            }
+            response = call_api_post_method(params, url, token)
+            if "error" in response and response['error'] == 0:
+                municipality = response['data']
+            else:
+                municipality = []
+        except:
+            municipality = []
+
+        try:
+            params = {
+                'municipality_id': municipality_id
+            }
+            url = settings.API_URL + '/api-settings/get-district/'
+            response = call_api_post_method(params, url, token)
+            if "error" in response and response['error'] == 0:
+                district = response['data']
+            else:
+                district = []
+        except:
+            district = []     
+
+        
+        try:
+            params = {
+                'district_id': district_id
+            }
+            url = settings.API_URL + '/api-settings/get-community/'
+            response = call_api_post_method(params, url, token)
+            if "error" in response and response['error'] == 0:
+                community = response['data']
+            else:
+                community = []
+        except:
+            community = []
+
+        try:
             facility_api_url = settings.API_URL + '/api-project/get-facility/'
             facility_data = call_api_post_method({}, facility_api_url)
             facilities = facility_data['data']
@@ -1629,6 +1712,9 @@ def add_project_info(request):
             "active_menu": "developer-project",
             "active_submenu": "developer-project-info",
             "state_list": state_list,
+            "district": district,
+            "municipality": municipality,
+            "community": community,
             "project_type_list": project_type_list,
             "project_details": project_details,
             "project_status_list": project_status_list,
@@ -1637,6 +1723,7 @@ def add_project_info(request):
             "facilities": facilities,
             "status_list": status_list
         }
+
         return render(request, "admin/dashboard/developer_project/add-project-info.html", context)
     except Exception as exp:
         print(exp)
@@ -1688,18 +1775,21 @@ def save_project(request):
                 starting_price = None
                 if 'starting_price' in request.POST and request.POST['starting_price'] != "" and request.POST['starting_price'] != "$":
                     starting_price = float(request.POST['starting_price'].replace(',', '').replace('$', ''))
-
                 project_param = {
                     "site_id": site_id,
                     "step": request.POST['step'],
                     "user_id": user_id,
                     "project_id": project_id,
                     "project_name": request.POST['project_name'] if 'project_name' in request.POST and request.POST['project_name'] != "" else None,
+                    "project_name_ar": request.POST['project_name_ar'] if 'project_name_ar' in request.POST and request.POST['project_name_ar'] != "" else None,
                     'project_type': request.POST.getlist('project_type') if 'project_type' in request.POST else [],
                     'country': request.POST['country'] if 'country' in request.POST and request.POST['country'] != "" else None,
                     "city": request.POST['city'] if 'city' in request.POST and request.POST['city'] != "" else None,
+                    'municipality': request.POST['municipality'] if 'municipality' in request.POST and request.POST['municipality'] != "" else None,
+                    'district': request.POST['district'] if 'district' in request.POST and request.POST['district'] != "" else None,
                     "neighborhood": request.POST['neighborhood'] if 'neighborhood' in request.POST and request.POST['neighborhood'] != "" else None,
-                    "community": request.POST['community'] if 'community' in request.POST and request.POST['community'] != "" else None,
+                    # "community": request.POST['community'] if 'community' in request.POST and request.POST['community'] != "" else None,
+                    'community': request.POST.get('community_data', "") if request.POST.get('city', 0) == '83' else request.POST.get('community', ""),
                     "address_one": request.POST['address_one'] if 'address_one' in request.POST and request.POST['address_one'] != "" else None,
                     "postal_code": request.POST['postal_code'] if 'postal_code' in request.POST and request.POST['postal_code'] != "" else None,
                     "registration_number": request.POST['registration_number'] if 'registration_number' in request.POST and request.POST['registration_number'] != "" else None,
@@ -1712,8 +1802,10 @@ def save_project(request):
                     "units_type": request.POST['units_type'] if 'units_type' in request.POST and request.POST['units_type'] != "" else None,
                     "property_size": request.POST['property_size'] if 'property_size' in request.POST and request.POST['property_size'] != "" else None,
                     "project_desc": request.POST['project_desc'] if 'project_desc' in request.POST and request.POST['project_desc'] != "" else None,
+                    "project_desc_ar": request.POST['project_desc_ar'] if 'project_desc_ar' in request.POST and request.POST['project_desc_ar'] != "" else None,
                     'project_status': request.POST['project_status'] if 'project_status' in request.POST and request.POST['project_status'] != "" else None,
-                    'status': request.POST['status'] if 'status' in request.POST and request.POST['status'] else "",
+                    'status': request.POST['main_project_status'] if 'main_project_status' in request.POST and request.POST['main_project_status'] != "" else None,
+                    # 'status': request.POST['status'] if 'status' in request.POST and request.POST['status'] else "",
                     'is_approved': request.POST['is_approved'] if 'is_approved' in request.POST and request.POST['is_approved'] else "",
                     "is_featured" : request.POST['is_featured'] if 'is_featured' in request.POST and request.POST['is_featured'] != "" else 0,
                 }
@@ -1785,11 +1877,10 @@ def save_project(request):
                         'floor_plan_img_id': request.POST.getlist('floor_plan_img_id[]')
                     }
                 }
-
             project_url = settings.API_URL + '/api-project/add-developer-project/'
             project_data = call_api_post_method(project_param, project_url, token)
             if 'error' in project_data and project_data['error'] == 0:
-                data = {'status': 200, 'data': project_data, 'error': 0, "next_url": next_url, "msg": "Project saved successfully", "project_id": project_id}
+                data = {'status': 200, 'data': project_data, 'error': 0, "next_url": next_url, "msg": "Project saved successfully", "project_id": project_id, "step": request.POST.get('step', "")}
             else:
                 data = {'status': 403, 'data': project_data, 'error': 1, "next_url": "", "msg": "Some error occurs, please try again", "project_id": ""}
         else:
@@ -1821,16 +1912,17 @@ def project_map_view(request):
             property_address = ''
             try:
                 project_details = project_detail_data['data']
+                # if 'project_name' in project_details and project_details['project_name'] != "":
+                #     project_address = project_details['project_name']
+
                 if 'address_one' in project_details and project_details['address_one'] != "":
-                    project_address = project_details['address_one']
-                # if 'address_two' in property_details and property_details['address_two'] is not None and property_details['address_two'] != "":
-                #     property_address = property_address+','+property_details['address_two']
+                    project_address = project_details['address_one']    
+                
                 if 'city' in project_details and project_details['city'] is not None and project_details['city'] != "":
-                    project_address = project_address+','+project_details['city']
-                # if 'state' in property_details and property_details['state'] is not None and property_details['state'] != "":
-                #     property_address = property_address+','+property_details['state']
-                # if 'postal_code' in property_details and property_details['postal_code'] is not None and property_details['postal_code'] != "":
-                #     property_address = property_address+','+property_details['postal_code']
+                    project_address += ','+project_details['city']
+                
+                if 'country_name' in project_details and project_details['country_name'] is not None and project_details['country_name'] != "":
+                    project_address += ',' + project_details['country_name']
             except:
                 project_details = {}
 
@@ -1945,7 +2037,7 @@ def project_photo_video(request):
         print(exp)
         return HttpResponse("Issue in views")
 
-@csrf_exempt
+# @csrf_exempt
 def save_project_video(request):
     try:
         if request.is_ajax() and request.method == 'POST':
@@ -2109,7 +2201,7 @@ def change_project_approval_status(request):
         data = {'status': 403, 'approval_id': '', 'approval_name': '', 'error': 1, 'msg': 'Some error occurs, please try again'}
         return JsonResponse(data)
 
-@csrf_exempt
+# @csrf_exempt
 def listing(request):
     try:
         listing_type = request.GET.get('auction_type', None)
@@ -2147,6 +2239,47 @@ def listing(request):
             auction_type_list = []
 
         try:
+            param = {"site_id": site_id, "user_id": user_id}
+            api_url = settings.API_URL + '/api-project/project-list/'
+            response = call_api_post_method(param, api_url, token)
+            project_list = response['data']
+        except:
+            project_list = []
+
+        try:
+            param = {
+                'site_id': site_id,
+                "user_id": user_id,
+            }
+            api_url = settings.API_URL + '/api-users/employee-list/'
+            response = call_api_post_method(param, api_url, token)
+            employee_list = response['data']
+        except:
+            employee_list = []
+
+        try:
+            param = {
+                'site_id': site_id,
+                "user_id": user_id,
+            }
+            api_url = settings.API_URL + '/api-users/seller-list/'
+            response = call_api_post_method(param, api_url, token)
+            seller_list = response['data']
+        except:
+            seller_list = []    
+
+        try:
+            param = {
+                'site_id': site_id,
+                "user_id": user_id,
+            }
+            api_url = settings.API_URL + '/api-users/sub-admin-list/'
+            response = call_api_post_method(param, api_url, token)
+            sub_admin_list = response['data']
+        except:
+            sub_admin_list = []            
+
+        try:
             asset_listing_params = {}
 
             asset_listing_url = settings.API_URL + '/api-property/asset-listing/'
@@ -2181,6 +2314,14 @@ def listing(request):
             status_list = status_data['data']
         except:
             status_list = []
+
+        try:
+            status_param = {'object_id': 14}
+            status_url = settings.API_URL + '/api-settings/lookup-status-listing/'
+            status_data = call_api_post_method(status_param, status_url, token)
+            closing_status_list = status_data['data']
+        except:
+            closing_status_list = []  
 
         page_size = 10
         if request.is_ajax() and request.method == 'POST':
@@ -2233,11 +2374,15 @@ def listing(request):
                 "property_type": property_type,
                 "search": search,
                 "status": status,
+                "closing_status": request.POST.get('closing_status', ''),
                 "agent_id": agent,
                 "developer_id": developer,
-                "property_approval": property_approval
+                "property_approval": property_approval,
+                "project_id": request.POST['project_id'],
+                "employee_id": request.POST.get('employee_id', ''),
+                "seller_id": request.POST.get('seller_id', ''),
+                "sub_admin_id": request.POST.get('sub_admin_id', ''),
             }
-
             list_url = settings.API_URL + '/api-property/property-listing/'
             list_data = call_api_post_method(list_param, list_url, token)
 
@@ -2250,7 +2395,7 @@ def listing(request):
                 total = 0
                 user_domain = ""
             sno = (int(page) - 1) * int(page_size) + 1
-            context = {'property_list': property_listing, 'total': total, "azure_blob_url": settings.AZURE_BLOB_URL, "is_broker": is_broker, 'status_list': status_list, "sno": sno, "auction_id": auction_type, "user_domain": user_domain}
+            context = {'property_list': property_listing, 'total': total, "azure_blob_url": settings.AZURE_BLOB_URL, "is_broker": is_broker, 'status_list': status_list, "sno": sno, "auction_id": auction_type, "user_domain": user_domain, "request": request}
 
             property_listing_path = 'admin/dashboard/listings/property_listing_content.html'
             property_listing_template = get_template(property_listing_path)
@@ -2284,8 +2429,12 @@ def listing(request):
                 "asset_id": "",
                 "property_type": "",
                 "search": search,
-                "status": status,
+                "status": status if "p_i" not in request.GET and "d_i" not in request.GET else "",
                 "agent_id": agent,
+                "project_id": request.GET.get('p_i', ''),
+                "developer_id": request.GET.get('d_i', ''),
+                "employee_id": request.GET.get('e_i', ''),
+                "sub_admin_id": request.GET.get('s_i', ''),
             }
             if listing_type and listing_type.lower() == 'traditional offer':
                 auction_id = 4
@@ -2374,7 +2523,18 @@ def listing(request):
                 "page_size": int(page_size),
                 "agent": int(agent) if agent else "",
                 "user_domain": user_domain,
-                "developer_list": developer_list
+                "developer_list": developer_list,
+                "project_list": project_list,
+                "project_id": int(request.GET.get('p_i', '')) if "p_i" in request.GET else "",
+                "developer_id": int(request.GET.get('d_i', '')) if "d_i" in request.GET else "",
+                "employee_id": int(request.GET.get('e_i', '')) if "e_i" in request.GET else "",
+                "seller_id": int(request.GET.get('sl_i', '')) if "sl_i" in request.GET else "",
+                "status_id": "" if "p_i" in request.GET or "d_i" in request.GET or "e_i" in request.GET or "s_i" in request.GET else 1,
+                "employee_list": employee_list,
+                "sub_admin_list": sub_admin_list,
+                "sub_admin_id": int(request.GET.get('s_i', '')) if "s_i" in request.GET else "",
+                "seller_list": seller_list,
+                "closing_status_list": closing_status_list,
             }
             return render(request, "admin/dashboard/listings/property-listing.html", context)
     except Exception as exp:
@@ -2907,6 +3067,8 @@ def save_images(request):
                     params['file_size'] = upload_size
                     params['upload_date'] = upload_date
                     params['upload_to'] = upload_to
+                    filename = response['file_name']
+                    params['ext'] = os.path.splitext(filename)[1].lower()
                 else:
                     params['file_name'] = response['file_name']
                     params['error'] = 1
@@ -2915,6 +3077,7 @@ def save_images(request):
                     params['file_size'] = '0MB'
                     params['upload_date'] = ''
                     params['upload_to'] = upload_to
+                    params['ext'] = ""
 
                 uploaded_file_list.append(params)
         else:
@@ -2948,6 +3111,8 @@ def save_images(request):
                 params['file_size'] = upload_size
                 params['upload_date'] = upload_date
                 params['upload_to'] = upload_to
+                filename = response['file_name']
+                params['ext'] = os.path.splitext(filename)[1].lower()
             else:
                 params['file_name'] = response['file_name']
                 params['error'] = 1
@@ -2956,6 +3121,7 @@ def save_images(request):
                 params['file_size'] = '0MB'
                 params['upload_date'] = ''
                 params['upload_to'] = upload_to
+                params['ext'] = ""
             uploaded_file_list.append(params)
 
 
@@ -3392,16 +3558,7 @@ def save_website_setting(request):
         return JsonResponse(data)
 
 def add_developer(request):
-    is_permission = check_permission(request, 1)
-    if not is_permission:
-        http_host = request.META['HTTP_HOST']
-        redirect_url = settings.URL_SCHEME + str(http_host)
-        return HttpResponseRedirect(redirect_url)
     agent_id = request.GET.get('id', None)
-    if not request.is_ajax() and agent_id is None and request.session['is_broker'] == False:
-        http_host = request.META['HTTP_HOST']
-        redirect_agent = settings.URL_SCHEME +str(http_host)+'/admin/developers/'
-        return HttpResponseRedirect(redirect_agent)
     try:
         site_detail = subdomain_site_details(request)
         site_id = site_detail['site_detail']['site_id']
@@ -3426,10 +3583,12 @@ def add_developer(request):
         try:
             agent_detail_param = {
                 'site_id': site_id,
-                'user_id': agent_id
+                'user_id': agent_id,
+                "admin_id": user_id,
             }
             agent_detail_url = settings.API_URL + '/api-users/subdomain-agent-detail/'
             agent_detail_data = call_api_post_method(agent_detail_param, agent_detail_url, token)
+            # print(agent_detail_data)
             if 'error' in agent_detail_data and agent_detail_data['error'] == 1 and agent_id:
 
                 http_host = request.META['HTTP_HOST']
@@ -3447,15 +3606,17 @@ def add_developer(request):
             agent_params = {
                 'site_id': site_id,
                 'first_name': request.POST['agent_first_name'],
-                'last_name': request.POST['agent_last_name'],
+                'first_name_ar': request.POST['agent_first_name_ar'],
                 'email': request.POST['user_email'],
                 'phone_no': re.sub('\D', '', request.POST['usr_phone_no']),
                 'address_first': request.POST['agent_address'],
-                'postal_code': request.POST['zip_code'],
+                # 'postal_code': request.POST['zip_code'],
                 'state': request.POST['agent_state'],
                 'status': request.POST['agent_status'],
                 'profile_image': request.POST['agent_img_id'] if 'agent_img_id' in request.POST and request.POST['agent_img_id'] != "" else "",
-                'permission': [2, 4, 6, 18, 21],
+                'permission': [2, 27, 6, 18, 21, 24, 25],
+                'admin_id': user_id,
+                'phone_country_code': request.POST['phone_country_code'],
             }
 
             if request.POST['agent_id']:
@@ -3521,7 +3682,8 @@ def add_sub_admin(request):
         try:
             agent_detail_param = {
                 'site_id': site_id,
-                'user_id': agent_id
+                'user_id': agent_id,
+                "admin_id": user_id,
             }
             agent_detail_url = settings.API_URL + '/api-users/sub-admin-detail/'
             agent_detail_data = call_api_post_method(agent_detail_param, agent_detail_url, token)
@@ -3529,7 +3691,7 @@ def add_sub_admin(request):
 
                 http_host = request.META['HTTP_HOST']
                 redirect_url = settings.URL_SCHEME + str(http_host)
-                return HttpResponseRedirect(redirect_url+'/admin/agents/')
+                return HttpResponseRedirect(redirect_url+'/admin/sub-admin/')
 
             agent_details = agent_detail_data['data']
             agent_id = agent_details['id']
@@ -3551,25 +3713,24 @@ def add_sub_admin(request):
             agent_params = {
                 'site_id': site_id,
                 'first_name': request.POST['agent_first_name'],
-                'last_name': request.POST['agent_last_name'],
+                'first_name_ar': request.POST['agent_first_name_ar'],
                 'email': request.POST['user_email'],
                 'phone_no': re.sub('\D', '', request.POST['usr_phone_no']),
-                # 'company_name': request.POST['agent_company'],
                 'address_first': request.POST['agent_address'],
-                'postal_code': request.POST['zip_code'],
+                # 'postal_code': request.POST['zip_code'],
                 # 'licence_no': request.POST['agent_license_no'],
                 'state': request.POST['agent_state'],
                 'status': request.POST['agent_status'],
                 'profile_image': request.POST['agent_img_id'] if 'agent_img_id' in request.POST and request.POST['agent_img_id'] != "" else "",
                 'permission': permission_list,
-                # 'company_logo': request.POST['agent_logo_img_id'] if 'agent_logo_img_id' in request.POST and request.POST['agent_logo_img_id'] != "" else "",
+                "admin_id": user_id,
+                'phone_country_code': request.POST['phone_country_code'],
             }
 
             if request.POST['agent_id']:
                 agent_params['user_id'] = request.POST['agent_id']
                 agent_url = settings.API_URL + '/api-users/sub-admin-update/'
             else:
-                # agent_url = settings.API_URL + '/api-users/create-agent/'
                 agent_url = settings.API_URL + '/api-users/create-sub-admin/'
 
             agent_response = call_api_post_method(agent_params, agent_url, token)
@@ -3587,7 +3748,7 @@ def add_sub_admin(request):
                 }
             return JsonResponse(response)
 
-        already_checked_permission = [4, 7, 11, 6]
+        already_checked_permission = [4, 7, 11, 6, 25]
         context = {"active_menu": "agent", "state_list": state_list, 'agent_details': agent_details, 'permission_list': permission_list, 'checked_permission': already_checked_permission}
         return render(request, "admin/dashboard/sub-admin/add-sub-admin.html", context)
     except Exception as exp:
@@ -3680,6 +3841,91 @@ def delete_agent(request):
         print(exp)
         data = {'status': 403, 'msg': 'invalid request.', 'user_list': []}
         return JsonResponse(data)
+
+@csrf_exempt
+def delete_sub_admin(request):
+    try:
+        if request.is_ajax() and request.method == 'POST':
+            site_detail = subdomain_site_details(request)
+            site_id = site_detail['site_detail']['site_id']
+            params = {
+                'site_id': site_id,
+                'user_id': request.POST['user_id'],
+                'deleted_by': request.session['user_id']
+            }
+            agent_search = ''
+            if 'search' in request.POST and request.POST['search']:
+                agent_search = request.POST['search']
+            page = 1
+            if 'page' in request.POST and request.POST['page'] != "":
+                page = request.POST['page']
+
+            page_size = 10
+            if 'perpage' in request.POST and request.POST['perpage']:
+                page_size = request.POST['perpage']
+
+            if 'status' in request.POST and request.POST['status'] and request.POST['status'] and request.POST[
+                'status'].lower() == 'active':
+                status = [1]
+            elif 'status' in request.POST and request.POST['status'] and request.POST['status'] and request.POST[
+                'status'].lower() == 'inactive':
+                status = [2]
+            else:
+                status = [2, 1]
+
+            token = request.session['token']['access_token']
+            user_id = request.session['user_id']
+            url = settings.API_URL + '/api-users/subdomain-delete-sub-admin/'
+            data = call_api_post_method(params, url, token)
+            user_list = []
+            if 'error' in data and data['error'] == 0:
+                list_param = {
+                    'site_id': site_id,
+                    "page": page,
+                    "user_id": user_id,
+                    "page_size": page_size,
+                    "status": status,
+                    "search": agent_search
+                }
+                sno = (int(page) - 1) * int(page_size) + 1
+                list_url = settings.API_URL + '/api-users/sub-admin-listing/'
+                list_data = call_api_post_method(list_param, list_url, token)
+
+                if 'error' in list_data and list_data['error'] == 0:
+                    agent_list = list_data['data']['data']
+                    total = list_data['data']['total']
+                else:
+                    agent_list = []
+                    total = 0
+                context = {'agent_list': agent_list, 'total': total, "azure_blob_url": settings.AZURE_BLOB_URL, 'sno': sno}
+
+                agent_listing_path = 'admin/dashboard/sub-admin/sub-admin-listing-content.html'
+                agent_listing_template = get_template(agent_listing_path)
+                agent_listing_html = agent_listing_template.render(context)
+                # ---------------Pagination--------
+                pagination_path = 'admin/dashboard/sub-admin/pagination.html'
+                pagination_template = get_template(pagination_path)
+                total_page = math.ceil(int(total) / int(page_size))
+                pagination_html = ''
+                if total_page > 1:
+                    pagination_data = {"no_page": int(total_page), "total_page": range(total_page),
+                                       "current_page": int(page),
+                                       "pagination_id": "agent_listing_pagination_list"}
+                    pagination_html = pagination_template.render(pagination_data)
+
+                data = {'agent_listing_html': agent_listing_html, 'status': 200, 'msg': 'Deleted successfully', 'error': 0, 'total': total,
+                        "pagination_html": pagination_html, 'pagination_id': 'agent_listing_pagination_list'}
+
+            else:
+                data = {'error': 1, 'status': 403, 'msg': 'Server error, Please try again'}
+        else:
+            data = {'error': 1, 'status': 403, 'msg': 'Forbidden'}
+
+        return JsonResponse(data)
+    except Exception as exp:
+        print(exp)
+        data = {'status': 403, 'msg': 'invalid request.', 'user_list': []}
+        return JsonResponse(data)        
 
 @csrf_exempt
 def get_agent_details(request):
@@ -3849,11 +4095,11 @@ def reset_user_password(request):
         return JsonResponse(data)
 
 def add_article(request):
-    is_permission = check_permission(request, 11)
-    if not is_permission:
-        http_host = request.META['HTTP_HOST']
-        redirect_url = settings.URL_SCHEME + str(http_host)
-        return HttpResponseRedirect(redirect_url)
+    # is_permission = check_permission(request, 11)
+    # if not is_permission:
+    #     http_host = request.META['HTTP_HOST']
+    #     redirect_url = settings.URL_SCHEME + str(http_host)
+    #     return HttpResponseRedirect(redirect_url)
     article_id = request.GET.get('id', None)
     try:
         site_detail = subdomain_site_details(request)
@@ -3864,7 +4110,8 @@ def add_article(request):
         try:
             article_detail_param = {
                 'site_id': site_id,
-                'article_id': article_id
+                'article_id': article_id,
+                'user_id': request.session['user_id'],
             }
             article_detail_url = settings.API_URL + '/api-users/article-detail/'
             article_detail_data = call_api_post_method(article_detail_param, article_detail_url, token)
@@ -3894,12 +4141,13 @@ def add_article(request):
             asset_list = {}
 
         if request.is_ajax() and request.method == 'POST':
-
             article_params = {
                 'site_id': site_id,
                 'user_id': user_id,
                 'title': request.POST['article_title'],
+                'title_ar': request.POST['article_title_ar'],
                 'description': request.POST['article_description'],
+                'description_ar': request.POST['article_description_ar'],
                 'author_name': request.POST['author_name'],
                 'author_image': request.POST['article_author_image_id'],
                 'upload': request.POST['article_image_id'],
@@ -3931,13 +4179,13 @@ def add_article(request):
         print(exp)
         return HttpResponse("Issue in views")
 
-@csrf_exempt
+# @csrf_exempt
 def articles(request):
-    is_permission = check_permission(request, 11)
-    if not is_permission:
-        http_host = request.META['HTTP_HOST']
-        redirect_url = settings.URL_SCHEME + str(http_host)
-        return HttpResponseRedirect(redirect_url)
+    # is_permission = check_permission(request, 11)
+    # if not is_permission:
+    #     http_host = request.META['HTTP_HOST']
+    #     redirect_url = settings.URL_SCHEME + str(http_host)
+    #     return HttpResponseRedirect(redirect_url)
     page_size = request.GET.get('perpage', 10)
     status = request.GET.get('status', None)
     search = request.GET.get('search', None)
@@ -3975,7 +4223,8 @@ def articles(request):
                 "page": page,
                 "page_size": page_size,
                 "status": status,
-                "search": agent_search
+                "search": agent_search,
+                'user_id': request.session['user_id'],
             }
             list_url = settings.API_URL + '/api-users/article-listing/'
             list_data = call_api_post_method(list_param, list_url, token)
@@ -4001,7 +4250,8 @@ def articles(request):
                 'site_id': site_id,
                 "status": [1],
                 'page': 1,
-                'page_size': 10
+                'page_size': 10,
+                'user_id': request.session['user_id'],
             }
             sno = (int(page) - 1) * int(page_size) + 1
             article_list_url = settings.API_URL + '/api-users/article-listing/'
@@ -4032,15 +4282,17 @@ def articles(request):
         print(exp)
         return HttpResponse("Issue in views")
 
-@csrf_exempt
+# @csrf_exempt
 def edit_user_details(request):
     try:
         if request.is_ajax() and request.method == 'POST':
             site_detail = subdomain_site_details(request)
             site_id = site_detail['site_detail']['site_id']
+            user_id = request.session['user_id']
             params = {
                 'user_id': request.POST['user_id'],
-                'site_id': site_id
+                'site_id': site_id,
+                'admin_id': user_id,
             }
             token = request.session['token']['access_token']
             url = settings.API_URL + '/api-users/subdomain-user-detail/'
@@ -4061,16 +4313,18 @@ def save_user_details(request):
             site_detail = subdomain_site_details(request)
             site_id = site_detail['site_detail']['site_id']
             token = request.session['token']['access_token']
+            user_id = request.session['user_id']
 
             user_params = {
                 'site_id': site_id,
                 'user_id': request.POST['update_user_id'],
                 'first_name': request.POST['user_first_name'],
-                'last_name': request.POST['user_last_name'],
                 'email': request.POST['usr_email'],
                 'phone_no': re.sub('\D', '', request.POST['user_phone_no']),
                 'profile_image': request.POST['user_img_id'],
-                'status': request.POST['usr_status']
+                'status': request.POST['usr_status'],
+                'admin_id': user_id,
+                'phone_country_code': request.POST['phone_country_code'],
             }
 
             user_url = settings.API_URL + '/api-users/subdomain-user-update'
@@ -4139,7 +4393,7 @@ def delete_article(request):
         data = {'status': 403, 'msg': 'invalid request.', 'user_list': []}
         return JsonResponse(data)
 
-@csrf_exempt
+# @csrf_exempt
 def bidder_registration(request):
     try:
         try:
@@ -4236,13 +4490,13 @@ def bidder_registration(request):
                 'page_size': page_size,
                 'page': 1,
                 'asset_type': '',
-                'filter_data': 1,
+                'filter_data': 2,
                 'search': '',
             }
             sno = (int(page) - 1) * int(page_size) + 1
             api_url = settings.API_URL + '/api-bid/subdomain-bid-registration-listing/'
             bidder_data = call_api_post_method(params, api_url, token=token)
-            print(bidder_data)
+            # print(bidder_data)
             if 'error' in bidder_data and bidder_data['error'] == 0:
                 bidder_list = bidder_data['data']['data']
                 total = bidder_data['data']['total']
@@ -4268,7 +4522,7 @@ def bidder_registration(request):
         print(exp)
         return HttpResponse("Issue in views")
 
-@csrf_exempt
+# @csrf_exempt
 def user_search_suggestion(request):
     try:
         if request.is_ajax() and request.method == 'POST':
@@ -4297,7 +4551,7 @@ def user_search_suggestion(request):
         data = {'status': 403, 'suggestion_list': [], 'error': 1}
         return JsonResponse(data)
 
-@csrf_exempt
+# @csrf_exempt
 def agent_search_suggestion(request):
     try:
         if request.is_ajax() and request.method == 'POST':
@@ -4326,7 +4580,7 @@ def agent_search_suggestion(request):
         data = {'status': 403, 'suggestion_list': [], 'error': 1}
         return JsonResponse(data)
 
-@csrf_exempt
+# @csrf_exempt
 def sub_admin_search_suggestion(request):
     try:
         if request.is_ajax() and request.method == 'POST':
@@ -6564,7 +6818,7 @@ def get_address_detail_by_zipcode(request):
         return JsonResponse(data)
 
 
-@csrf_exempt
+# @csrf_exempt
 def contact_listing(request):
     try:
         is_permission = check_permission(request, 12)
@@ -6741,7 +6995,7 @@ def contact_search_suggestion(request):
         data = {'status': 403, 'suggestion_list': [], 'error': 1}
         return JsonResponse(data)
 
-@csrf_exempt
+# @csrf_exempt
 def blog_search_suggestion(request):
     try:
         if request.is_ajax() and request.method == 'POST':
@@ -6932,7 +7186,7 @@ def delete_project(request):
         data = {'status': 403, 'msg': 'invalid request.'}
         return JsonResponse(data)        
 
-@csrf_exempt
+# @csrf_exempt
 def save_listing_settings(request):
     try:
         if request.is_ajax() and request.method == 'POST':
@@ -6944,11 +7198,11 @@ def save_listing_settings(request):
                 "site_id": site_id,
                 "user_id": user_id,
                 "property_id": request.POST['property_id'] if 'property_id' in request.POST and request.POST['property_id'] != "" else "",
-                "time_flash": request.POST['timer_flash'],
-                "auto_approval": request.POST['auto_approval'],
+                # "time_flash": request.POST['timer_flash'],
+                # "auto_approval": request.POST['auto_approval'],
                 "autobid": int(request.POST['autobid']) if 'autobid' in request.POST and int(request.POST['autobid']) == 1 else 0,
                 "autobid_setup": 2,
-                "is_deposit_required": request.POST['is_deposit_required'],
+                # "is_deposit_required": request.POST['is_deposit_required'],
                 "show_reverse_not_met": request.POST['reserve_not_met'],
                 "is_log_time_extension": request.POST['is_log_time_extension'],
                 "log_time_extension": request.POST['log_time_extension'],
@@ -6956,11 +7210,11 @@ def save_listing_settings(request):
                 "service_fee": request.POST['service_fee'],
                 "auction_fee": request.POST['auction_fee']
             }
-            if int(request.POST['auto_approval']) == 1:
-                params['bid_limit'] = request.POST['bid_limit']
+            # if int(request.POST['auto_approval']) == 1:
+            #     params['bid_limit'] = request.POST['bid_limit']
 
-            if int(request.POST['is_deposit_required']) == 1:
-                params['deposit_amount'] = request.POST['listing_deposit_amount']    
+            # if int(request.POST['is_deposit_required']) == 1:
+            #     params['deposit_amount'] = request.POST['listing_deposit_amount']    
 
             if 'property_id' in request.POST and request.POST['property_id'] != "":
                 url = settings.API_URL + '/api-property/save-property-setting/'
@@ -6982,7 +7236,7 @@ def save_listing_settings(request):
         return JsonResponse(data)
 
 
-@csrf_exempt
+# @csrf_exempt
 def get_listing_settings(request):
     try:
         if request.is_ajax() and request.method == 'POST':
@@ -7392,7 +7646,7 @@ def get_chat_count(request):
         print(exp)
         return HttpResponse("Issue in views")
 
-@csrf_exempt
+# @csrf_exempt
 def bidder_registration_details(request):
     try:
         bidder_id = request.GET.get('id', None)
@@ -7416,27 +7670,27 @@ def bidder_registration_details(request):
             site_detail = subdomain_site_details(request)
             site_id = site_detail['site_detail']['site_id']
 
-            bidder_doc_id = request.POST['bidder_doc_id']
-            bidder_doc = []
-            try:
-                bidder_doc = bidder_doc_id.split(',')
+            # bidder_doc_id = request.POST['bidder_doc_id']
+            # bidder_doc = []
+            # try:
+            #     bidder_doc = bidder_doc_id.split(',')
 
-            except:
-                bidder_doc = []
+            # except:
+            #     bidder_doc = []
 
-            approval_limit = None
-            if 'approval_limit' in request.POST and request.POST['approval_limit']:
-                approval_limit = request.POST['approval_limit'].replace(',', '').replace('$', '')
+            # approval_limit = None
+            # if 'approval_limit' in request.POST and request.POST['approval_limit']:
+            #     approval_limit = request.POST['approval_limit'].replace(',', '').replace('$', '')
 
             bidder_params = {
                 "domain": site_id,
                 "registration_id": request.POST['reg_id'],
                 "user": user_id,
-                "uploads": bidder_doc,
-                "is_reviewed": request.POST['review_status'],
+                # "uploads": bidder_doc,
+                # "is_reviewed": request.POST['review_status'],
                 "is_approved": request.POST['apprvoal_status'],
                 "seller_comment": request.POST['note_for_buyer'],
-                "approval_limit": approval_limit,
+                # "approval_limit": approval_limit,
             }
 
             bidder_api_url = settings.API_URL + '/api-bid/update-subdomain-bid-registration/'
@@ -7712,7 +7966,7 @@ def bidder_registration_search_suggestion(request):
         return JsonResponse(data)
 
 
-@csrf_exempt
+# @csrf_exempt
 def property_bidder_registration(request):
     try:
         try:
@@ -7844,10 +8098,10 @@ def property_bidder_registration(request):
         return JsonResponse(data)
     except Exception as exp:
         print(exp)
-        return HttpResponse("Issue in views")
+        return HttpResponse("Issue in views")       
 
 
-@csrf_exempt
+# @csrf_exempt
 def property_bid_history(request):
     try:
         user_id = user_id = None
@@ -7900,6 +8154,7 @@ def property_bid_history(request):
             bid_history = call_api_post_method(params, api_url, token=token)
             temp_bid_history = call_api_post_method(temp_params, api_url, token=token)
             # print("temp_bid_history:", temp_bid_history)
+            
             try:
                 prop_detail = bid_history['data']['property_detail']
                 image = prop_detail['property_image']
@@ -7918,8 +8173,16 @@ def property_bid_history(request):
                 property_name = prop_detail['property_name']
                 property_community = prop_detail['community']
                 property_url_decorator = prop_detail['url_decorator']
-            except:
-                property_url_decorator = property_community = property_name = property_address = property_city = property_state = property_postal_code = property_image=auction_type=bid_increment=property_type=''
+                status_id = prop_detail['status_id']
+                closing_status_id = prop_detail['closing_status_id']
+                is_reserve_met = prop_detail['is_reserve_met']
+                number_bid = prop_detail['number_bid']
+                can_relist = prop_detail['can_relist']
+                payment_settled = prop_detail['payment_settled']
+            except Exception as e:
+                print(e)
+                payment_settled = is_reserve_met = can_relist = False
+                number_bid = closing_status_id = status_id = property_url_decorator = property_community = property_name = property_address = property_city = property_state = property_postal_code = property_image=auction_type=bid_increment=property_type=''
 
             if 'error' in bid_history and bid_history['error'] == 0:
                 total = bid_history['data']['total']
@@ -7945,7 +8208,7 @@ def property_bid_history(request):
             bidder_listing_path_temp = 'admin/dashboard/listings/print_new_property-bid-history.html'
             bidder_listing_template_temp = get_template(bidder_listing_path_temp)
             temp_bid_history_html = bidder_listing_template_temp.render(temp_context)
-            print("temp_bid_history_html:", temp_bid_history_html)
+            # print("temp_bid_history_html:", temp_bid_history_html)
             
             # ---------------Pagination--------
             # pagination_path = 'admin/dashboard/listings/bid-history-pagination.html'
@@ -7976,12 +8239,18 @@ def property_bid_history(request):
                 'property_id': property_id,
                 'page': page,
                 'page_size': page_size,
-                'bid_increment': f"{bid_increment:,}",
+                # 'bid_increment': f"{bid_increment:,}",
                 'property_type': property_type,
                 'domain_react_url': site_detail['site_detail']['domain_react_url'],
                 'property_name': property_name,
                 'property_community': property_community, 
                 'property_url_decorator': property_url_decorator,
+                'closing_status_id': closing_status_id,
+                'status_id': status_id,
+                'is_reserve_met': is_reserve_met,
+                'number_bid': number_bid,
+                'can_relist': can_relist,
+                'payment_settled': payment_settled
             }
         else:
             data = {'status': 403, 'msg': 'Forbidden', 'error': 1}
@@ -8497,7 +8766,7 @@ def save_cms(request):
         return JsonResponse(data)
 
 
-@csrf_exempt
+# @csrf_exempt
 def auction_dashboard(request):
     try:
         site_detail = subdomain_site_details(request)
@@ -8567,7 +8836,8 @@ def auction_dashboard(request):
                 'total': total,
                 "azure_blob_url": settings.AZURE_BLOB_URL,
                 "is_broker": 1 if request.session['is_broker'] == True else 0,
-                "sno": sno
+                "sno": sno,
+                "request": request,
             }
             prop_auction_path = 'admin/dashboard/auction/auction-listing-content.html'
             property_listing_template = get_template(prop_auction_path)
@@ -8693,7 +8963,7 @@ def auction_dashboard(request):
         return HttpResponse("Issue in views")
 
 
-@csrf_exempt
+# @csrf_exempt
 def auction_search_suggestion(request):
     try:
         if request.is_ajax() and request.method == 'POST':
@@ -8724,7 +8994,7 @@ def auction_search_suggestion(request):
         return JsonResponse(data)
 
 
-@csrf_exempt
+# @csrf_exempt
 def update_reserve_price(request):
     try:
         if request.is_ajax() and request.method == 'POST':
@@ -8755,7 +9025,7 @@ def update_reserve_price(request):
         return JsonResponse(data)
 
 
-@csrf_exempt
+# @csrf_exempt
 def update_bid_increment(request):
     try:
         if request.is_ajax() and request.method == 'POST':
@@ -8786,7 +9056,7 @@ def update_bid_increment(request):
         return JsonResponse(data)
 
 
-@csrf_exempt
+# @csrf_exempt
 def start_stop_bid_auction(request):
     try:
         if request.is_ajax() and request.method == 'POST':
@@ -8848,7 +9118,7 @@ def edit_auction(request):
         return JsonResponse(data)
 
 
-@csrf_exempt
+# @csrf_exempt
 def email_auction_users(request):
     try:
         if request.is_ajax() and request.method == 'POST':
@@ -8880,7 +9150,7 @@ def email_auction_users(request):
         return JsonResponse(data)
 
 
-@csrf_exempt
+# @csrf_exempt
 def auction_bid_history(request):
     try:
         user_id = None
@@ -8913,7 +9183,6 @@ def auction_bid_history(request):
                 'page': page,
                 'property_id': property_id,
             }
-
             api_url = settings.API_URL + '/api-bid/auction-total-bids/'
             bid_history = call_api_post_method(params, api_url, token=token)
             try:
@@ -8928,8 +9197,10 @@ def auction_bid_history(request):
                 property_state = prop_detail['state']
                 property_postal_code = prop_detail['postal_code']
                 property_image = image_url
+                community = prop_detail['community']
+                property_name = prop_detail['property_name']
             except:
-                property_address = property_city = property_state = property_postal_code = property_image=''
+                community = property_name = property_address = property_city = property_state = property_postal_code = property_image=''
 
             
             if 'error' in bid_history and bid_history['error'] == 0:
@@ -8971,6 +9242,9 @@ def auction_bid_history(request):
                 'property_image': property_image,
                 'page': page,
                 'property_id': property_id,
+                'community': community,
+                'property_name': property_name,
+
             }
         else:
             data = {'status': 403, 'msg': 'Forbidden', 'error': 1}
@@ -8980,7 +9254,7 @@ def auction_bid_history(request):
         return HttpResponse("Issue in views")
 
 
-@csrf_exempt
+# @csrf_exempt
 def auction_bidder_history(request):
     try:
         user_id = None
@@ -9028,8 +9302,10 @@ def auction_bidder_history(request):
                 property_state = prop_detail['state']
                 property_postal_code = prop_detail['postal_code']
                 property_image = image_url
+                community = prop_detail['community']
+                property_name = prop_detail['property_name']
             except:
-                property_address = property_city = property_state = property_postal_code = property_image=''
+                community = property_name = property_address = property_city = property_state = property_postal_code = property_image=''
 
             
             if 'error' in bidder_history and bidder_history['error'] == 0:
@@ -9070,6 +9346,8 @@ def auction_bidder_history(request):
                 'property_image': property_image,
                 'page': page,
                 'property_id': property_id,
+                'property_name': property_name,
+                'community': community,
             }
         else:
             data = {'status': 403, 'msg': 'Forbidden', 'error': 1}
@@ -9183,7 +9461,7 @@ def auction_watcher_history(request):
         return HttpResponse("Issue in views")
 
 
-@csrf_exempt
+# @csrf_exempt
 def new_bid_checked(request):
     try:
         if request.is_ajax() and request.method == 'POST':
@@ -10252,41 +10530,24 @@ def export_bid_history(request):
         # Get active worksheet/tab
         worksheet = workbook.active
         worksheet.title = 'Bid History'
-
-        # Define the titles for columns
-        # columns = [
-        #     '#',
-        #     'Bidder Name',
-        #     'Email',
-        #     'Phone',
-        #     'Start Bids',
-        #     'High Bids',
-        #     'Bids',
-        #     'IP Address',
-        #     'Bidding Date',
-        #     'Approval Status',
-        # ]
         prop_details = list_data['data']['property_detail']
         property_details = {
-            'Address': (prop_details.get('address_one', '') + " " + 
-            prop_details.get('city', '') + " " + 
-            prop_details.get('state', '') + " " + 
-            prop_details.get('postal_code', '')).strip(),
-            'Auction Type': prop_details.get('auction_type', 'N/A'),
-            'Property Type': prop_details.get('property_type', 'N/A'),
-            'Bid Increment': "${:,.2f}".format(prop_details.get('bid_increment', 0))
+            'Address': "",
+            'Auction Type': "",
+            'Property Type': "",
+            'Bid Increment': ""
             }
         row_num_prop = 1
         bold_font = Font(bold=True)
-        for detail, value in property_details.items():
-            cell_detail = worksheet.cell(row=row_num_prop, column=1, value=detail)
-            cell_detail.font = bold_font
-            worksheet.cell(row=row_num_prop, column=2, value=value)
+        # for detail, value in property_details.items():
+        #     cell_detail = worksheet.cell(row=row_num_prop, column=1, value=detail)
+        #     cell_detail.font = bold_font
+        #     worksheet.cell(row=row_num_prop, column=2, value=value)
     
-            row_num_prop += 1
+        #     row_num_prop += 1
     
         columns = [
-            '#',
+            'S.No',
             'Bidder Name',
             'Email',
             'Phone',
@@ -10295,7 +10556,7 @@ def export_bid_history(request):
             'Bidding Date',
         ]
 
-        row_num = 6
+        row_num = 1
         header_font = Font(name='Calibri', bold=True)
         # Assign the titles for each cell of the header
         for col_num, column_title in enumerate(columns, 1):
@@ -10307,50 +10568,24 @@ def export_bid_history(request):
         count = 0
         for bids in bid_history:
             row_num += 1
-
             phone_no = bids['bidder_detail']['phone_no']
-            # bid_amount = bids['bid_amount']
             formatted_phone_no = format_phone_number(phone_no)
-            # formatted_amount = format_currency(bid_amount)
-            # bid_date = bids['bid_time']
             bid_date = bids['bid_date']
-            bid_date_time = ''
-            if timezone:
-                try:
-                    added_on_time = time.mktime(
-                        datetime.datetime.strptime(bid_date, "%Y-%m-%dT%H:%M:%SZ").timetuple())
-                except ValueError:
-                    added_on_time = time.mktime(
-                        datetime.datetime.strptime(bid_date, "%Y-%m-%dT%H:%M:%S.%fZ").timetuple())
-                except:
-                    added_on_time = 0
-            if added_on_time:
-                added_on_time = float(added_on_time) - (float(timezone)*60)
-                bid_date_time = datetime.datetime.fromtimestamp(added_on_time)
-                bid_date_time = datetime.datetime.strftime(bid_date_time, "%m-%d-%Y %I:%M:%S %p")
-            # Define the data for each cell in the row
-            # row = [
-            #     sno,
-            #     bids['bidder_detail']['first_name']+' '+bids['bidder_detail']['last_name'],
-            #     bids['bidder_detail']['email'],
-            #     formatted_phone_no,
-            #     '$'+str(f"{formatted_amount:,}"),
-            #     bids['ip_address'],
-            #     bid_date_time,
-            # ]
+            dt = parser.isoparse(bid_date)
+            formatted_bid_date_time = dt.strftime('%y-%m-%d %H:%M:%S') 
+            bid_type = ""
+            if bids['is_forefit']:
+                bid_type = " (Forefit)"
+            elif bids['is_retracted']:
+                bid_type = " (Retracted)"
             row = [
                 sno,
-                bids['bidder_detail']['first_name'] + ' ' + bids['bidder_detail']['last_name'],
+                bids['bidder_detail']['first_name'] + bid_type,
                 bids['bidder_detail']['email'],
-                formatted_phone_no,
-                # '$' + str(f"{bids['start_bid']:,}"),
-                # '$' + str(f"{bids['max_bid']:,}"),
-                # bids['bids'],
-                bids['bid_amount'],
-                # bids['bidder_detail']['ip_address'],
+                phone_no,
+                "AED "+bids['bid_amount'],
                 bids['ip_address'],
-                bid_date_time,
-                # 'Approved'
+                formatted_bid_date_time,
             ]
             sno += 1
 
@@ -10358,10 +10593,7 @@ def export_bid_history(request):
             for col_num, cell_value in enumerate(row, 1):
                 cell = worksheet.cell(row=row_num, column=col_num)
                 cell.value = cell_value
-
-
         workbook.save(response)
-
         return response
     except Exception as exp:
         print(exp)
@@ -11687,7 +11919,7 @@ def export_bidder_list(request):
         response = HttpResponse(
             content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         )
-        response['Content-Disposition'] = 'attachment; filename={date}-bidder-list.xlsx'.format(
+        response['Content-Disposition'] = 'attachment; filename={date}-transaction-list.xlsx'.format(
             date=datetime.datetime.now().strftime('%Y-%m-%d'),
         )
         workbook = Workbook()
@@ -11698,15 +11930,14 @@ def export_bidder_list(request):
 
         # Define the titles for columns
         columns = [
-            'ID',
+            'S.No',
             'Buyer',
             'Email',
             'Phone',
-            'Reviewed',
-            'Approval',
+            'Amount',
+            'Approval Status',
             'IP Address',
-            'Registration Date',
-            'Last Updated',
+            'Txn Date',
         ]
         row_num = 1
         header_font = Font(name='Calibri', bold=True)
@@ -11723,62 +11954,26 @@ def export_bidder_list(request):
 
             phone_no = bidder['phone_no']
             formatted_phone_no = format_phone_number(phone_no)
-            bid_date = bidder['added_on']
-            bid_updated_date = bidder['updated_on']
-            bid_date_time = ''
-            bid_updated_date_time = ''
-            added_on_time = 0
-            updated_on_time = 0
-            if timezone:
-                try:
-                    added_on_time = time.mktime(
-                        datetime.datetime.strptime(bid_date, "%Y-%m-%dT%H:%M:%SZ").timetuple())
-                except ValueError:
-                    added_on_time = time.mktime(
-                        datetime.datetime.strptime(bid_date, "%Y-%m-%dT%H:%M:%S.%fZ").timetuple())
-                except:
-                    added_on_time = 0
-
-                try:
-                    updated_on_time = time.mktime(
-                        datetime.datetime.strptime(bid_updated_date, "%Y-%m-%dT%H:%M:%SZ").timetuple())
-                except ValueError:
-                    updated_on_time = time.mktime(
-                        datetime.datetime.strptime(bid_updated_date, "%Y-%m-%dT%H:%M:%S.%fZ").timetuple())
-                except:
-                    updated_on_time = 0
-
-            if added_on_time:
-                added_on_time = float(added_on_time) - (float(timezone)*60)
-                bid_date_time = datetime.datetime.fromtimestamp(added_on_time)
-                bid_date_time = datetime.datetime.strftime(bid_date_time, "%m-%d-%Y %I:%M %p")
-
-            if updated_on_time:
-                updated_on_time = float(updated_on_time) - (float(timezone)*60)
-                bid_updated_date_time = datetime.datetime.fromtimestamp(updated_on_time)
-                bid_updated_date_time = datetime.datetime.strftime(bid_updated_date_time, "%m-%d-%Y %I:%M %p")
+            added_on = bidder['added_on']
+            dt = parser.isoparse(added_on)
+            formatted_added_on = dt.strftime('%y-%m-%d %H:%M:%S')
             # Define the data for each cell in the row
             row = [
                 sno,
                 bidder['registrant'],
                 bidder['email'],
-                formatted_phone_no,
-                bidder['is_reviewed'],
+                phone_no,
+                "AED "+str(bidder['transaction_amount']),
                 bidder['is_approved'],
                 bidder['ip_address'],
-                bid_date_time,
-                bid_updated_date_time,
+                formatted_added_on,
             ]
             sno += 1
-
             # Assign the data for each cell of the row
             for col_num, cell_value in enumerate(row, 1):
                 cell = worksheet.cell(row=row_num, column=col_num)
                 cell.value = cell_value
-
-
         workbook.save(response)
-
         return response
     except Exception as exp:
         print(exp)
@@ -11831,7 +12026,7 @@ def export_auction_bidders(request):
             total = list_data['data']['total'] if 'total' in list_data['data'] else 0
         else:
             bidder_list = []
-            total = 0
+            total = 0    
         sno = (int(page) - 1) * int(page_size) + 1
 
 
@@ -11850,15 +12045,13 @@ def export_auction_bidders(request):
         # Define the titles for columns
         columns = [
             '#',
-            'Bidder Name',
-            'Company',
+            'Buyer Name',
             'Email',
             'Phone',
-            'Approved Bid Limit',
+            'Amount',
             'Approval Status',
-            'Due Diligence Vault',
-            # 'CA Signed',
-            'Registration Approval',
+            'Ip Address',
+            'Txn Date',
         ]
         row_num = 1
         header_font = Font(name='Calibri', bold=True)
@@ -11874,41 +12067,24 @@ def export_auction_bidders(request):
             row_num += 1
 
             bid_limit = bidder['bid_limit']
+            transaction_amount = bidder['transaction_amount']
             phone_no = bidder['bidder_detail']['phone_no']
             formatted_phone_no = format_phone_number(phone_no)
             formatted_bid_limit = format_currency(bid_limit)
-            approval_date = bidder['approval_date']
-            approval_date_time = ''
-            approval_time = 0
-            if timezone:
-                try:
-                    approval_time = time.mktime(
-                        datetime.datetime.strptime(approval_date, "%Y-%m-%dT%H:%M:%SZ").timetuple())
-                except ValueError:
-                    approval_time = time.mktime(
-                        datetime.datetime.strptime(approval_date, "%Y-%m-%dT%H:%M:%S.%fZ").timetuple())
-                except:
-                    approval_time = 0
-
-
-
-            if approval_time:
-                approval_time = float(approval_time) - (float(timezone)*60)
-                approval_date_time = datetime.datetime.fromtimestamp(approval_time)
-                approval_date_time = datetime.datetime.strftime(approval_date_time, "%m-%d-%Y %I:%M %p")
-
-
+            formatted_transaction_amount = format_currency(transaction_amount)
+            added_on = bidder['added_on']
+            dt = parser.isoparse(added_on)
+            formatted_added_on = dt.strftime('%y-%m-%d %H:%M:%S')
             # Define the data for each cell in the row
             row = [
                 sno,
-                bidder['bidder_detail']['first_name']+' '+bidder['bidder_detail']['last_name'],
-                bidder['company_name'],
+                bidder['bidder_detail']['first_name'],
                 bidder['bidder_detail']['email'],
-                formatted_phone_no,
-                '$'+str(f"{formatted_bid_limit:,}"),
+                phone_no,
+                'AED '+str(f"{formatted_transaction_amount:,}"),
                 bidder['approval_status'],
-                bidder['ca_signed'],
-                approval_date_time,
+                bidder['ip_address'],
+                formatted_added_on,
             ]
             sno += 1
 
@@ -11916,13 +12092,10 @@ def export_auction_bidders(request):
             for col_num, cell_value in enumerate(row, 1):
                 cell = worksheet.cell(row=row_num, column=col_num)
                 cell.value = cell_value
-
-
         workbook.save(response)
 
         return response
     except Exception as exp:
-        print(exp)
         return HttpResponse("Issue in views")
 
 @csrf_exempt
@@ -11961,8 +12134,8 @@ def export_auction_bids(request):
             'property_id': property_id,
         }
 
-        # list_url = settings.API_URL + '/api-bid/auction-total-bids/'
-        list_url = settings.API_URL + '/api-bid/auction-total-bids-export/'
+        list_url = settings.API_URL + '/api-bid/auction-total-bids/'
+        # list_url = settings.API_URL + '/api-bid/auction-total-bids-export/'
 
         list_data = call_api_post_method(list_param, list_url, token=token)
 
@@ -11979,7 +12152,7 @@ def export_auction_bids(request):
         response = HttpResponse(
             content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         )
-        response['Content-Disposition'] = 'attachment; filename={date}-bidders.xlsx'.format(
+        response['Content-Disposition'] = 'attachment; filename={date}-bids.xlsx'.format(
             date=datetime.datetime.now().strftime('%Y-%m-%d'),
         )
         workbook = Workbook()
@@ -12021,11 +12194,11 @@ def export_auction_bids(request):
             bid_time = 0
             formatted_bidder_data = ''
             try:
-                bidder_name = bid['bidder_detail']['first_name']+' '+bid['bidder_detail']['last_name']
+                bidder_name = bid['bidder_detail']['first_name']
             except:
                 bidder_name = ''
             try:
-                bidder_address = bid['bidder_detail']['address_first']+', '+bid['bidder_detail']['city']+', '+bid['bidder_detail']['state']+', '+bid['bidder_detail']['postal_code']
+                bidder_address = ""
             except:
                 bidder_address = ''
             try:
@@ -12038,8 +12211,13 @@ def export_auction_bids(request):
             except:
                 bidder_email = ''
 
-            if bidder_name or formatted_phone_no or bidder_address or bidder_ip or bidder_email:
-                formatted_bidder_data = bidder_name+', '+bidder_address+', '+formatted_phone_no+', '+bidder_email+', '+bidder_ip
+            if bidder_name or phone_no or bidder_ip or bidder_email:
+                bid_type = ""
+                if bid['is_forefit']:
+                    bid_type = " (Forefit)"
+                elif bid['is_retracted']:
+                    bid_type = " (Retracted)"
+                formatted_bidder_data = bidder_name+ bid_type +', '+phone_no+', '+bidder_email+', '+bidder_ip
 
 
             if timezone:
@@ -12064,7 +12242,8 @@ def export_auction_bids(request):
             row = [
                 formatted_bidder_data,
                 # '$'+str(f"{formatted_start_bid:,}"),
-                '$'+str(f"{formatted_max_bid:,}"),
+                # '$'+str(f"{formatted_max_bid:,}"),
+                '$'+str(f"{formatted_start_bid:,}"),
                 # bid['bids'],
                 bid_date_time,
                 # 'Accepted',
@@ -13419,7 +13598,7 @@ def add_portfolio(request):
         return HttpResponse("Issue in views")
 
 
-@csrf_exempt
+# @csrf_exempt
 def send_reset_password_link(request):
     try:
         if request.is_ajax() and request.method == 'POST':
@@ -13661,7 +13840,7 @@ def export_property_total_view(request):
         return HttpResponse("Issue in views")
 
 
-@csrf_exempt
+# @csrf_exempt
 def email_all_property_viewer(request):
     try:
         if request.is_ajax() and request.method == 'POST':
@@ -14837,7 +15016,7 @@ def cms_list(request):
         return HttpResponse("Issue in views")
 
 
-@csrf_exempt
+# @csrf_exempt
 def ajax_cms_list(request):
     """ Use to load cms list from ajax
     """
@@ -14853,7 +15032,8 @@ def ajax_cms_list(request):
         'page_size': page_size,
         'search': request.POST['search'] if 'search' in request.POST else '',
         'site_id': request.POST.getlist('site_id[]'),
-        'status': request.POST.getlist('status[]')
+        'status': request.POST.getlist('status[]'),
+        'user_id': request.session['user_id'],
     }
     try:
         response = call_api_post_method(
@@ -14950,6 +15130,7 @@ def ajax_add_cms(request):
                 "meta_description": request.POST['meta_description'],
                 "meta_title": request.POST['meta_title'],
                 "page_content": request.POST['page_content'],
+                "page_content_ar": request.POST['page_content_ar'],
                 "added_by": request.session['user_id'],
                 "status": request.POST['status'],
                 'slug': request.POST['slug']
@@ -14983,7 +15164,7 @@ def edit_cms(request, id):
         api_url = settings.API_URL + '/api-cms/cms-detail/'
         data = domain_list = status_list = []
         try:
-            response = call_api_post_method({'cms_id': id}, api_url, request.session['token']['access_token'])
+            response = call_api_post_method({'cms_id': id, 'user_id': request.session['user_id']}, api_url, request.session['token']['access_token'])
             if "error" in response and response['error'] == 0:
                 data = response['data']
             else:  # Redirect if user detail not found
@@ -15026,7 +15207,7 @@ def faq_list(request):
         return HttpResponse("Issue in views")
 
 
-@csrf_exempt
+# @csrf_exempt
 def ajax_faq_list(request):
     """ Use to load faq list from ajax
     """
@@ -15042,7 +15223,8 @@ def ajax_faq_list(request):
         'page_size': page_size,
         'search': request.POST['search'] if 'search' in request.POST else '',
         'site_id': request.POST.getlist('site_id[]'),
-        'status': request.POST.getlist('status[]')
+        'status': request.POST.getlist('status[]'),
+        'user_id': request.session['user_id'],
     }
     try:
         response = call_api_post_method(
@@ -15104,11 +15286,12 @@ def ajax_add_faq(request):
                 "domain": "",
                 "question": request.POST['question'],
                 "answer": request.POST['answer'],
+                "question_ar": request.POST['question_ar'],
+                "answer_ar": request.POST['answer_ar'],
                 "added_by": request.session['user_id'],
                 "status": request.POST['status'],
                 "user_type": request.POST['user_type'],
             }
-
             # check if edit cms
             if 'faq_id' in request.POST and request.POST:
                 payload['faq_id'] = int(request.POST['faq_id'])
@@ -15139,7 +15322,7 @@ def edit_faq(request, id):
         data = domain_list = status_list = []
         try:
             response = call_api_post_method(
-                {'faq_id': id}, api_url, request.session['token']['access_token'])
+                {'faq_id': id, 'user_id': request.session['user_id']}, api_url, request.session['token']['access_token'])
             if "error" in response and response['error'] == 0:
                 data = response['data']
             else:  # Redirect if user detail not found
@@ -15566,7 +15749,7 @@ def email_template_list(request):
         return HttpResponse("Issue in views")
 
 
-@csrf_exempt
+# @csrf_exempt
 def ajax_email_template_list(request):
     """ Use to load email template list from ajax
     """
@@ -15584,7 +15767,8 @@ def ajax_email_template_list(request):
         'page_size': page_size,
         'search': request.POST['search'] if 'search' in request.POST else '',
         'site_id': request.POST.getlist('site_id[]'),
-        'status': request.POST.getlist('status[]')
+        'status': request.POST.getlist('status[]'),
+        'user_id': request.session['user_id'],
     }
     try:
         response = call_api_post_method(
@@ -15679,6 +15863,8 @@ def ajax_add_email_template(request):
                 "email_content": request.POST['email_content'],
                 "notification_subject": request.POST['notification_subject'],
                 "notification_text": request.POST['notification_text'],
+                "notification_subject_ar": request.POST['notification_subject_ar'],
+                "notification_text_ar": request.POST['notification_text_ar'],
                 "status": request.POST['status'],
             }
 
@@ -15714,7 +15900,7 @@ def edit_email_template(request, id):
         data = domain_list = status_list = event_list = []
         try:
             response = call_api_post_method(
-                {'template_id': id}, api_url, request.session['token']['access_token'])
+                {'template_id': id, 'user_id': request.session['user_id']}, api_url, request.session['token']['access_token'])
             if "error" in response and response['error'] == 0:
                 data = response['data']
             else:  # Redirect if user detail not found
@@ -16603,7 +16789,7 @@ def advertisement_list(request):
         return HttpResponse("Issue in views")
 
 
-@csrf_exempt
+# @csrf_exempt
 def ajax_advertisement_list(request):
     """ Use to load advertisements list from ajax
     """
@@ -16621,6 +16807,7 @@ def ajax_advertisement_list(request):
         'search': request.POST['search'] if 'search' in request.POST else '',
         'domain': request.POST.getlist('site_id[]'),
         'status': request.POST.getlist('status[]'),
+        'user_id': request.session['user_id'],
     }
     try:
         response = call_api_post_method(
@@ -16649,7 +16836,7 @@ def ajax_advertisement_list(request):
     return render(request, 'admin/advertisement/ajax-list.html', context)
 
 
-@csrf_exempt
+# @csrf_exempt
 def save_advertisement(request):
     try:
         if request.is_ajax() and request.method == 'POST':
@@ -16692,7 +16879,7 @@ def save_advertisement(request):
         return JsonResponse(data)
 
 
-@csrf_exempt
+# @csrf_exempt
 def ajax_advertisement_details(request):
     """ get advertisement details with id from ajax
     """
@@ -16953,9 +17140,9 @@ def update_dashboard_data(request):
                 "user_id": user_id,
             }
             api_response = call_api_post_method(params, api_url, token)
-            print('api_url', api_url)
-            print('token', token)
-            print('params', params)
+            # print('api_url', api_url)
+            # print('token', token)
+            # print('params', params)
             data = {"error": 0, "msg": "Success"}
             if 'error' in api_response and api_response['error'] == 0:
                 data['dashboard_data'] = api_response['data']
@@ -16972,17 +17159,16 @@ def update_dashboard_data(request):
         return JsonResponse(data) 
 
 
-@csrf_exempt
+# @csrf_exempt
 def employee(request):
     try:
         developer_id = request.GET.get('developer_id', '')
-        is_permission = check_permission(request, 1)
-        developer_permission = check_permission(request, 4)
-        if not is_permission and not developer_permission:
-            http_host = request.META['HTTP_HOST']
-            redirect_url = settings.URL_SCHEME + str(http_host)
-            return HttpResponseRedirect(redirect_url)
-
+        # is_permission = check_permission(request, 1)
+        # developer_permission = check_permission(request, 4)
+        # if not is_permission and not developer_permission:
+        #     http_host = request.META['HTTP_HOST']
+        #     redirect_url = settings.URL_SCHEME + str(http_host)
+        #     return HttpResponseRedirect(redirect_url)
         try:
             site_detail = subdomain_site_details(request)
             site_id = site_detail['site_detail']['site_id']
@@ -17114,12 +17300,12 @@ def employee(request):
 
 
 def add_employee(request):
-    is_permission = check_permission(request, 1)
-    developer_permission = check_permission(request, 4)
-    if not is_permission and not developer_permission:
-        http_host = request.META['HTTP_HOST']
-        redirect_url = settings.URL_SCHEME + str(http_host)
-        return HttpResponseRedirect(redirect_url)
+    # is_permission = check_permission(request, 1)
+    # developer_permission = check_permission(request, 4)
+    # if not is_permission and not developer_permission:
+    #     http_host = request.META['HTTP_HOST']
+    #     redirect_url = settings.URL_SCHEME + str(http_host)
+    #     return HttpResponseRedirect(redirect_url)
     employee_id = request.GET.get('id', None)
     developer_id = request.GET.get('developer_id', '')
     try:
@@ -17168,16 +17354,17 @@ def add_employee(request):
             params = {
                 'site_id': site_id,
                 'first_name': request.POST['first_name'],
-                'last_name': request.POST['last_name'],
+                'first_name_ar': request.POST['first_name_ar'],
                 'email': request.POST['email'],
                 'phone_no': re.sub('\D', '', request.POST['phone_no']),
                 'address_first': request.POST['address'],
-                'postal_code': request.POST['zip_code'],
+                # 'postal_code': request.POST['zip_code'],
                 'state': request.POST['state'],
                 'status': request.POST['status'],
                 'profile_image': request.POST['employee_img_id'] if 'employee_img_id' in request.POST and request.POST['employee_img_id'] != "" else "",
-                'permission': [2, 6, 18, 21],
-                'admin_user': request.POST['admin_user']
+                'permission': [2, 6, 18, 21, 24, 25],
+                'admin_user': request.POST['admin_user'],
+                'phone_country_code': request.POST['phone_country_code']
             }
 
             if request.POST['employee_id']:
@@ -17212,6 +17399,7 @@ def add_employee(request):
         developer_list = auction_type_data['data']['data']
 
         
+        # context = {"active_menu": "employee", "state_list": state_list, 'details': details, 'permission_list': permission_list, 'checked_permission': already_checked_permission, 'developer_list': developer_list, 'is_broker': is_broker, 'user_id': user_id, 'developer_id': developer_id}
         context = {"active_menu": "employee", "state_list": state_list, 'details': details, 'permission_list': permission_list, 'checked_permission': already_checked_permission, 'developer_list': developer_list, 'is_broker': is_broker, 'user_id': user_id, 'developer_id': developer_id}
         return render(request, "admin/dashboard/employee/add-employee.html", context)
     except Exception as exp:
@@ -17219,7 +17407,7 @@ def add_employee(request):
         return HttpResponse("Issue in views")
 
 
-@csrf_exempt
+# @csrf_exempt
 def employee_search_suggestion(request):
     try:
         if request.is_ajax() and request.method == 'POST':
@@ -17398,7 +17586,7 @@ def add_listing(request):
 
         try:
             if property_id is not None:
-                if request.session['is_broker']:
+                if request.session['user_type'] in [2, 4]:
                     step = 3
                 else:
                     step = 1    
@@ -17410,25 +17598,30 @@ def add_listing(request):
                     country_id = property_details['country']
                     state_id = property_details['state_id']
                     municipality_id = property_details['municipality']
-                    if not request.session['is_broker'] and property_details['seller_status'] not in [24, 29]:
+                    district_id = property_details['district']
+                    # if not (request.session['is_broker'] or request.session['user_type'] == 4) and property_details['seller_status'] not in [24, 29]:
+                    if not (request.session['is_broker'] or request.session['user_type'] == 4) and not property_details['can_edit_property']:
                         http_host = request.META['HTTP_HOST']
                         redirect_url = settings.URL_SCHEME + str(http_host)
-                        return HttpResponseRedirect(redirect_url+"/admin/dashboard/")
+                        return HttpResponseRedirect(redirect_url+"/admin/listing/")
                 else:
                     property_details = {}
                     country_id = 4 
                     state_id = ""
-                    municipality_id = "" 
+                    municipality_id = ""
+                    district_id = ""
             else:
                 property_details = {}
                 country_id = 4
                 state_id = ""
                 municipality_id = ""
+                district_id = ""
         except Exception as exp:
             property_details = {}
             country_id = 4
             state_id = ""
-            municipality_id = "" 
+            municipality_id = ""
+            district_id = ""
 
         try:
             state_param = {'country_id': country_id}
@@ -17506,6 +17699,19 @@ def add_listing(request):
 
         try:
             params = {
+                'district_id': district_id
+            }
+            url = settings.API_URL + '/api-settings/get-community/'
+            response = call_api_post_method(params, url, token)
+            if "error" in response and response['error'] == 0:
+                community = response['data']
+            else:
+                community = []
+        except:
+            community = []     
+
+        try:
+            params = {
                 
             }
             url = settings.API_URL + '/api-settings/get-tags/'
@@ -17519,7 +17725,7 @@ def add_listing(request):
 
         number_bedrooms = [{'id': i, 'value': i} for i in range(1, 31)]
         number_bathrooms = [{'id': i, 'value': i} for i in range(1, 31)]
-        number_parkings = [{'id': i, 'value': i} for i in range(1, 31)]
+        number_parkings = [{'id': i, 'value': i} for i in range(0, 31)]
         price_listing_one = list(range(1000, 6000, 1000))
         price_listing_two = list(range(10000, 55000, 5000))
         price_listing = price_listing_one + price_listing_two   
@@ -17540,10 +17746,12 @@ def add_listing(request):
             "country_id": country_id,
             "municipality": municipality,
             "district": district,
+            "community": community,
             "tags": tags,
             "price_listing": price_listing,
         }
-        if request.session['is_broker']:
+        # print(property_details)
+        if request.session['is_broker'] or request.session['user_type'] == 2 or request.session['user_type'] == 4 :
             template = "admin/dashboard/listings-new/add-listing-all-step.html"
         else:
             template = "admin/dashboard/listings-new/add-listing.html"
@@ -17583,7 +17791,7 @@ def get_municipality(request):
         return JsonResponse(data)
 
 
-@csrf_exempt
+# @csrf_exempt
 def get_district(request):
     try:
         if request.is_ajax() and request.method == 'POST':
@@ -17614,6 +17822,38 @@ def get_district(request):
         return JsonResponse(data)
 
 
+@csrf_exempt
+def get_community(request):
+    try:
+        if request.is_ajax() and request.method == 'POST':
+            token = request.session['token']['access_token']
+            data = {}
+
+            district = request.POST['district']
+            params = {
+                'district_id': district
+            }
+            url = settings.API_URL + '/api-settings/get-community/'
+            response = call_api_post_method(params, url, token)
+            # print(response)
+            if "error" in response and response['error'] == 0:
+                community = response['data']
+            else:
+                community = []
+            data = {
+                'status': 200,
+                'error': 0,
+                'community': community,
+            }
+        else:
+            data = {'status': 403, 'community': [], 'error': 1}
+
+        return JsonResponse(data)
+    except Exception as exp:
+        data = {'status': 403, 'community': [], 'error': 1}
+        return JsonResponse(data)        
+
+
 def save_listing(request):
     try:
         if request.is_ajax() and request.method == 'POST':
@@ -17636,11 +17876,14 @@ def save_listing(request):
                         'owner_dob': request.POST['owner_dob_' + str(i)],
                         'owner_phone': request.POST['owner_phone_' + str(i)],
                         'owner_email': request.POST['owner_email_' + str(i)],
+                        'owner_eid': request.POST['owner_eid_' + str(i)].replace("-", ""),
+                        'owner_passport': request.POST['owner_passport_' + str(i)],
+                        'owner_identity_type': int(request.POST['owner_eid_type_' + str(i)]),
                     }
-                    if account_verification_type != 2:
-                        property_owners_params['owner_eid'] = request.POST['owner_eid_' + str(i)].replace("-", "")
-                    else:
-                        property_owners_params['owner_passport'] = request.POST['owner_passport_' + str(i)]
+                    # if account_verification_type != 2:
+                    #     property_owners_params['owner_eid'] = request.POST['owner_eid_' + str(i)].replace("-", "")
+                    # else:
+                    #     property_owners_params['owner_passport'] = request.POST['owner_passport_' + str(i)]
                     property_owners.append(property_owners_params)
                 property_param = {
                     'site_id': site_id,
@@ -17655,9 +17898,11 @@ def save_listing(request):
                     'project': request.POST['project'] if 'project' in request.POST and request.POST['project'] != "" else None,
                     'title': request.POST['property_name'] if 'property_name' in request.POST and request.POST['property_name'] != "" else None,
                     'property_name': request.POST['property_name'] if 'property_name' in request.POST and request.POST['property_name'] != "" else None,
-                    'community': request.POST['community'] if 'community' in request.POST and request.POST['community'] != "" else None,
+                    'property_name_ar': request.POST['property_name_ar'] if 'property_name_ar' in request.POST and request.POST['property_name_ar'] != "" else None,
+                    'community': request.POST.get('community_data', "") if int(request.POST.get('prop_city', 0)) == 83 else request.POST.get('community', "") ,
                     'property_type': request.POST['property_type'] if 'property_type' in request.POST and request.POST['property_type'] != "" else None,
                     'building': request.POST['building'] if 'building' in request.POST and request.POST['building'] != "" else None,
+                    'map_url': request.POST['map_url'] if 'map_url' in request.POST and request.POST['map_url'] != "" else None,
                     'square_footage': request.POST['area_size'] if 'area_size' in request.POST and request.POST['area_size'] != "" else None,
                     'beds': request.POST['number_beds'] if 'number_beds' in request.POST and request.POST['number_beds'] != "" else None,
                     'baths': request.POST['number_bathrooms'] if 'number_bathrooms' in request.POST and request.POST['number_bathrooms'] != "" else None,
@@ -17668,6 +17913,7 @@ def save_listing(request):
                     'amenities': request.POST.getlist('property_amenities') if 'property_amenities' in request.POST and request.POST['property_amenities'] != "" else None,
                     'tags': request.POST.getlist('property_tags') if 'property_tags' in request.POST and request.POST['property_tags'] != "" else None,
                     'description': request.POST['description'] if 'description' in request.POST and request.POST['description'] != "" else None,
+                    'description_ar': request.POST['description_ar'] if 'description_ar' in request.POST and request.POST['description_ar'] != "" else None,
                     'property_deed': request.POST['property_deed_id'].split(',') if 'property_deed_id' in request.POST and request.POST['property_deed_id'] != "" and "," in request.POST['property_deed_id'] else [request.POST['property_deed_id']] if 'property_deed_id' in request.POST and request.POST['property_deed_id'] != ""  else None,
                     'property_floor_plan': request.POST['property_floor_plan_id'].split(',') if 'property_floor_plan_id' in request.POST and request.POST['property_floor_plan_id'] != "" and "," in request.POST['property_floor_plan_id'] else [request.POST['property_floor_plan_id']] if 'property_floor_plan_id' in request.POST and request.POST['property_floor_plan_id'] != ""  else None,
                     'property_cover_image': request.POST['property_cover_image_id'].split(',') if 'property_cover_image_id' in request.POST and request.POST['property_cover_image_id'] != "" and "," in request.POST['property_cover_image_id'] else [request.POST['property_cover_image_id']] if 'property_cover_image_id' in request.POST and request.POST['property_cover_image_id'] != ""  else None,
@@ -17681,19 +17927,21 @@ def save_listing(request):
                     'user_id': user_id,
                     "create_step": request.POST['step'],
                     "property": request.POST['property_id'] if 'property_id' in request.POST and request.POST['property_id'] != "" else None,
-                    "start_price": request.POST['start_price'] if 'start_price' in request.POST and request.POST['start_price'] != "" else None,
-                    "deposit_amount": request.POST['deposit_amount'] if 'deposit_amount' in request.POST and request.POST['deposit_amount'] != "" else None,
-                    "reserve_amount": request.POST['reserve_amount'] if 'reserve_amount' in request.POST and request.POST['reserve_amount'] != "" else None,
+                    "property_for": request.POST['auction_type'] if 'auction_type' in request.POST and request.POST['auction_type'] != "" else None,
+                    "start_price": request.POST['start_price'].replace(",", "") if 'start_price' in request.POST and request.POST['start_price'] != "" else None,
+                    "deposit_amount": request.POST['deposit_amount'].replace(",", "") if 'deposit_amount' in request.POST and request.POST['deposit_amount'] != "" else None,
+                    "reserve_amount": request.POST['reserve_amount'].replace(",", "") if 'reserve_amount' in request.POST and request.POST['reserve_amount'] != "" else None,
                     "buyer_preference": request.POST['buyer_preference'] if 'buyer_preference' in request.POST and request.POST['buyer_preference'] != "" else None,
                     "sell_at_full_amount_status": request.POST['sell_at_full_amount_status'] if 'sell_at_full_amount_status' in request.POST and request.POST['sell_at_full_amount_status'] != "" else 0,
-                    "full_amount": request.POST['full_amount'] if 'full_amount' in request.POST and request.POST['full_amount'] != "" else None,
+                    "full_amount": request.POST['full_amount'].replace(",", "") if 'full_amount' in request.POST and request.POST['full_amount'] != "" else None,
                     "bid_increment_status": request.POST['bid_increment_status'] if 'bid_increment_status' in request.POST and request.POST['bid_increment_status'] != "" else 0,
-                    "bid_increments": request.POST['bid_increments'] if 'bid_increments' in request.POST and request.POST['bid_increments'] != "" else None,
+                    "bid_increments": request.POST['bid_increments'].replace(",", "") if 'bid_increments' in request.POST and request.POST['bid_increments'] != "" else None,
                     "start_date": request.POST['utc_start_date'] if 'utc_start_date' in request.POST and request.POST['utc_start_date'] != "" else None,
                     "end_date": request.POST['utc_end_date'] if 'utc_end_date' in request.POST and request.POST['utc_end_date'] != "" else None,
                     "is_featured": request.POST['is_featured'] if 'is_featured' in request.POST and request.POST['is_featured'] != "" else 0,
                     "signature": request.POST['signature'] if 'signature' in request.POST and request.POST['signature'] != "" else None,
                     "term_agreement": request.POST['term_agreement'] if 'term_agreement' in request.POST and request.POST['term_agreement'] != "" else 0,
+                    # "relist": request.POST['relist'] if 'relist' in request.POST and request.POST['relist'] != "" else "",
                 }  
             elif int(step) == 3:
                 total = int(request.POST['total_section'])
@@ -17707,11 +17955,14 @@ def save_listing(request):
                         'owner_dob': request.POST['owner_dob_' + str(i)],
                         'owner_phone': request.POST['owner_phone_' + str(i)],
                         'owner_email': request.POST['owner_email_' + str(i)],
+                        'owner_eid': request.POST['owner_eid_' + str(i)].replace("-", ""),
+                        'owner_passport': request.POST['owner_passport_' + str(i)],
+                        'owner_identity_type': int(request.POST['owner_eid_type_' + str(i)]),
                     }
-                    if account_verification_type != 2:
-                        property_owners_params['owner_eid'] = request.POST['owner_eid_' + str(i)].replace("-", "")
-                    else:
-                        property_owners_params['owner_passport'] = request.POST['owner_passport_' + str(i)]
+                    # if account_verification_type != 2:
+                    #     property_owners_params['owner_eid'] = request.POST['owner_eid_' + str(i)].replace("-", "")
+                    # else:
+                    #     property_owners_params['owner_passport'] = request.POST['owner_passport_' + str(i)]
                     property_owners.append(property_owners_params)
                 property_param = {
                     'site_id': site_id,
@@ -17726,9 +17977,12 @@ def save_listing(request):
                     'project': request.POST['project'] if 'project' in request.POST and request.POST['project'] != "" else None,
                     'title': request.POST['property_name'] if 'property_name' in request.POST and request.POST['property_name'] != "" else None,
                     'property_name': request.POST['property_name'] if 'property_name' in request.POST and request.POST['property_name'] != "" else None,
-                    'community': request.POST['community'] if 'community' in request.POST and request.POST['community'] != "" else None,
+                    'property_name_ar': request.POST['property_name_ar'] if 'property_name_ar' in request.POST and request.POST['property_name_ar'] != "" else None,
+                    # 'community': request.POST['community'] if 'community' in request.POST and request.POST['community'] != "" else None,
+                    'community': request.POST.get('community_data', "") if int(request.POST.get('prop_city', 0)) == 83 else request.POST.get('community', "") ,
                     'property_type': request.POST['property_type'] if 'property_type' in request.POST and request.POST['property_type'] != "" else None,
                     'building': request.POST['building'] if 'building' in request.POST and request.POST['building'] != "" else None,
+                    'map_url': request.POST['map_url'] if 'map_url' in request.POST and request.POST['map_url'] != "" else None,
                     'square_footage': request.POST['area_size'] if 'area_size' in request.POST and request.POST['area_size'] != "" else None,
                     'beds': request.POST['number_beds'] if 'number_beds' in request.POST and request.POST['number_beds'] != "" else None,
                     'baths': request.POST['number_bathrooms'] if 'number_bathrooms' in request.POST and request.POST['number_bathrooms'] != "" else None,
@@ -17739,27 +17993,29 @@ def save_listing(request):
                     'amenities': request.POST.getlist('property_amenities') if 'property_amenities' in request.POST and request.POST['property_amenities'] != "" else None,
                     'tags': request.POST.getlist('property_tags') if 'property_tags' in request.POST and request.POST['property_tags'] != "" else None,
                     'description': request.POST['description'] if 'description' in request.POST and request.POST['description'] != "" else None,
+                    'description_ar': request.POST['description_ar'] if 'description_ar' in request.POST and request.POST['description_ar'] != "" else None,
                     'property_deed': request.POST['property_deed_id'].split(',') if 'property_deed_id' in request.POST and request.POST['property_deed_id'] != "" and "," in request.POST['property_deed_id'] else [request.POST['property_deed_id']] if 'property_deed_id' in request.POST and request.POST['property_deed_id'] != ""  else None,
                     'property_floor_plan': request.POST['property_floor_plan_id'].split(',') if 'property_floor_plan_id' in request.POST and request.POST['property_floor_plan_id'] != "" and "," in request.POST['property_floor_plan_id'] else [request.POST['property_floor_plan_id']] if 'property_floor_plan_id' in request.POST and request.POST['property_floor_plan_id'] != ""  else None,
                     'property_cover_image': request.POST['property_cover_image_id'].split(',') if 'property_cover_image_id' in request.POST and request.POST['property_cover_image_id'] != "" and "," in request.POST['property_cover_image_id'] else [request.POST['property_cover_image_id']] if 'property_cover_image_id' in request.POST and request.POST['property_cover_image_id'] != ""  else None,
                     'property_image': request.POST['property_image_id'].split(',') if 'property_image_id' in request.POST and request.POST['property_image_id'] != "" and "," in request.POST['property_image_id'] else [request.POST['property_image_id']] if 'property_image_id' in request.POST and request.POST['property_image_id'] != ""  else None,
                     'property_video': request.POST['property_video_id'].split(',') if 'property_video_id' in request.POST and request.POST['property_video_id'] != "" and "," in request.POST['property_video_id'] else [request.POST['property_video_id']] if 'property_video_id' in request.POST and request.POST['property_video_id'] != ""  else None,
                     'account_verification_type': int(request.POST['account_verification_type']) if 'account_verification_type' in request.POST and request.POST['account_verification_type'] != "" else None,
-                    "start_price": request.POST['start_price'] if 'start_price' in request.POST and request.POST['start_price'] != "" else None,
-                    "deposit_amount": request.POST['deposit_amount'] if 'deposit_amount' in request.POST and request.POST['deposit_amount'] != "" else None,
-                    "reserve_amount": request.POST['reserve_amount'] if 'reserve_amount' in request.POST and request.POST['reserve_amount'] != "" else None,
+                    "property_for": request.POST['auction_type'] if 'auction_type' in request.POST and request.POST['auction_type'] != "" else "",
+                    "start_price": request.POST['start_price'].replace(",", "") if 'start_price' in request.POST and request.POST['start_price'] != "" else None,
+                    "deposit_amount": request.POST['deposit_amount'].replace(",", "") if 'deposit_amount' in request.POST and request.POST['deposit_amount'] != "" else None,
+                    "reserve_amount": request.POST['reserve_amount'].replace(",", "") if 'reserve_amount' in request.POST and request.POST['reserve_amount'] != "" else None,
                     "buyer_preference": request.POST['buyer_preference'] if 'buyer_preference' in request.POST and request.POST['buyer_preference'] != "" else None,
                     "sell_at_full_amount_status": request.POST['sell_at_full_amount_status'] if 'sell_at_full_amount_status' in request.POST and request.POST['sell_at_full_amount_status'] != "" else 0,
-                    "full_amount": request.POST['full_amount'] if 'full_amount' in request.POST and request.POST['full_amount'] != "" else None,
+                    "full_amount": request.POST['full_amount'].replace(",", "") if 'full_amount' in request.POST and request.POST['full_amount'] != "" else None,
                     "bid_increment_status": request.POST['bid_increment_status'] if 'bid_increment_status' in request.POST and request.POST['bid_increment_status'] != "" else 0,
-                    "bid_increments": request.POST['bid_increments'] if 'bid_increments' in request.POST and request.POST['bid_increments'] != "" else None,
+                    "bid_increments": request.POST['bid_increments'].replace(",", "") if 'bid_increments' in request.POST and request.POST['bid_increments'] != "" else None,
                     "start_date": request.POST['utc_start_date'] if 'utc_start_date' in request.POST and request.POST['utc_start_date'] != "" else None,
                     "end_date": request.POST['utc_end_date'] if 'utc_end_date' in request.POST and request.POST['utc_end_date'] != "" else None,
                     "is_featured": request.POST['is_featured'] if 'is_featured' in request.POST and request.POST['is_featured'] != "" else 0,
                     "signature": request.POST['signature'] if 'signature' in request.POST and request.POST['signature'] != "" else None,
                     "term_agreement": request.POST['term_agreement'] if 'term_agreement' in request.POST and request.POST['term_agreement'] != "" else 0,
-                }    
-
+                    # "relist": request.POST['relist'] if 'relist' in request.POST and request.POST['relist'] != "" else "",
+                }
             property_url = settings.API_URL + '/api-property/add-listing/'
             property_data = call_api_post_method(property_param, property_url, token)
             if 'error' in property_data and property_data['error'] == 0:
@@ -17822,7 +18078,7 @@ def auction_detail(request):
         return HttpResponse("Issue in views") 
 
 
-@csrf_exempt
+# @csrf_exempt
 def property_total_favourite(request):
     try:
         user_id = None
@@ -17999,7 +18255,223 @@ def export_property_total_favourite(request):
 
         # Define the titles for columns
         columns = [
-            '#',
+            'S.No',
+            'Name',
+            'Email',
+            'Phone',
+            'Date',
+        ]
+        row_num = 1
+        header_font = Font(name='Calibri', bold=True)
+        # Assign the titles for each cell of the header
+        for col_num, column_title in enumerate(columns, 1):
+            cell = worksheet.cell(row=row_num, column=col_num)
+            cell.value = column_title
+            cell.font = header_font
+
+        # Iterate through all history
+        count = 0
+        for viewer in property_total_view:
+            row_num += 1
+            phone_no = viewer['phone_no']
+            formatted_phone_no = format_phone_number(phone_no)
+            added_on = viewer['added_on']
+            dt = parser.isoparse(added_on)
+            formatted_added_on = dt.strftime('%y-%m-%d %H:%M:%S') 
+            # Define the data for each cell in the row
+            row = [
+                sno, viewer['first_name'], viewer['email'], phone_no, formatted_added_on,
+            ]
+            sno += 1
+
+            # Assign the data for each cell of the row
+            for col_num, cell_value in enumerate(row, 1):
+                cell = worksheet.cell(row=row_num, column=col_num)
+                cell.value = cell_value
+        workbook.save(response)
+        return response
+    except Exception as exp:
+        print(exp)
+        return HttpResponse("Issue in views")
+
+
+# @csrf_exempt
+def property_total_interest(request):
+    try:
+        user_id = None
+        page_size = 10
+        try:
+            site_detail = subdomain_site_details(request)
+            site_id = site_detail['site_detail']['site_id']
+
+        except Exception as exp:
+            site_id = ""
+
+        if 'user_id' in request.session and request.session['user_id']:
+            token = request.session['token']['access_token']
+            user_id = request.session['user_id']
+
+        if request.is_ajax() and request.method == 'POST':
+            page = 1
+            if 'page' in request.POST and request.POST['page'] != "":
+                page = request.POST['page']
+
+            if 'page_size' in request.POST and request.POST['page_size'] != "":
+                page_size = request.POST['page_size']
+
+            search = ''
+            if 'search' in request.POST and request.POST['search'] != "":
+                search = request.POST['search']
+
+            property_id = request.POST['property_id']
+            params = {
+                'site_id': site_id,
+                'user_id': user_id,
+                'page_size': page_size,
+                'page': page,
+                'property_id': property_id,
+                'search': search,
+            }
+            api_url = settings.API_URL + '/api-property/property-interest/'
+            all_data = call_api_post_method(params, api_url, token=token)
+            try:
+                prop_detail = all_data['data']['property_detail']
+                image = prop_detail['property_image']
+                if image and image['image'] and image['image'] != "":
+                    image_url = settings.AZURE_BLOB_URL + image['bucket_name'] + '/' + image['image']
+                else:
+                    image_url = ''
+                property_address = prop_detail['address_one']
+                property_city = prop_detail['city']
+                property_state = prop_detail['state']
+                property_postal_code = prop_detail['postal_code']
+                property_image = image_url
+                auction_type = prop_detail['auction_type']
+                bid_increment = prop_detail['bid_increment']
+                property_name = prop_detail['property_name']
+                property_community = prop_detail['community']
+                property_url_decorator = prop_detail['url_decorator']
+            except:
+                property_address = property_city = property_state = property_postal_code = property_image = auction_type = bid_increment = ''
+
+            if 'error' in all_data and all_data['error'] == 0:
+                total = all_data['data']['total']
+                all_data = all_data['data']['data']
+
+            else:
+                bid_history = []
+                total = 0
+
+            context = {'all_data': all_data, 'total': total, "azure_blob_url": settings.AZURE_BLOB_URL,
+                       'start_index': (int(page) - 1) * int(page_size)}
+            html_path = 'admin/dashboard/listings/property-total-interest.html'
+            html_template = get_template(html_path)
+            html = html_template.render(context)
+            # ---------------Pagination--------
+            pagination_path = 'admin/dashboard/listings/property-total-interest-pagination.html'
+            pagination_template = get_template(pagination_path)
+            total_page = math.ceil(int(total) / int(page_size))
+            pagination_html = ''
+            if total_page > 1:
+                pagination_data = {"no_page": int(total_page), "total_page": range(total_page),
+                                   "current_page": int(page),
+                                   "pagination_id": "propertyTotalInterestPaginationList", "property_id": property_id}
+                pagination_html = pagination_template.render(pagination_data)
+            data = {
+                'html': html,
+                'status': 200,
+                'msg': '',
+                'error': 0,
+                'total': total,
+                "pagination_html": pagination_html,
+                'pagination_id': 'propertyTotalInterestPaginationList',
+                'property_address': property_address,
+                'property_city': property_city,
+                'property_state': property_state,
+                'property_postal_code': property_postal_code,
+                'property_image': property_image,
+                'auction_type': auction_type,
+                'property_id': property_id,
+                'page': page,
+                'page_size': page_size,
+                'bid_increment': "{:,}".format(bid_increment) if bid_increment is not None and bid_increment > 0 else "",
+                'property_name': property_name,
+                'property_community': property_community,
+                'domain_react_url': site_detail['site_detail']['domain_react_url'],
+                'property_url_decorator': property_url_decorator,
+            }
+        else:
+            data = {'status': 403, 'msg': 'Forbidden', 'error': 1}
+        return JsonResponse(data)
+    except Exception as exp:
+        print(exp)
+        return HttpResponse("Issue in views") 
+
+
+@csrf_exempt
+def export_property_total_interest(request):
+    try:
+        """
+            Downloads property total interest as Excel file with a single worksheet
+        """
+        try:
+            site_detail = subdomain_site_details(request)
+            site_id = site_detail['site_detail']['site_id']
+
+        except Exception as exp:
+            print(exp)
+            site_id = ""
+
+        user_id = None
+        token = None
+        is_broker = 0
+        if 'user_id' in request.session and request.session['user_id']:
+            token = request.session['token']['access_token']
+            user_id = request.session['user_id']
+            is_broker = 1 if request.session['is_broker'] == True else 0
+
+        search = request.GET.get('search', '')
+        page = request.GET.get('page', 1)
+        page_size = request.GET.get('page_size', 10)
+        property_id = request.GET.get('property', '')
+        loc_timezone = request.GET.get('timezone', '')
+
+        list_param = {
+            'site_id': site_id,
+            'user_id': user_id,
+            'page_size': page_size,
+            'page': page,
+            'property_id': property_id,
+            'search': search,
+        }
+
+        list_url = settings.API_URL + '/api-property/property-interest/'
+
+        list_data = call_api_post_method(list_param, list_url, token=token)
+        if 'error' in list_data and list_data['error'] == 0:
+            property_total_view = list_data['data']['data']
+            total = list_data['data']['total'] if 'total' in list_data['data'] else 0
+        else:
+            property_total_view = []
+            total = 0
+        sno = (int(page) - 1) * int(page_size) + 1
+
+
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        )
+        response['Content-Disposition'] = 'attachment; filename={date}-property-total-interest.xlsx'.format(
+            date=datetime.datetime.now().strftime('%Y-%m-%d'),
+        )
+        workbook = Workbook()
+
+        # Get active worksheet/tab
+        worksheet = workbook.active
+        worksheet.title = 'Property Total Interest'
+
+        # Define the titles for columns
+        columns = [
+            'S.No',
             'Name',
             'Email',
             'Phone',
@@ -18036,7 +18508,7 @@ def export_property_total_favourite(request):
                 added_on_date_time = datetime.datetime.strftime(added_on_date_time, "%m-%d-%Y %I:%M %p")
             # Define the data for each cell in the row
             row = [
-                sno, viewer['first_name']+' '+viewer['last_name'], viewer['email'], formatted_phone_no, added_on_date_time,
+                sno, viewer['first_name'], viewer['email'], phone_no, added_on_date_time,
             ]
             sno += 1
 
@@ -18048,5 +18520,933 @@ def export_property_total_favourite(request):
         return response
     except Exception as exp:
         print(exp)
-        return HttpResponse("Issue in views")                                                                                                                                                           
+        return HttpResponse("Issue in views")
 
+
+# @csrf_exempt
+def property_buy_now(request):
+    try:
+        user_id = None
+        page_size = 10
+        try:
+            site_detail = subdomain_site_details(request)
+            site_id = site_detail['site_detail']['site_id']
+
+        except Exception as exp:
+            site_id = ""
+
+        if 'user_id' in request.session and request.session['user_id']:
+            token = request.session['token']['access_token']
+            user_id = request.session['user_id']
+
+        if request.is_ajax() and request.method == 'POST':
+            page = 1
+            if 'page' in request.POST and request.POST['page'] != "":
+                page = request.POST['page']
+
+            if 'page_size' in request.POST and request.POST['page_size'] != "":
+                page_size = request.POST['page_size']
+
+            search = ''
+            if 'search' in request.POST and request.POST['search'] != "":
+                search = request.POST['search']
+
+            property_id = request.POST['property_id']
+            params = {
+                'site_id': site_id,
+                'user_id': user_id,
+                'page_size': page_size,
+                'page': page,
+                'property_id': property_id,
+                'search': search,
+            }
+            api_url = settings.API_URL + '/api-property/property-buy-now/'
+            all_data = call_api_post_method(params, api_url, token=token)
+            try:
+                prop_detail = all_data['data']['property_detail']
+                image = prop_detail['property_image']
+                if image and image['image'] and image['image'] != "":
+                    image_url = settings.AZURE_BLOB_URL + image['bucket_name'] + '/' + image['image']
+                else:
+                    image_url = ''
+                property_address = prop_detail['address_one']
+                property_city = prop_detail['city']
+                property_state = prop_detail['state']
+                property_postal_code = prop_detail['postal_code']
+                property_image = image_url
+                auction_type = prop_detail['auction_type']
+                bid_increment = prop_detail['bid_increment']
+                property_name = prop_detail['property_name']
+                property_community = prop_detail['community']
+                property_url_decorator = prop_detail['url_decorator']
+            except:
+                property_name = property_community = property_url_decorator = property_address = property_city = property_state = property_postal_code = property_image = auction_type = bid_increment = ''
+
+            if 'error' in all_data and all_data['error'] == 0:
+                total = all_data['data']['total']
+                all_data = all_data['data']['data']
+
+            else:
+                bid_history = []
+                total = 0
+
+            context = {'all_data': all_data, 'total': total, "azure_blob_url": settings.AZURE_BLOB_URL,
+                       'start_index': (int(page) - 1) * int(page_size)}
+            html_path = 'admin/dashboard/listings/property-buy-now.html'
+            html_template = get_template(html_path)
+            html = html_template.render(context)
+            # ---------------Pagination--------
+            pagination_path = 'admin/dashboard/listings/property-buy-now-pagination.html'
+            pagination_template = get_template(pagination_path)
+            total_page = math.ceil(int(total) / int(page_size))
+            pagination_html = ''
+            if total_page > 1:
+                pagination_data = {"no_page": int(total_page), "total_page": range(total_page),
+                                   "current_page": int(page),
+                                   "pagination_id": "propertyBuyNowPaginationList", "property_id": property_id}
+                pagination_html = pagination_template.render(pagination_data)
+            data = {
+                'html': html,
+                'status': 200,
+                'msg': '',
+                'error': 0,
+                'total': total,
+                "pagination_html": pagination_html,
+                'pagination_id': 'propertyBuyNowPaginationList',
+                'property_address': property_address,
+                'property_city': property_city,
+                'property_state': property_state,
+                'property_postal_code': property_postal_code,
+                'property_image': property_image,
+                'auction_type': auction_type,
+                'property_id': property_id,
+                'page': page,
+                'page_size': page_size,
+                # 'bid_increment': "{:,}".format(bid_increment) if bid_increment is not None and bid_increment > 0 else "",
+                'property_name': property_name,
+                'property_community': property_community,
+                'domain_react_url': site_detail['site_detail']['domain_react_url'],
+                'property_url_decorator': property_url_decorator,
+            }
+        else:
+            data = {'status': 403, 'msg': 'Forbidden', 'error': 1}
+        return JsonResponse(data)
+    except Exception as exp:
+        print(exp)
+        return HttpResponse("Issue in views")
+
+
+@csrf_exempt
+def export_property_buy_now(request):
+    try:
+        """
+            Downloads property buy now as Excel file with a single worksheet
+        """
+        try:
+            site_detail = subdomain_site_details(request)
+            site_id = site_detail['site_detail']['site_id']
+
+        except Exception as exp:
+            print(exp)
+            site_id = ""
+
+        user_id = None
+        token = None
+        is_broker = 0
+        if 'user_id' in request.session and request.session['user_id']:
+            token = request.session['token']['access_token']
+            user_id = request.session['user_id']
+            is_broker = 1 if request.session['is_broker'] == True else 0
+
+        search = request.GET.get('search', '')
+        page = request.GET.get('page', 1)
+        page_size = request.GET.get('page_size', 10)
+        property_id = request.GET.get('property', '')
+        loc_timezone = request.GET.get('timezone', '')
+
+        list_param = {
+            'site_id': site_id,
+            'user_id': user_id,
+            'page_size': page_size,
+            'page': page,
+            'property_id': property_id,
+            'search': search,
+        }
+
+        list_url = settings.API_URL + '/api-property/property-buy-now/'
+
+        list_data = call_api_post_method(list_param, list_url, token=token)
+        if 'error' in list_data and list_data['error'] == 0:
+            property_total_view = list_data['data']['data']
+            total = list_data['data']['total'] if 'total' in list_data['data'] else 0
+        else:
+            property_total_view = []
+            total = 0
+        sno = (int(page) - 1) * int(page_size) + 1
+
+
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        )
+        response['Content-Disposition'] = 'attachment; filename={date}-buy-now.xlsx'.format(
+            date=datetime.datetime.now().strftime('%Y-%m-%d'),
+        )
+        workbook = Workbook()
+
+        # Get active worksheet/tab
+        worksheet = workbook.active
+        worksheet.title = 'Property Total Interest'
+
+        # Define the titles for columns
+        columns = [
+            'S.No',
+            'Name',
+            'Email',
+            'Phone',
+            'Amount',
+            'Date',
+        ]
+        row_num = 1
+        header_font = Font(name='Calibri', bold=True)
+        # Assign the titles for each cell of the header
+        for col_num, column_title in enumerate(columns, 1):
+            cell = worksheet.cell(row=row_num, column=col_num)
+            cell.value = column_title
+            cell.font = header_font
+
+        # Iterate through all history
+        count = 0
+        for viewer in property_total_view:
+            row_num += 1
+            phone_no = viewer['phone_no']
+            formatted_phone_no = format_phone_number(phone_no)
+            added_on = viewer['added_on']
+            added_on_time = ''
+            if loc_timezone:
+                try:
+                    # added_on_time = time.mktime(
+                    #     datetime.datetime.strptime(added_on, "%Y-%m-%dT%H:%M:%SZ").timetuple())
+                    added_on_time = datetime.datetime.fromisoformat(added_on)
+                    added_on_time = added_on_time.astimezone(timezone.utc).replace(tzinfo=None)
+                    added_on_time = time.mktime(added_on_time.timetuple())
+                except:
+                    added_on_time = 0
+            if added_on_time:
+                added_on_time = float(added_on_time) - (float(loc_timezone)*60)
+                added_on_date_time = datetime.datetime.fromtimestamp(added_on_time)
+                added_on_date_time = datetime.datetime.strftime(added_on_date_time, "%m-%d-%Y %I:%M %p")
+            # Define the data for each cell in the row
+            row = [
+                sno, viewer['first_name'], viewer['email'], phone_no, "AED "+str(viewer['buy_now_amount']), added_on_date_time,
+            ]
+            sno += 1
+
+            # Assign the data for each cell of the row
+            for col_num, cell_value in enumerate(row, 1):
+                cell = worksheet.cell(row=row_num, column=col_num)
+                cell.value = cell_value
+        workbook.save(response)
+        return response
+    except Exception as exp:
+        print(exp)
+        return HttpResponse("Issue in views") 
+
+
+@csrf_exempt
+def accept_buy_now(request):
+    try:
+        user_id = None
+        page_size = 10
+        try:
+            site_detail = subdomain_site_details(request)
+            site_id = site_detail['site_detail']['site_id']
+
+        except Exception as exp:
+            site_id = ""
+
+
+        if request.is_ajax() and request.method == 'POST':
+            if 'user_id' in request.session and request.session['user_id']:
+                token = request.session['token']['access_token']
+                user_id = request.session['user_id']
+            else:
+                token = "" 
+                user_id = ""
+            property_id = request.POST['property_id']
+            requested_user_id = request.POST['requested_user_id']
+            params = {
+                'site_id': site_id,
+                'user_id': user_id,
+                'property_id': property_id,
+                "requested_user_id": requested_user_id,
+            }
+            api_url = settings.API_URL + '/api-property/accept-buy-now/'
+            api_response = call_api_post_method(params, api_url, token=token)
+            print(api_response)
+            if 'error' in api_response and api_response['error'] == 0:
+                data = {"status": 201, "data": "", "error": 0, "msg": api_response['msg']}
+            else:
+                data = {"status": 403, 'data': "", 'error': 1, "msg": api_response['msg']}
+        else:
+            data = {'status': 403, 'msg': 'Forbidden', 'error': 1}
+        return JsonResponse(data)
+    except Exception as exp:
+        print(exp)
+        return HttpResponse("Issue in views")                                                                                                                                                                                             
+
+
+# @csrf_exempt
+def employee_csv_download(request):
+    try:
+        # is_permission = check_permission(request, 1)
+        # developer_permission = check_permission(request, 4)
+        # if not is_permission:
+        #     http_host = request.META['HTTP_HOST']
+        #     redirect_url = settings.URL_SCHEME + str(http_host)
+        #     return HttpResponseRedirect(redirect_url)
+
+        page_size = 10
+        page = 1
+        if request.is_ajax() and request.method == 'POST':
+
+
+            site_detail = subdomain_site_details(request)
+            site_id = site_detail['site_detail']['site_id']
+
+            user_id = None
+            token = None
+            if 'user_id' in request.session and request.session['user_id']:
+                token = request.session['token']['access_token']
+                user_id = request.session['user_id']
+
+            agent_search = ''
+            page = 1
+
+            data = json.loads(request.body)
+            agent_search = data.get('search')
+            page_size = data.get('perpage')
+            status = data.get('status')
+            page = data.get('page')
+            developer_id = data.get('developer_id')
+
+            if status == 'active':
+                status = [1]
+            elif status == 'inactive':
+                status = [2]
+            else:
+                status = [2, 1]
+
+            list_param = {
+                "site_id": site_id,
+                "page": page,
+                "user_id": user_id,
+                "page_size": page_size,
+                "status": status,
+                "search": agent_search,
+                "developer_id": developer_id
+            }
+
+            list_url = settings.API_URL + '/api-users/employee-listing/'
+            data_list = call_api_post_method(list_param, list_url, token)
+            response = HttpResponse(content_type='text/csv')
+            response['Content-Disposition'] = 'attachment; filename="data.csv"'
+
+            # Create a CSV writer
+            writer = csv.writer(response)
+
+            # Write the headers (assuming the data is a list of dictionaries)
+            writer.writerow(['S.No', 'Name', 'Email', 'Phone no', 'Status', 'First Address','State','Postal Code', 'No. Projects', 'No. Property'])
+
+            # Write the data rows
+            s_no = 1
+            for item in data_list["data"]["data"]:
+                writer.writerow([s_no, item['first_name'], item['email'], item['phone_no'], item['user_status'], item['address_first'], item['state'], item['postal_code'], item['project_cnt'], item['property_cnt']])
+                s_no += 1
+            return response
+        else:
+            data = {'status': 403, 'msg': 'Forbidden'}
+        return JsonResponse(data)
+    except Exception as exp:
+        data = {'status': 403, 'msg': 'invalid request.'}
+        return JsonResponse(data)
+
+    
+# @csrf_exempt
+def developer_csv_download(request):
+    try:
+        is_permission = check_permission(request, 1)
+        if not is_permission:
+            http_host = request.META['HTTP_HOST']
+            redirect_url = settings.URL_SCHEME + str(http_host)
+            return HttpResponseRedirect(redirect_url)
+
+        page_size = 10
+        page = 1
+        if request.is_ajax() and request.method == 'POST':
+
+
+            site_detail = subdomain_site_details(request)
+            site_id = site_detail['site_detail']['site_id']
+
+            user_id = None
+            token = None
+            if 'user_id' in request.session and request.session['user_id']:
+                token = request.session['token']['access_token']
+                user_id = request.session['user_id']
+
+            agent_search = ''
+            page = 1
+
+            data = json.loads(request.body)
+            agent_search = data.get('search')
+            page_size = data.get('perpage')
+            status = data.get('status')
+            page = data.get('page')
+            
+            if status == 'active':
+                status = [1]
+            elif status == 'inactive':
+                status = [2]
+            else:
+                status = [2, 1]
+
+            list_param = {
+                "site_id": site_id,
+                "page": page,
+                "user_id": user_id,
+                "page_size": page_size,
+                "status": status,
+                "search": agent_search
+            }
+
+            list_url = settings.API_URL + '/api-users/subdomain-agent-listing/'
+            data_list = call_api_post_method(list_param, list_url, token)
+            
+            response = HttpResponse(content_type='text/csv')
+            response['Content-Disposition'] = 'attachment; filename="data.csv"'
+
+            # Create a CSV writer
+            writer = csv.writer(response)
+
+            # Write the headers (assuming the data is a list of dictionaries)
+            writer.writerow(['ID', 'Name', 'Email', 'Phone no', 'Status', 'First Address','State','Postal Code', 'No. Employees', 'No. Projects', 'No. Property'])
+
+            # Write the data rows
+            s_no = 1
+            for item in data_list["data"]["data"]:
+                writer.writerow([s_no, item['first_name'], item['email'], item['phone_no'], item['user_status'], item['address_first'], item['state'], item['postal_code'], item['employee_cnt'], item['project_cnt'], item['property_cnt']])
+                s_no += 1
+            return response
+        else:
+            data = {'status': 403, 'msg': 'Forbidden'}
+        return JsonResponse(data)
+    except Exception as exp:
+        data = {'status': 403, 'msg': 'invalid request.'}
+        return JsonResponse(data)
+
+
+# @csrf_exempt
+def sub_admin_csv_download(request):
+    try:
+        is_permission = check_permission(request, 1)
+        if not is_permission:
+            http_host = request.META['HTTP_HOST']
+            redirect_url = settings.URL_SCHEME + str(http_host)
+            return HttpResponseRedirect(redirect_url)
+
+        page_size = 10
+        page = 1
+        if request.is_ajax() and request.method == 'POST':
+
+
+            site_detail = subdomain_site_details(request)
+            site_id = site_detail['site_detail']['site_id']
+
+            user_id = None
+            token = None
+            if 'user_id' in request.session and request.session['user_id']:
+                token = request.session['token']['access_token']
+                user_id = request.session['user_id']
+
+            agent_search = ''
+            page = 1
+
+            data = json.loads(request.body)
+            agent_search = data.get('search')
+            page_size = data.get('perpage')
+            status = data.get('status')
+            page = data.get('page')
+            
+            if status == 'active':
+                status = [1]
+            elif status == 'inactive':
+                status = [2]
+            else:
+                status = [2, 1]
+
+            list_param = {
+                "site_id": site_id,
+                "page": page,
+                "user_id": user_id,
+                "page_size": page_size,
+                "status": status,
+                "search": agent_search
+            }
+
+            list_url = settings.API_URL + '/api-users/sub-admin-listing/'
+            data_list = call_api_post_method(list_param, list_url, token)
+            response = HttpResponse(content_type='text/csv')
+            response['Content-Disposition'] = 'attachment; filename="data.csv"'
+
+            # Create a CSV writer
+            writer = csv.writer(response)
+
+            # Write the headers (assuming the data is a list of dictionaries)
+            writer.writerow(['S.No', 'Name', 'Email', 'Phone no', 'Status', 'First Address','State','Postal Code', 'No. Property'])
+
+            # Write the data rows
+            s_no = 1
+            for item in data_list["data"]["data"]:
+                writer.writerow([s_no, item['first_name'], item['email'], item['phone_no'], item['user_status'], item['address_first'], item['state'], item['postal_code'], item['property_cnt']])
+                s_no += 1
+            return response
+        else:
+            data = {'status': 403, 'msg': 'Forbidden'}
+        return JsonResponse(data)
+    except Exception as exp:
+        data = {'status': 403, 'msg': 'invalid request.'}
+        return JsonResponse(data)
+
+
+
+# @csrf_exempt
+def users_csv_download(request):
+    try:
+        is_permission = check_permission(request, 4)
+        if not is_permission:
+            http_host = request.META['HTTP_HOST']
+            redirect_url = settings.URL_SCHEME + str(http_host)
+            return HttpResponseRedirect(redirect_url)
+
+        page_size = 10
+        page = 1
+        if request.is_ajax() and request.method == 'POST':
+
+
+            site_detail = subdomain_site_details(request)
+            site_id = site_detail['site_detail']['site_id']
+
+            user_id = None
+            token = None
+            if 'user_id' in request.session and request.session['user_id']:
+                token = request.session['token']['access_token']
+                user_id = request.session['user_id']
+
+            user_search = ''
+            page = 1
+
+            data = json.loads(request.body)
+            user_search = data.get('search')
+            page_size = data.get('perpage')
+            status = data.get('status')
+            page = data.get('page')
+            verification_type = data.get('verification_type')
+
+            if status == 'active':
+                status = [1]
+            elif status == 'inactive':
+                status = [2]
+            else:
+                status = [2, 1]
+
+            list_param = {
+                "site_id": site_id,
+                "page": page,
+                "user_id": user_id,
+                "admin_id": user_id,
+                "page_size": page_size,
+                "status": status,
+                "search": user_search,
+                "verification_type": verification_type
+            }
+
+            list_url = settings.API_URL + '/api-users/subdomain-user-listing/'
+            data_list = call_api_post_method(list_param, list_url, token)
+            response = HttpResponse(content_type='text/csv')
+            response['Content-Disposition'] = 'attachment; filename="data.csv"'
+
+            # Create a CSV writer
+            writer = csv.writer(response)
+
+            # Write the headers (assuming the data is a list of dictionaries)
+            writer.writerow(['S.No', 'Name', 'Email', 'Phone no', 'Bid', 'Status', 'Verification Status'])
+
+            # Write the data rows
+            s_no = 1
+            for item in data_list["data"]["data"]:
+                writer.writerow([s_no, item['first_name'], item['email'], item['phone_no'], item['bids'], item['status_name'], item['verification_status_name']])
+                s_no += 1
+            return response
+        else:
+            data = {'status': 403, 'msg': 'Forbidden'}
+        return JsonResponse(data)
+    except Exception as exp:
+        print(exp)
+        data = {'status': 403, 'msg': 'invalid request.'}
+        return JsonResponse(data)
+
+
+
+# @csrf_exempt
+def projects_csv_download(request):
+    try:
+        is_permission = check_permission(request, 6)
+        if not is_permission:
+            http_host = request.META['HTTP_HOST']
+            redirect_url = settings.URL_SCHEME + str(http_host)
+            return HttpResponseRedirect(redirect_url)
+
+        page_size = 10
+        page = 1
+        if request.is_ajax() and request.method == 'POST':
+
+
+            site_detail = subdomain_site_details(request)
+            site_id = site_detail['site_detail']['site_id']
+
+            user_id = None
+            token = None
+            if 'user_id' in request.session and request.session['user_id']:
+                token = request.session['token']['access_token']
+                user_id = request.session['user_id']
+
+            search = ''
+            page = 1
+
+            data = json.loads(request.body)
+            search = data.get('search')
+            page_size = data.get('perpage')
+            status = data.get('status')
+            page = data.get('page')
+            project_type = data.get('filter_project_type')
+            developer = data.get('filter_developer')
+            project_status = data.get('proj_filter_status')
+
+            list_param = {
+                "site_id": site_id,
+                "page": page,
+                "user_id": user_id,
+                "page_size": page_size,
+                "status": status,
+                "search": search,
+                "developer_id": developer,
+                "project_status": project_status,
+                "project_type": project_type
+            }
+
+            list_url = settings.API_URL + '/api-project/project-listing/'
+            data_list = call_api_post_method(list_param, list_url, token)
+            response = HttpResponse(content_type='text/csv')
+            response['Content-Disposition'] = 'attachment; filename="data.csv"'
+
+            # Create a CSV writer
+            writer = csv.writer(response)
+
+            # Write the headers (assuming the data is a list of dictionaries)
+            writer.writerow(['S.No', 'Project Name', 'Project Location', 'Project Type', 'Approval Status', 'Status', 'Project Status', 'Developer Name', 'No. of Propery'])
+
+            # Write the data rows
+            s_no = 1
+            for item in data_list["data"]["data"]:
+                project_name = item['project_name'] + " " + item['name']
+                project_type = ", ".join(item['project_type'])
+                writer.writerow([s_no, project_name, item['project_location'], project_type,  item['approval'], item['status'], item['project_status'], item['developer_name'], item['no_of_property']])
+                s_no += 1
+            return response
+        else:
+            data = {'status': 403, 'msg': 'Forbidden'}
+        return JsonResponse(data)
+    except Exception as exp:
+        print('exp', exp)
+        data = {'status': 403, 'msg': 'invalid request.'}
+        return JsonResponse(data)
+
+
+def change_password(request):
+    try:
+        if request.is_ajax() and request.method == 'POST':
+            site_detail = subdomain_site_details(request)
+            user_id = request.session['user_id']
+            token = request.session['token']['access_token']
+            # ---------------------Save password------------------
+            current_password = request.POST.get('current_password', "")
+            new_password = request.POST.get('new_password', "")
+            confirm_new_password = request.POST.get('confirm_new_password', "")
+            if new_password != confirm_new_password:
+                data = {'data': "", 'error': 1, "msg": "New and confirm password should be same."}
+                return JsonResponse(data)
+
+            api_url = settings.API_URL + "/api-users/admin-user-change-password/"
+            params = {
+                "user_id": user_id,
+                "password": current_password,
+                "new_password": new_password
+            }
+            api_response = call_api_post_method(params, api_url, token)
+            if 'error' in api_response and api_response['error'] == 0:
+                request.session['first_time_log_in'] = 0
+                data = {"data": "", "error": 0, "msg": api_response['msg']}
+            else:
+                data = {'data': "", 'error': 1, "msg": api_response['msg']}
+            return JsonResponse(data)  
+
+        return render(request, "admin/dashboard/users/change-password.html", {})
+    except Exception as exp:
+        return HttpResponse("Issue in views")
+
+
+def user_profile(request):
+    try:
+        token = request.session['token']['access_token']
+        user_id = request.session['user_id']
+        if request.is_ajax() and request.method == 'POST':
+            site_detail = subdomain_site_details(request)
+            user_id = request.session['user_id']
+            token = request.session['token']['access_token']
+            # ---------------------Save User Profile------------------
+            api_url = settings.API_URL + "/api-users/user-profile-update/"
+            params = {
+                "user_id": user_id,
+                "name": request.POST.get('name', ""),
+                "phone_no": request.POST.get('phone_no', ""),
+                "email": request.POST.get('email', ""),
+                "phone_country_code": request.POST.get('phone_country_code', 971),
+            }
+            api_response = call_api_post_method(params, api_url, token)
+            if 'error' in api_response and api_response['error'] == 0:
+                data = {"data": "", "error": 0, "msg": api_response['msg']}
+            else:
+                data = {'data': "", 'error': 1, "msg": api_response['msg']}
+            return JsonResponse(data) 
+        else:
+            api_url = settings.API_URL + "/api-users/admin-profile-detail/"
+            params = {
+                "user_id": user_id,
+            }
+            api_response = call_api_post_method(params, api_url, token)
+            user_details = {}
+            if 'error' in api_response and api_response['error'] == 0:
+                user_details = api_response['data'][0]
+                
+            return render(request, "admin/dashboard/users/user-profile.html", {"user_details": user_details})
+    except Exception as exp:
+        return HttpResponse("Issue in views")
+
+
+def make_highest_bid(request):
+    try:
+        if request.is_ajax() and request.method == 'POST':
+            site_detail = subdomain_site_details(request)
+            user_id = request.session['user_id']
+            token = request.session['token']['access_token']
+            
+            api_url = settings.API_URL + "/api-bid/make-highest-bid/"
+            params = {
+                "property_id": request.POST.get('property_id', ""),
+                "user_id": user_id,
+            }
+            api_response = call_api_post_method(params, api_url, token)
+            
+            if 'error' in api_response and api_response['error'] == 0:
+                data = {"data": "", "error": 0, "msg": api_response['msg']}
+            else:
+                data = {'data': "", 'error': 1, "msg": api_response['msg']}
+            return JsonResponse(data)
+    except Exception as exp:
+        return JsonResponse({"data": "", "error": 0, "msg": "Forbidden"})
+
+
+def highest_bidder_details(request):
+    try:
+        if request.is_ajax() and request.method == 'POST':
+            site_detail = subdomain_site_details(request)
+            user_id = request.session['user_id']
+            token = request.session['token']['access_token']
+            
+            api_url = settings.API_URL + "/api-bid/highest-bidder-details/"
+            params = {
+                "property_id": request.POST.get('property_id', ""),
+                "user_id": user_id,
+            }
+            api_response = call_api_post_method(params, api_url, token)
+            print(api_response)
+            if 'error' in api_response and api_response['error'] == 0:
+                data = {"data": api_response['data'], "error": 0, "msg": api_response['msg']}
+            else:
+                data = {'data': "", 'error': 1, "msg": api_response['msg']}
+            return JsonResponse(data)
+    except Exception as exp:
+        return JsonResponse({"data": "", "error": 0, "msg": "Forbidden"})   
+
+
+
+# @csrf_exempt
+def download_listing_csv(request):
+    try:
+        try:
+            site_detail = subdomain_site_details(request)
+            site_id = site_detail['site_detail']['site_id']
+
+        except Exception as exp:
+            site_id = ""
+
+        user_id = None
+        token = None
+        is_broker = 0
+        if 'user_id' in request.session and request.session['user_id']:
+            token = request.session['token']['access_token']
+            user_id = request.session['user_id']
+            is_broker = 1 if request.session['is_broker'] == True else 0
+
+        if request.is_ajax() and request.method == 'POST':
+            search = ''
+            if 'search' in request.POST and request.POST['search']:
+                search = request.POST['search']
+
+            page = 1
+            if 'page' in request.POST and request.POST['page'] != "":
+                page = int(request.POST['page'])
+
+            page_size = 10
+            if 'perpage' in request.POST and request.POST['perpage']:
+                page_size = int(request.POST['perpage'])
+
+            asset_type = ''
+            if 'asset_type' in request.POST and request.POST['asset_type']:
+                asset_type = int(request.POST['asset_type'])
+            auction_type = ''
+            if 'auction_type' in request.POST and request.POST['auction_type']:
+                auction_type = int(request.POST['auction_type'])
+            property_type = ''
+            if 'property_type' in request.POST and request.POST['property_type']:
+                property_type = int(request.POST['property_type'])
+
+            status = ""
+            if 'status' in request.POST and request.POST['status']:
+                status = request.POST['status']
+            
+            agent = ""
+            if 'agent' in request.POST and request.POST['agent']:
+                agent = request.POST['agent']
+
+            developer = ""
+            if 'developer' in request.POST and request.POST['developer']:
+                developer = request.POST['developer']
+
+            property_approval = ""
+            if 'property_approval' in request.POST and request.POST['property_approval']:
+                property_approval = request.POST['property_approval']
+
+
+            list_param = {
+                "page": page,
+                "page_size": page_size,
+                "site_id": site_id,
+                "user_id": user_id,
+                "auction_id": auction_type,
+                "asset_id": asset_type,
+                "property_type": property_type,
+                "search": search,
+                "status": status,
+                "closing_status": request.POST.get('closing_status', ''),
+                "agent_id": agent,
+                "developer_id": developer,
+                "property_approval": property_approval,
+                "project_id": request.POST['project_id'],
+                "employee_id": request.POST.get('employee_id', ''),
+                "seller_id": request.POST.get('seller_id', ''),
+                "sub_admin_id": request.POST.get('sub_admin_id', ''),
+            }
+            list_url = settings.API_URL + '/api-property/property-listing/'
+            list_data = call_api_post_method(list_param, list_url, token)
+
+            if 'error' in list_data and list_data['error'] == 0:
+                property_listing = list_data['data']['data']
+                print(property_listing)
+            else:
+                property_listing = []
+
+            response = HttpResponse(content_type='text/csv')
+            response['Content-Disposition'] = 'attachment; filename="property_list.csv"'
+            writer = csv.writer(response)
+            writer.writerow(['S.no', 'Name', 'Property Type', 'City', 'Community', 'Transaction', 'Bids', 'Favourite', 'Interest', 'Buy Now', 'Views'])
+
+            if len(property_listing) > 0:
+                cnt = 0
+                for property in property_listing:
+                    cnt += 1
+                    writer.writerow([cnt, property['property_name'], property['property_type_name'], property['state_name'], property['community'], property['total_transaction'], property['bids'], property['total_favourite'], property['total_interest'], property['total_buy_now'], property['no_view']])
+
+            return response
+        return HttpResponse(status=405)  
+    except Exception as exp:
+        return HttpResponse(status=405) 
+
+
+def property_relist(request):
+    if request.method != 'POST' or request.headers.get('x-requested-with') != 'XMLHttpRequest':
+        return JsonResponse({"property_id": "", "error": 1, "msg": "Invalid request"}, status=400)
+
+    try:
+        site_detail = subdomain_site_details(request)
+        site_id = site_detail['site_detail']['site_id']
+        user_id = request.session.get('user_id')
+        token = request.session.get('token', {}).get('access_token')
+
+        property_id = request.POST.get("property_id")
+        if not property_id:
+            return JsonResponse({"property_id": "", "error": 1, "msg": "Property ID required"}, status=400)
+
+        api_url = f"{settings.API_URL}/api-property/property-relist/"
+        params = {
+            "site_id": site_id,
+            "user_id": user_id,
+            "property_id": property_id,
+        }
+
+        api_response = call_api_post_method(params, api_url, token)
+
+        if api_response.get('error') == 0:
+            return JsonResponse({
+                "property_id": api_response['data']['property_id'],
+                "error": 0,
+                "msg": api_response['msg']
+            })
+        else:
+            return JsonResponse({"property_id": "", "error": 1, "msg": api_response.get('msg', 'Unknown error')})
+
+    except Exception as exp:
+        return JsonResponse({"property_id": "", "error": 1, "msg": "Request Forbidden"}, status=500)  
+
+
+# @csrf_exempt
+def get_construction_status(request):
+    try:
+        if request.is_ajax() and request.method == 'POST':
+            token = request.session['token']['access_token']
+            param = {'object_id': 26}
+            url = settings.API_URL + '/api-settings/lookup-status-listing/'
+            response = call_api_post_method(param, url, token)
+            if response.get('error') == 0:
+                construction_status = response['data']  
+                return JsonResponse({
+                    "construction_status": construction_status,
+                    "error": 0,
+                    "msg": response['msg']
+                })
+            else:
+                return JsonResponse({"construction_status": [], "error": 1, "msg": response.get('msg', 'Unknown error')})
+        else:
+            return JsonResponse({"construction_status": [], "error": 1, "msg": "Request Forbidden"})                                                  
+    except Exception as exp:
+        return JsonResponse({"construction_status": [], "error": 1, "msg": "Request Forbidden"}, status=500)                                               

@@ -24,16 +24,16 @@
               <div class="row">
                 <div class="col-lg-6 col-md-6">
                   <div class="form-group">
-                    <label for="business_first_name">First Name <span class="text-danger">*</span></label>
+                    <label for="business_first_name">Name <span class="text-danger">*</span></label>
                     <input type="text" class="form-control alphaAccpt" aria-label="First Name" placeholder="Enter your first name" name="business_first_name" id="business_first_name" value="{{ business_details.first_name|default:'' }}" maxlength="40">
                   </div>
                 </div>
-                <div class="col-lg-6 col-md-6">
+                <!-- <div class="col-lg-6 col-md-6">
                   <div class="form-group">
                     <label for="business_last_name">Last Name <span class="text-danger">*</span></label>
                     <input type="text" class="form-control alphaAccpt" aria-label="Last Name" placeholder="Enter your last name" name="business_last_name" id="business_last_name" value="{{ business_details.last_name|default:'' }}" maxlength="40">
                   </div>
-                </div>
+                </div> -->
                 <div class="col-lg-6 col-md-6">
                   <div class="form-group">
                     <label for="company_name">Company <span class="text-danger">*</span></label>
@@ -43,17 +43,27 @@
                 <div class="col-lg-6 col-md-6">
                   <div class="form-group">
                     <label for="business_phone">Phone <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" aria-label="Phone" placeholder="Enter your phone number" name="business_phone" id="business_phone" value="{{ business_details.phone_no|default:'' }}" data-inputmask="'mask': '(999) 999-9999'" data-inputmask-clearincomplete="true">
-                    <span id="custom_business_phone_error"  class="custom_error" style="display:none;">Phone no already in use.</span>
-                    <span id="custom_business_phone_length_error"  class="custom_error" style="display:none;">Please enter valid phone no.</span>
+                    <div class="ph-code">
+                      <select name="phone_country_code" class="select">
+                        <option value="971" {% if business_details.phone_country_code == 971%} selected {% endif %}>+971</option>
+                      </select>
+                      <input type="text" class="form-control" aria-label="Phone" placeholder="Enter your phone number" name="business_phone" id="business_phone" value="{{ business_details.phone_no|default:'' }}" data-inputmask="'mask': '99 999 9999'" data-inputmask-clearincomplete="true">
+                      <span id="custom_business_phone_error"  class="custom_error" style="display:none;">Phone no already in use.</span>
+                      <span id="custom_business_phone_length_error"  class="custom_error" style="display:none;">Please enter valid phone no.</span>
+                    </div>
                   </div>
                 </div>
                 <div class="col-lg-6 col-md-6">
                   <div class="form-group">
                     <label for="business_mobile">Mobile <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" aria-label="Mobile" placeholder="Enter your mobile number" name="business_mobile" id="business_mobile" value="{{ business_details.mobile_no|default:'' }}" data-inputmask="'mask': '(999) 999-9999'" data-inputmask-clearincomplete="true">
-                    <span id="custom_business_mobile_error"  class="custom_error" style="display:none;">Mobile no already in use.</span>
-                    <span id="custom_business_mobile_length_error"  class="custom_error" style="display:none;">Please enter valid Mobile no.</span>
+                    <div class="ph-code">
+                      <select name="mobile_country_code" class="select">
+                        <option value="971" {% if business_details.mobile_country_code == 971%} selected {% endif %}>+971</option>
+                      </select>
+                      <input type="text" class="form-control" aria-label="Mobile" placeholder="Enter your mobile number" name="business_mobile" id="business_mobile" value="{{ business_details.mobile_no|default:'' }}" data-inputmask="'mask': '99 999 9999'" data-inputmask-clearincomplete="true">
+                      <span id="custom_business_mobile_error"  class="custom_error" style="display:none;">Mobile no already in use.</span>
+                      <span id="custom_business_mobile_length_error"  class="custom_error" style="display:none;">Please enter valid Mobile no.</span>
+                    </div>
                   </div>
                 </div>
                 <div class="col-lg-6 col-md-6">
@@ -277,28 +287,11 @@
     <script type="text/javascript" src="{% static 'admin/js/jquery.growl.js' %}"></script>
     <script type="text/javascript" src="{% static 'admin/js/custom_js.js' %}?v=2.7"></script>
     <script type="text/javascript" src="{% static 'admin/js/business.js' %}?v=2.7"></script>
-<script type="text/javascript" src="{% static 'admin/js/dropzone.js' %}"></script>
-      <script type="text/javascript" src="{% static 'admin/js/custom_dropzone.js' %}?v=3.1"></script>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-tour/0.11.0/js/bootstrap-tour.js"></script>
-    <script type="text/javascript" src="{% static 'admin/js/business_tour.js' %}?v=3.1"></script>
+    <script type="text/javascript" src="{% static 'admin/js/dropzone.js' %}"></script>
+    <script type="text/javascript" src="{% static 'admin/js/custom_dropzone.js' %}?v=3.1"></script>
 
     <script>
-      /*var response_msg = '{{ response.msg }}';
-      var response_error = '{{ response.error }}';
-      $(document).ready(function(){
-        myfunction(response_error, response_msg);
-      });
-      function myfunction(){
-        if(response_error == '0' && response_msg != ""){
-          $.growl.notice({title: "Business Info ", message: response_msg, size: 'large'});
-        }else if(response_error == '1' && response_msg != ""){
-          $.growl.error({title: "Business Info ", message: response_msg, size: 'large'});
-        }else{
-
-        }
-      }*/
-      $("#business_phone").inputmask('(999) 999-9999');
-      $("#business_mobile").inputmask('(999) 999-9999');
+      $("#business_phone").inputmask('99 999 9999');
+      $("#business_mobile").inputmask('99 999 9999');
     </script>
 {% endblock %}

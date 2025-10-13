@@ -8,6 +8,20 @@ try{
 }
 
 $(document).ready(function(){
+    $('.convert_to_local_date_time').each(function(){
+        try{
+            var added_on = $(this).attr('data-value');
+            if(added_on.trim() != "" && added_on.trim() != "None"){
+                var local_date = getLocalDateFromUTC(added_on.trim(), 'mm-dd-yyyy','ampm');
+                $(this).html(local_date);
+            }else{
+                $(this).html('-');
+            }
+        }catch(ex){
+            //console.log(ex);
+        }
+    });
+
     image_params = {
         url: '/admin/save-images/',
         field_name: 'agent_image',
@@ -44,13 +58,13 @@ $(document).ready(function(){
                 first_name:{
                     required: true,
                     acceptcharacters: true,
-                    noSpace:true,
+                    // noSpace:true,
                     maxlength:40
                 },
-                last_name:{
+                first_name_ar:{
                     required: true,
                     acceptcharacters: true,
-                    noSpace:true,
+                    // noSpace:true,
                     maxlength:40
                 },
                 email:{
@@ -58,6 +72,7 @@ $(document).ready(function(){
                     email:true,
                     remote:{
                         type: 'post',
+                        headers: { 'X-CSRFToken': getCookie('csrftoken') }, 
                         url: '/admin/check-user-exists/',
                         dataType: 'json',
                         async:false,
@@ -91,17 +106,23 @@ $(document).ready(function(){
                 state:{
                     required: true
                 },
-                zip_code:{
-                    required: true,
-                    minlength: 5,
-                    maxlength: 5,
-                },
+                // zip_code:{
+                //     required: true,
+                //     minlength: 5,
+                //     maxlength: 5,
+                // },
                 status:{
                     required: true
                 }
             },
             messages: {
                 first_name:{
+                    required: "First Name is required.",
+                    acceptcharacters: "Please enter valid First Name",
+                    noSpace: "Please enter valid First Name",
+                    maxlength:"Please enter at most 40 char"
+                },
+                first_name_ar:{
                     required: "First Name is required.",
                     acceptcharacters: "Please enter valid First Name",
                     noSpace: "Please enter valid First Name",
@@ -280,6 +301,7 @@ $(document).ready(function(){
                     required:true,
                     remote:{
                         type: 'post',
+                        headers: { 'X-CSRFToken': getCookie('csrftoken') }, 
                         url: '/admin/check-user-exists/',
                         dataType: 'json',
                         async:false,
@@ -307,6 +329,7 @@ $(document).ready(function(){
                     email:true,
                     remote:{
                         type: 'post',
+                        headers: { 'X-CSRFToken': getCookie('csrftoken') }, 
                         url: '/admin/check-user-exists/',
                         dataType: 'json',
                         async:false,
@@ -407,6 +430,7 @@ $(document).ready(function(){
                 $.ajax({
                     url: '/admin/employee-search-suggestion/',
                     type: 'post',
+                    headers: { 'X-CSRFToken': getCookie('csrftoken') },
                     dataType: 'json',
                     cache: false,
                     data: {'search': search},
@@ -559,6 +583,7 @@ function listingSearch(current_page){
         $.ajax({
             url: '/admin/employee/',
             type: 'post',
+            headers: { 'X-CSRFToken': getCookie('csrftoken') },
             dataType: 'json',
             cache: false,
             data: {search: search, perpage: recordPerpage, status: status, page: currpage, developer_id: developer_id},
@@ -591,3 +616,53 @@ function listingSearch(current_page){
           $('#confirmEmployeeDeleteModal').modal('show');
           $('.del_employee_btn').attr('rel_id', row_id);
       }
+
+
+//-----------Employee csv download--------
+function employee_csv_download(){
+    //alert($('#user_listing_pagination_list .active a').text()); 
+    var search = $('#employee_search').val();
+    var currpage = $('#listing_pagination_list .active a').text();
+    if($('#num_record').val() != ""){
+        recordPerpage = $('#num_record').val();
+    }
+    var status = $('#filter_status').val();
+    var developer_id = $('#developer_id').val();
+    $('.overlay').show();
+    fetch('/admin/employee-csv-download/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest', // This is important for Django to identify it as an AJAX request
+            'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: JSON.stringify({
+                    search: search,
+                    perpage: recordPerpage,
+                    status: status,
+                    page: currpage,
+                    developer_id: developer_id
+                })
+    })
+    .then(response => {
+        if (response.ok) {
+            return response.blob();
+        }
+        throw new Error('Network response was not ok.');
+    })
+    .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = 'employee.csv';;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        $('.overlay').hide();
+    })
+    .catch(error => {
+        console.error('There was a problem with the fetch operation:', error);
+    });
+}
+

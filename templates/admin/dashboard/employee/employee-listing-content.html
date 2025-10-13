@@ -15,7 +15,7 @@
             {{ data.email|default:'' }}
           </li>
           <li>
-            <i class="fa-solid fa-phone" aria-hidden="true" role="presentation"></i> {{ data.phone_no|default:''|format_phone }}
+            <i class="fa-solid fa-phone" aria-hidden="true" role="presentation"></i>+{{data.phone_country_code|default:971}} {{ data.phone_no|default:''|format_phone }}
           </li>
           <li>
             <i class="fa-solid fa-calendar-days" aria-hidden="true" role="presentation"></i> Create Date | <span class="convert_to_local_date_time" data-value="{{ data.added_on|default:'' }}">
@@ -37,7 +37,7 @@
             <figcaption>
               <h6>
                 <span>
-                  {{ data.first_name|default:'' }} {{ data.last_name|default:'' }}
+                  {{ data.first_name|default:'' }}
                   {% if data.is_upgrade %}
                   <a href="javascript:void(0)" data-toggle="tooltip" data-placement="bottom" title="User upgraded to Agent"><img src="{% static 'admin/images/up-arrow.svg' %}" alt="real estate sales"></a>
                   {% endif %}
@@ -56,9 +56,9 @@
                   <li>
                     <a href="/admin/add-employee/?id={{ data.id }}"><i class="fas fa-edit" aria-hidden="true" role="presentation"></i> Edit Employee</a>
                   </li>
-                  <li>
+                  <!-- <li>
                     <a href="javascript:void(0)" onclick="delete_confirmation({{ data.id }})"><i class="fas fa-trash" aria-hidden="true" role="presentation"></i> Delete Employee</a>
-                  </li>
+                  </li> -->
                 </ul>
               </span>
             </div>
@@ -76,7 +76,7 @@
               <li>
                 <div class="icon"><i class="fa-solid fa-building fa-2x" aria-hidden="true" role="presentation"></i></div>
                 <h5 class="blue-text">
-                  {{ data.project_cnt|default:'NA' }}
+                  <a href="/admin/project-list/?e_i={{data.id}}">{{ data.project_cnt|default:'NA' }}</a>
                 </h5>
                 <h6 class="pt10">
                   No. Projects
@@ -85,7 +85,7 @@
               <li>
                 <div class="icon"><i class="fa-solid fa-building fa-2x" aria-hidden="true" role="presentation"></i></div>
                 <h5 class="blue-text">
-                  {{ data.property_cnt|default:'NA' }}
+                  <a href="/admin/listing/?e_i={{data.id}}">{{ data.property_cnt|default:'NA' }}</a>
                 </h5>
                 <h6 class="pt10">
                   No. Property
@@ -117,7 +117,6 @@
     
     {% endif %}
 {% block js_content %}
-
-  <script type="text/javascript" src="{% static 'admin/js/custom_js.js' %}?v=4.6"></script>
-
+  <script type="text/javascript" src="{% static 'admin/js/custom-date-time.js' %}?v=4.2"></script>
+  <script type="text/javascript" src="{% static 'admin/js/employee.js' %}?v=5.1"></script>
 {% endblock %}

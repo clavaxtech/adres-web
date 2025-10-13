@@ -16,6 +16,7 @@ function contactSearch(current_page=1){
         $.ajax({
             url: '/admin/contact-listing/',
             type: 'post',
+            headers: { 'X-CSRFToken': getCookie('csrftoken') },
             dataType: 'json',
             cache: false,
             data: {'search': search, 'page': currpage, 'page_size': page_size, 'user_type': user_type},

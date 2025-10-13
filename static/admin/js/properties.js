@@ -3278,10 +3278,10 @@ $(document).ready(function(){
                     }
                 }
             },
-            timer_flash:{
-                required: true,
-                min:1
-            },
+            // timer_flash:{
+            //     required: true,
+            //     min:1
+            // },
             bid_limit:{
                 required: function () {
                     if (parseInt($('input[name="auto_approval"]').val()) == 1) {
@@ -3389,10 +3389,10 @@ $(document).ready(function(){
                     }
                 }
             },
-            timer_flash:{
-                required: true,
-                min:1
-            },
+            // timer_flash:{
+            //     required: true,
+            //     min:1
+            // },
             remain_time_to_add_extension:{
                 required: true,
                 min:1,

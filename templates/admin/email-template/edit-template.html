@@ -121,12 +121,30 @@
                   </div>
                 </div>
                 <div class="item form-group">
+                  <label class="control-label col-md-3 col-sm-3 col-xs-12" for="notification_subject_ar">Notification Subject In Arabic
+                  </label>
+                  <div class="col-md-6 col-sm-6 col-xs-12">
+                    <input id="notification_subject_ar" class="form-control col-md-7 col-xs-12" aria-label="Notification Subject In Arabic"
+                      data-parsley-trigger="keyup" name="notification_subject_ar" placeholder="Enter notification subject In Arabic" type="text" value="{{data.notification_subject_ar|default:''}}">
+                  </div>
+                </div>
+                <div class="item form-group">
                   <label class="control-label col-md-3 col-sm-3 col-xs-12" for="notification_text">Notification Message
                   </label>
                   <div class="col-md-8 col-sm-8 col-xs-12">
                     <textarea class="form-control notification_text" id="notification_text" aria-label="Notification Message"
                       name="notification_text" rows="3" placeholder="Enter message body..." style="height: 120px;"
                       spellcheck="true">{{data.notification_text|default:""}}</textarea>
+                  </div>
+                </div>
+
+                <div class="item form-group">
+                  <label class="control-label col-md-3 col-sm-3 col-xs-12" for="notification_text_ar">Notification Message In Arabic
+                  </label>
+                  <div class="col-md-8 col-sm-8 col-xs-12">
+                    <textarea class="form-control notification_text" id="notification_text_ar" aria-label="Notification Message In Arabic"
+                      name="notification_text_ar" rows="3" placeholder="Enter message body..." style="height: 120px;"
+                      spellcheck="true">{{data.notification_text_ar|default:""}}</textarea>
                   </div>
                 </div>
                 

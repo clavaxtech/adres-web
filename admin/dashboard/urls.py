@@ -40,6 +40,7 @@ urlpatterns = [
     path('add-developer/', views.add_developer, name='add-developer'),
     path('add-sub-admin/', views.add_sub_admin, name='add-sub-admin'),
     path('delete-agent/', views.delete_agent, name='delete-agent'),
+    path('delete-sub-admin/', views.delete_sub_admin, name='delete-agent'),
     path('get-make-agent-details/', views.get_agent_details, name='get-make-agent-details'),
     path('upgrade-user-to-agent/', views.upgrade_user_to_agent, name='upgrade-user-to-agent'),
     path('change-user-password/', views.change_user_password, name='change-user-password'),
@@ -92,7 +93,7 @@ urlpatterns = [
     path('property-bid-history/', views.property_bid_history, name='property-bid-history'),
     path('popup-bidder-reg-search-suggestion/', views.popup_bidder_registration_search_suggestion, name='popup-bidder-reg-search-suggestion'),
     path('user-bid-reg-list/', views.user_bid_reg_list, name='user-bid-reg-list'),
-    path('schedule-tour-list/', views.schedule_tour_list, name='schedule-tour-list'),
+    # path('schedule-tour-list/', views.schedule_tour_list, name='schedule-tour-list'),
     path('property-listing-ordering/', views.property_listing_ordering, name='property-listing-ordering'),
     path('schedule-search-suggestion/', views.schedule_search_suggestion, name='schedule-search-suggestion'),
     path('get-plan-history/', views.get_plan_history, name='get-plan-history'),
@@ -207,7 +208,7 @@ urlpatterns = [
 
 
     # Video Tutorials
-    path('video-list/', views.video_list, name="admin-video-list"),
+    # path('video-list/', views.video_list, name="admin-video-list"),
     path('ajax-video-list/', views.ajax_video_list, name="ajax-admin-video-list"),
     # path('active-inactive-video/', views.active_inactive_video, name="admin-video-status-change"), 
     path('ajax-add-video/', views.ajax_add_video, name="admin-ajax-add-video"),
@@ -249,14 +250,35 @@ urlpatterns = [
     path('employee-search-suggestion/', views.employee_search_suggestion, name='employee-search-suggestion'),
     path('delete-employee/', views.delete_employee, name='delete-employee'),
     path('user-verification/', views.user_verification, name='user-verification'),
+    path('employee-csv-download/', views.employee_csv_download, name='employee-csv-download'),
 
     #addlisting
     path('add-listing/', views.add_listing, name='add-listing'),
     path('get-municipality/', views.get_municipality, name='get-municipality'),
     path('get-district/', views.get_district, name='get-district'),
+    path('get-community/', views.get_community, name='get-community'),
     path('save-listing/', views.save_listing, name='save-listing'),
     path('auction-detail/', views.auction_detail, name='auction-detail'),
+    
     path('property-total-favourite/', views.property_total_favourite, name='property-total-favourite'),
     path('export-property-total-favourite/', views.export_property_total_favourite, name="export-property-total-favourite"),
+    path('property-total-interest/', views.property_total_interest, name='property-total-interest'),
+    path('export-property-total-interest/', views.export_property_total_interest, name="export-property-total-interest"),
+    path('developer-csv-download/', views.developer_csv_download, name='developer-csv-download'),
+    path('sub-admin-csv-download/', views.sub_admin_csv_download, name='sub-admin-csv-download'),
+    path('users-csv-download/', views.users_csv_download, name='users-csv-download'),
+    path('projects-csv-download/', views.projects_csv_download, name='projects-csv-download'),
+    
+    path('property-buy-now/', views.property_buy_now, name='property-buy-now'),
+    path('export-property-buy-now/', views.export_property_buy_now, name="export-property-buy-now"),
+    path('accept-buy-now/', views.accept_buy_now, name='accept-buy-now'),
+
+    path('change-password/', views.change_password, name='change-password'),
+    path('user-profile/', views.user_profile, name='user-profile'),
+    path('make-highest-bid/', views.make_highest_bid, name='make-highest-bid'),
+    path('highest-bidder-details/', views.highest_bidder_details, name='highest-bidder-details'),
+    path('download-listing-csv/', views.download_listing_csv, name='download_listing_csv'),
+    path('property-relist/', views.property_relist, name='property-relist'),
+    path('get-construction-status/', views.get_construction_status, name='get-construction-status'),
 
 ]

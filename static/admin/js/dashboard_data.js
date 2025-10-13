@@ -74,6 +74,7 @@ $(function () {
     $("#total_developer").html(data.total_developer);
     $("#active_developer").html(data.total_active_developer);
     $("#inactive_developer").html(data.total_inactive_developer);
+    $("#total_transaction").html(data.total_transaction);
   }
 
   function signup_view_graph(dataset, label=""){
@@ -233,7 +234,7 @@ $(function () {
     const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
 
     map = new Map(document.getElementById("map"), {
-      zoom: 4,
+      zoom: 7,
       center: position,
       mapId: "DEMO_MAP_ID",
     });
@@ -246,7 +247,7 @@ $(function () {
               map: map,
                icon: {
                  url: image,
-                 scaledSize: new google.maps.Size(30, 45), // scaled size
+                 scaledSize: new google.maps.Size(35, 50), // scaled size
                  origin: new google.maps.Point(0,0), // origin
                  anchor: new google.maps.Point(0, 0) // anchor
                },

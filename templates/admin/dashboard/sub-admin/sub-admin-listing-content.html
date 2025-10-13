@@ -11,14 +11,14 @@
     {% for agent in agent_list %}
       <div id="row_{{ agent.id }}" class="new-listing_blocks {% if first_row > 0 and second_row > 0 %}{% if forloop.counter == first_row or forloop.counter == second_row %}last-row{% endif %}{% endif %}">
         <ul class="bottom">
-          <li>
+          <!-- <li>
             License No: {{ agent.licence_no|default:'' }}
-          </li>
+          </li> -->
           <li>
             <i class="fa-solid fa-envelope" aria-hidden="true" role="presentation"></i>  {{ agent.email|default:'' }}
           </li>
           <li>
-            <i class="fa-solid fa-phone" aria-hidden="true" role="presentation"></i> {{ agent.phone_no|default:''|format_phone }}
+            <i class="fa-solid fa-phone" aria-hidden="true" role="presentation"></i>+{{agent.phone_country_code|default:971}} {{ agent.phone_no|default:''|format_phone }}
           </li>
           <li>
             <i class="fa-solid fa-calendar-days" aria-hidden="true" role="presentation"></i> Create Date | <span class="convert_to_local_date_time" data-value="{{ agent.added_on|default:'' }}">
@@ -40,7 +40,7 @@
             <figcaption>
               <h6>
                 <span>
-                  {{ agent.first_name|default:'' }} {{ agent.last_name|default:'' }}
+                  {{ agent.first_name|default:'' }}
                   {% if agent.is_upgrade %}
                   <a href="javascript:void(0)" data-toggle="tooltip" data-placement="bottom" title="User upgraded to Agent"><img src="{% static 'admin/images/up-arrow.svg' %}" alt="real estate sales"></a>
                   {% endif %}
@@ -62,23 +62,14 @@
                   <li>
                     <a href="/admin/add-sub-admin/?id={{ agent.id }}"><i class="fas fa-edit" aria-hidden="true" role="presentation"></i> Edit Sub Admin</a>
                   </li>
-                  <li>
+                  <!-- <li>
                     <a href="javascript:void(0)" onclick="agent_delete_confirmation({{ agent.id }})"><i class="fas fa-trash" aria-hidden="true" role="presentation"></i> Delete Sub Admin</a>
-                  </li>
+                  </li> -->
                 </ul>
               </span>
             </div>
 
             <ol class="circle-high">
-              <!-- <li>
-                <div class="icon"><i class="fa-solid fa-user-large fa-2x"></i></div>
-                <span class="badge {% if agent.status|lower == 'active' %}badge-success{% else %}badge-danger{% endif %}">
-                  {{ agent.status|default:'' }}
-                </span>
-                <h6 class="pt10">
-                  Agent Status
-                </h6>
-              </li> -->
               <li>
                 <div class="icon"><i class="fa-solid fa-user-tie fa-2x" aria-hidden="true" role="presentation"></i></div>
                 <span class="badge {% if agent.user_status|lower == 'active' %}badge-success{% else %}badge-danger{% endif %}">
@@ -124,6 +115,7 @@
     {% endif %}
 {% block js_content %}
 
-  <script type="text/javascript" src="{% static 'admin/js/custom_js.js' %}?v=4.6"></script>
+<script type="text/javascript" src="{% static 'admin/js/custom-date-time.js' %}?v=4.2"></script>
+<script type="text/javascript" src="{% static 'admin/js/sub-admin.js' %}?v=5.1"></script>
 
 {% endblock %}

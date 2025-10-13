@@ -14,17 +14,14 @@
     {{ bidder.email|default:'' }}
   </div>
   <div class="item">
-    {{ bidder.phone_no|default:''|format_phone }}
+    +{{bidder.phone_country_code|default:971}} {{ bidder.phone_no|default:''|format_phone }}
   </div>
   <div class="item">
-    AED 1000
+    AED {{bidder.transaction_amount | default:0}} <br/>
   </div>
-  <!-- <div class="item">
-    <span class="badge {% if bidder.is_reviewed|lower == 'reviewed' %}badge-success {% elif  bidder.is_reviewed|lower == 'not reviewed'%}badge-info{% else %}badge-warning{% endif %}">
-      {{ bidder.is_reviewed|default:'' }}
-    </span>
-  </div> -->
-
+  <div class="item">
+    AED {{bidder.total_tax | default:0}}
+  </div>
   <div class="item">
     <span class="badge {% if bidder.is_approved|lower == 'pending' %}badge-warning{% elif bidder.is_approved|lower == 'approved' %}badge-success{% elif bidder.is_approved|lower == 'declined' %}badge-danger{% else %}badge-info{% endif %}">
       {{ bidder.is_approved|default:'' }}

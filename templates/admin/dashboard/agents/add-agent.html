@@ -28,16 +28,18 @@
                 <input type="hidden" name="agent_id" id="agent_id" value="{{ agent_details.id|default:'' }}"/>
                 <div class="col-lg-4 col-md-6">
                   <div class="form-group">
-                    <label for="agent_first_name">First Name <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control alphaAccpt" aria-label="First Name" name="agent_first_name" id="agent_first_name" placeholder="Enter First Name" value="{{ agent_details.first_name|default:'' }}" maxlength="40">
+                    <label for="agent_first_name">Name <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" aria-label="First Name" name="agent_first_name" id="agent_first_name" placeholder="Enter First Name" value="{{ agent_details.first_name|default:'' }}" maxlength="40">
                   </div>
                 </div>
+
                 <div class="col-lg-4 col-md-6">
                   <div class="form-group">
-                    <label for="agent_last_name">Last Name <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control alphaAccpt" aria-label="Last Name" name="agent_last_name" id="agent_last_name" placeholder="Enter Last Name" value="{{ agent_details.last_name|default:'' }}" maxlength="40">
+                    <label for="agent_first_name_ar">Name In Arabic <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" aria-label="First Name" name="agent_first_name_ar" id="agent_first_name_ar" placeholder="Enter First Name In Arabic" value="{{ agent_details.first_name_ar|default:'' }}" maxlength="40">
                   </div>
                 </div>
+                
                 <div class="col-lg-4 col-md-6">
                   <div class="form-group">
                     <label for="user_email">Email <span class="text-danger">*</span></label>
@@ -47,7 +49,12 @@
                 <div class="col-lg-4 col-md-6">
                   <div class="form-group">
                     <label for="usr_phone_no">Phone <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" aria-label="Phone" name="usr_phone_no" id="usr_phone_no" placeholder="Phone" value="{{ agent_details.phone_no|default:'' }}" data-inputmask="'mask':'99 999 9999'" data-inputmask-clearincomplete="true">
+                    <div class="ph-code">
+                      <select name="phone_country_code" class="select">
+                        <option value="971">+971</option>
+                      </select>
+                      <input type="text" class="form-control" aria-label="Phone" name="usr_phone_no" id="usr_phone_no" placeholder="Phone" value="{{ agent_details.phone_no|default:'' }}" data-inputmask="'mask':'99 999 9999'" data-inputmask-clearincomplete="true">
+                    </div>
                   </div>
                 </div>
                 <div class="col-lg-4 col-md-6">
@@ -57,12 +64,12 @@
                   </div>
                 </div>
 
-                <div class="col-lg-4 col-md-6">
+                <!-- <div class="col-lg-4 col-md-6">
                   <div class="form-group">
                     <label for="zip_code">Zip Code <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" aria-label="Zip" name="zip_code" id="zip_code" autocomplete="nope" placeholder="Enter Zip Code" value="{{ agent_details.postal_code|default:'' }}" maxlength="10">
                   </div>
-                </div>
+                </div> -->
                 <div class="col-lg-4 col-md-6">
                   <div class="form-group">
                     <label for="agent_state">State <span class="text-danger">*</span></label>

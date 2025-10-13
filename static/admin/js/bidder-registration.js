@@ -84,26 +84,26 @@ $(document).ready(function(){
           errorElement: 'p',
           ignore: [],
           rules: {
-              review_status:{
-                  required: true
-              },
+            //   review_status:{
+            //       required: true
+            //   },
               apprvoal_status:{
                   required: true
               },
-              approval_limit:{
-                  required: true,
-                  thousandsepratornum: true,
-                  minvalue: 1,
-              },
-              bidder_doc_id:{
-                required: function(){
-                    if($('#proff-funds').is(':visible') === true){
-                        return true;
-                    }else{
-                        return false;
-                    }
-                }
-              }
+            //   approval_limit:{
+            //       required: true,
+            //       thousandsepratornum: true,
+            //       minvalue: 1,
+            //   },
+            //   bidder_doc_id:{
+            //     required: function(){
+            //         if($('#proff-funds').is(':visible') === true){
+            //             return true;
+            //         }else{
+            //             return false;
+            //         }
+            //     }
+            //   }
           },
           messages: {
               review_status:{
@@ -293,6 +293,7 @@ function bidderListingSearch(current_page, filter_listing){
     $.ajax({
         url: '/admin/bidder-registration/',
         type: 'post',
+        headers: { 'X-CSRFToken': getCookie('csrftoken') },
         dataType: 'json',
         cache: false,
         data: {'search': search, 'page': currpage, 'page_size': recordPerpage, 'asset_type': asset_type_filter, 'filter_bidder_status': filter_bidder_status},
@@ -506,6 +507,7 @@ function update_bidder_details(reqest_frm){
     $.ajax({
           url: '/admin/bidder-registration-details/',
           type: 'post',
+          headers: { 'X-CSRFToken': getCookie('csrftoken') },
           dataType: 'json',
           cache: false,
           data: $('#bidderUpdateFrm').serialize(),

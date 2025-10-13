@@ -406,7 +406,7 @@ def get_user_type_list(request):
     try:
         user_type_list = []
         api_url = settings.API_URL + '/api-settings/user-type-listing/'
-        response = call_api_post_method({}, api_url, request.session['token']['access_token'])
+        response = call_api_post_method({'user_id': request.session['user_id']}, api_url, request.session['token']['access_token'])
         if "error" in response and response['error'] == 0:
             user_type_list = response['data']
         return user_type_list
@@ -418,7 +418,7 @@ def get_permissions_list(request):
     try:
         permission_list = []
         api_url = settings.API_URL + '/api-settings/permission-listing/'
-        response = call_api_post_method({}, api_url, request.session['token']['access_token'])
+        response = call_api_post_method({'user_id': request.session['user_id']}, api_url, request.session['token']['access_token'])
         if "error" in response and response['error'] == 0:
             permission_list = response['data']
         return permission_list
@@ -430,7 +430,7 @@ def get_event_list(request):
     try:
         event_list = []
         api_url = settings.API_URL + '/api-settings/event-listing/'
-        response = call_api_post_method({}, api_url, request.session['token']['access_token'])
+        response = call_api_post_method({'user_id': request.session['user_id']}, api_url, request.session['token']['access_token'])
         if "error" in response and response['error'] == 0:
             event_list = response['data']
         return event_list

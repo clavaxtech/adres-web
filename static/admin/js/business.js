@@ -86,129 +86,6 @@ $(document).ready(function(){
            }
         });
 
-        /*$(document).on('blur', '#business_phone', function(){
-            $('#custom_business_phone_length_error').hide();
-            var phone = $('#business_phone').val().replace(/\D/g,'').length;
-            if(phone != 10){
-                if(typeof($('#business_phone-error').html()) == 'undefined' || $('#business_phone-error').is(':visible') === false){
-                    $('#custom_business_phone_length_error').show();
-                 }else{
-                    $('#custom_business_phone_length_error').hide();
-                 }
-                return false;
-            }
-
-        });
-        $(document).on('blur', '#business_mobile', function(){
-            $('#custom_business_mobile_length_error').hide();
-            var phone = $('#business_mobile').val().replace(/\D/g,'').length;
-            if(phone != 10){
-                if(typeof($('#business_mobile-error').html()) == 'undefined' || $('#business_mobile-error').is(':visible') === false){
-                    $('#custom_business_mobile_length_error').show();
-                 }else{
-                    $('#custom_business_mobile_length_error').hide();
-                 }
-                return false;
-            }
-
-        });*/
-    /*$('#update_business_frm').validate({
-            errorElement: 'p',
-            rules: {
-                business_first_name:{
-                    required: true,
-                    accept: true
-                },
-                business_last_name:{
-                    required: true,
-                    accept: true
-                },
-                company_name:{
-                    required:true
-                },
-                business_phone:{
-                    required:true,
-                    remote:{
-                        type: 'post',
-                        url: '/admin/check-user-exists/',
-                        dataType: 'json',
-                        async:true,
-                        data: {
-                            check_type: function() {
-                                return "business";
-                            }
-                        },
-                        dataFilter: function(data) {
-                            var response = JSON.parse(data);
-                            if(response.error == 0 && typeof(response.data.exists) != 'undefined'&& response.data.exists === true){
-                                return false;
-                            }else{
-                                return true;
-                            }
-
-                        }
-                    }
-                },
-                business_mobile:{
-                    required:true,
-                },
-                business_email:{
-                    required:true,
-                    email:true,
-                    remote:{
-                        type: 'post',
-                        url: '/admin/check-user-exists/',
-                        dataType: 'json',
-                        async:true,
-                        data: {
-                            check_type: function() {
-                                return "business";
-                            }
-                        },
-                        dataFilter: function(data) {
-                            var response = JSON.parse(data);
-                            if(response.error == 0 && typeof(response.data.exists) != 'undefined'&& response.data.exists === true){
-                                return false;
-                            }else{
-                                return true;
-                            }
-
-                        }
-                    }
-                },
-                broker_license_no:{
-                    required:true
-                }
-            },
-            messages: {
-                business_first_name:{
-                    required: "First Name is required.",
-                    accept: "Please Enter Valid First Name."
-                },
-                business_last_name:{
-                    required: "Last Name is required.",
-                    accept: "Please Enter Valid First Name."
-                },
-                company_name:{
-                    required: "Company Name is required."
-                },
-                business_phone:{
-                    required: "Phone no is required.",
-                    remote: "Phone no already in use."
-                },
-                business_mobile:{
-                    required: "Mobile no is required.",
-                },
-                business_email:{
-                    required: "Email is required.",
-                    email: "Please Enter Valid Email Address.",
-                    remote: "Email Address already in use."
-                },
-                broker_license_no:{
-                    required: "Broker License No is required."
-                }
-            }
-        });*/
         $('#update_business_frm').validate({
         errorElement: 'p',
         ignore: [],
@@ -302,7 +179,7 @@ function submit_business_frm(){
     $('#business_first_name').rules('add', {
         required: true,
         acceptcharacters: true,
-        noSpace:true,
+        // noSpace:true,
         maxlength:40,
         messages: {
             required: "First name is required.",
@@ -311,18 +188,18 @@ function submit_business_frm(){
             maxlength:"Please enter at most 40 char"
         }
     });
-    $('#business_last_name').rules('add', {
-        required: true,
-        acceptcharacters: true,
-        noSpace:true,
-        maxlength:40,
-        messages: {
-            required: "Last name is required.",
-            acceptcharacters: "Please enter valid Last Name",
-            noSpace: "Please enter valid Last Name",
-            maxlength:"Please enter at most 40 char"
-        }
-    });
+    // $('#business_last_name').rules('add', {
+    //     required: true,
+    //     acceptcharacters: true,
+    //     noSpace:true,
+    //     maxlength:40,
+    //     messages: {
+    //         required: "Last name is required.",
+    //         acceptcharacters: "Please enter valid Last Name",
+    //         noSpace: "Please enter valid Last Name",
+    //         maxlength:"Please enter at most 40 char"
+    //     }
+    // });
     $('#company_name').rules('add', {
         required: true,
         messages: {
@@ -331,28 +208,28 @@ function submit_business_frm(){
     });
     $('#business_phone').rules('add', {
         required: true,
-        phoneminlength: 10,
-        phonemaxlength: 10,
-        remote:{
-            type: 'post',
-            url: '/admin/check-user-exists/',
-            dataType: 'json',
-            async:true,
-            data: {
-                check_type: function() {
-                    return "business";
-                }
-            },
-            dataFilter: function(data) {
-                var response = JSON.parse(data);
-                if(response.error == 0 && typeof(response.data.exists) != 'undefined'&& response.data.exists === true){
-                    return false;
-                }else{
-                    return true;
-                }
+        phoneminlength: 9,
+        phonemaxlength: 9,
+        // remote:{
+        //     type: 'post',
+        //     url: '/admin/check-user-exists/',
+        //     dataType: 'json',
+        //     async:true,
+        //     data: {
+        //         check_type: function() {
+        //             return "business";
+        //         }
+        //     },
+        //     dataFilter: function(data) {
+        //         var response = JSON.parse(data);
+        //         if(response.error == 0 && typeof(response.data.exists) != 'undefined'&& response.data.exists === true){
+        //             return false;
+        //         }else{
+        //             return true;
+        //         }
 
-            }
-        },
+        //     }
+        // },
         messages: {
             required: "Phone no is required.",
             remote: "Phone no already in use.",
@@ -362,8 +239,8 @@ function submit_business_frm(){
     });
     $('#business_mobile').rules('add', {
         required: true,
-        phoneminlength: 10,
-        phonemaxlength: 10,
+        phoneminlength: 9,
+        phonemaxlength: 9,
         messages: {
             required: "Mobile No. is required.",
             phoneminlength: "Please enter valid Mobile no.",
@@ -373,26 +250,26 @@ function submit_business_frm(){
     $('#business_email').rules('add', {
         required:true,
         email:true,
-        remote:{
-            type: 'post',
-            url: '/admin/check-user-exists/',
-            dataType: 'json',
-            async:true,
-            data: {
-                check_type: function() {
-                    return "business";
-                }
-            },
-            dataFilter: function(data) {
-                var response = JSON.parse(data);
-                if(response.error == 0 && typeof(response.data.exists) != 'undefined'&& response.data.exists === true){
-                    return false;
-                }else{
-                    return true;
-                }
+        // remote:{
+        //     type: 'post',
+        //     url: '/admin/check-user-exists/',
+        //     dataType: 'json',
+        //     async:true,
+        //     data: {
+        //         check_type: function() {
+        //             return "business";
+        //         }
+        //     },
+        //     dataFilter: function(data) {
+        //         var response = JSON.parse(data);
+        //         if(response.error == 0 && typeof(response.data.exists) != 'undefined'&& response.data.exists === true){
+        //             return false;
+        //         }else{
+        //             return true;
+        //         }
 
-            }
-        },
+        //     }
+        // },
         messages: {
             required: "Email is required.",
             email: "Please Enter Valid Email Address.",
@@ -408,12 +285,6 @@ function submit_business_frm(){
                 }
             });
     });
-//    $('#country').rules('add', {
-//        required: true,
-//        messages: {
-//            required: "Countr is required.",
-//        }
-//    });
     $('#broker_license_no').rules('add', {
         required: true,
         messages: {
@@ -451,26 +322,7 @@ function submit_business_frm(){
                 }
             });
     });
-    /*var phone = $('#business_phone').val().replace(/\D/g,'').length;
-    var mobile = $('#business_mobile').val().replace(/\D/g,'').length;
-    if(phone != 10){
-         if(typeof($('#business_phone-error').html()) == 'undefined' || $('#business_phone-error').is(':visible') === false){
-            $('#custom_business_phone_length_error').show();
-         }else{
-            $('#custom_business_phone_length_error').hide();
-         }
-
-       flag = false;
-    }
-    if(mobile != 10){
-         if(typeof($('#business_mobile-error').html()) == 'undefined' || $('#business_mobile-error').is(':visible') === false){
-            $('#custom_business_mobile_length_error').show();
-         }else{
-            $('#custom_business_mobile_length_error').hide();
-         }
-
-        flag = false;
-    }*/
+    
     if(flag == true && $('#update_business_frm').valid()){
         $.ajax({
             url: '/admin/business-info/',

@@ -15,7 +15,7 @@
             {{ agent.email|default:'' }}
           </li>
           <li>
-            <i class="fa-solid fa-phone" aria-hidden="true" role="presentation"></i> {{ agent.phone_no|default:''|format_phone }}
+            <i class="fa-solid fa-phone" aria-hidden="true" role="presentation"></i>+{{agent.phone_country_code|default:971}} {{ agent.phone_no|default:''|format_phone }}
           </li>
           <li>
             <i class="fa-solid fa-calendar-days" aria-hidden="true" role="presentation"></i> Create Date | <span class="convert_to_local_date_time" data-value="{{ agent.added_on|default:'' }}">
@@ -37,7 +37,7 @@
             <figcaption>
               <h6>
                 <span>
-                  {{ agent.first_name|default:'' }} {{ agent.last_name|default:'' }}
+                  {{ agent.first_name|default:'' }}
                   {% if agent.is_upgrade %}
                   <a href="javascript:void(0)" data-toggle="tooltip" data-placement="bottom" title="User upgraded to Agent"><img src="{% static 'admin/images/up-arrow.svg' %}" alt="real estate sales"></a>
                   {% endif %}
@@ -56,9 +56,9 @@
                   <li>
                     <a href="/admin/add-developer/?id={{ agent.id }}"><i class="fas fa-edit" aria-hidden="true" role="presentation"></i> Edit Developer</a>
                   </li>
-                  <li>
+                  <!-- <li>
                     <a href="javascript:void(0)" onclick="agent_delete_confirmation({{ agent.id }})"><i class="fas fa-trash" aria-hidden="true" role="presentation"></i> Delete Developer</a>
-                  </li>
+                  </li> -->
                 </ul>
               </span>
             </div>
@@ -130,7 +130,6 @@
     
     {% endif %}
 {% block js_content %}
-
-  <script type="text/javascript" src="{% static 'admin/js/custom_js.js' %}?v=4.6"></script>
-
+<script type="text/javascript" src="{% static 'admin/js/custom-date-time.js' %}?v=4.2"></script>
+<script type="text/javascript" src="{% static 'admin/js/agent.js' %}?v=5.1"></script>
 {% endblock %}

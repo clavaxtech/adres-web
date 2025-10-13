@@ -60,11 +60,17 @@ $(document).ready(function(){
             article_title:{
                 required: true
             },
+            article_title_ar:{
+                required: true
+            },
             author_name:{
                 required: true,
                 accept: true
             },
             article_description:{
+                articleDesc: true
+            },
+            article_description_ar:{
                 articleDesc: true
             },
             virtual_publish_date:{
@@ -298,6 +304,7 @@ $(document).ready(function(){
                 $.ajax({
                     url: '/admin/blog-search-suggestion/',
                     type: 'post',
+                    headers: { 'X-CSRFToken': getCookie('csrftoken') },
                     dataType: 'json',
                     cache: false,
                     data: {'search': search},
@@ -477,6 +484,7 @@ function filter_article_list(page){
     $.ajax({
         url: '/admin/blogs/',
         type: 'post',
+        headers: { 'X-CSRFToken': getCookie('csrftoken') },
         dataType: 'json',
         cache: false,
         data: {search: search, perpage: perpage, status: status, page: page},

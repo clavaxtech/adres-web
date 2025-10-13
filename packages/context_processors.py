@@ -219,3 +219,9 @@ def user_personal_info(request):
 def node_url(request):
     return {'NODE_URL': settings.NODE_URL}
 
+def socket_auth_token(request):
+    return {'SOCKET_AUTH_TOKEN': settings.SOCKET_AUTH_TOKEN}
+
+def socket_encryption_key(request):
+    return {'ENCRYPTION_KEY': settings.ENCRYPTION_KEY}  
+

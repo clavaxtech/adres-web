@@ -78,7 +78,7 @@
 
     <span id="span-ajax-advertisement-list">
       <div class="table-responsive">
-      <table class="table table-striped jambo_table bulk_action" cellpadding="0" cellspacing="0" width="100%" data-table="Advertisement List Table" role="table">
+      <table class="table jambo_table bulk_action" cellpadding="0" cellspacing="0" width="100%" data-table="Advertisement List Table" role="table">
         <thead>
           <tr role="row" class="headings" style="white-space: nowrap;">
             <th class="column-title" role="columnheader" scope="col">ID </th>
@@ -214,7 +214,7 @@
 
   <!--Edit advertisement Modal-->
   <div class="modal fade edit-advertisement-modal centered-modal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-md">
       <div class="modal-content">
 
         <div class="modal-header">
@@ -227,9 +227,9 @@
             {% csrf_token %}
             <input type="hidden" id="advertisement_id" name="advertisement_id" >
             <div class="form-group">
-              <label class="control-label col-md-3 col-sm-3 col-xs-12" for="site_id">Choose Domain
+              <label class="control-label col-md-5 col-sm-5 col-xs-12" for="site_id">Choose Domain
               </label>
-              <div class="col-md-6 col-sm-6 col-xs-12">
+              <div class="col-md-7 col-sm-7 col-xs-12">
                 <select name="site_id" id="editSiteId" aria-label="Choose Domain" class="select form-control">
                   <option value="" selected>Select</option>
                   {% if domain_list %}
@@ -244,25 +244,25 @@
             </div>
 
             <div class="form-group">
-              <label class="control-label col-md-3 col-sm-3 col-xs-12" for="company_name">Company Name <span class="required">*</span>
+              <label class="control-label col-md-5 col-sm-5 col-xs-12" for="company_name">Company Name <span class="required">*</span>
               </label>
-              <div class="col-md-6 col-sm-6 col-xs-12">
+              <div class="col-md-7 col-sm-7 col-xs-12">
                 <input type="text" id="editCompanyName" aria-label="Company Name" name="company_name" required="required" class="form-control col-md-7 col-xs-12">
               </div>
             </div>
 
             <div class="form-group">
-              <label class="control-label col-md-3 col-sm-3 col-xs-12" for="url">Url <span class="required">*</span>  <br><sub>(Ex: https://www.example.com)</sub>
+              <label class="control-label col-md-5 col-sm-5 col-xs-12" for="url">Url <span class="required">*</span>  <br><sub>(Ex: https://www.example.com)</sub>
               </label>
-              <div class="col-md-6 col-sm-6 col-xs-12">
+              <div class="col-md-7 col-sm-7 col-xs-12">
                 <input type="text" id="editAdUrl" name="url" aria-label="Url" required="required" class="form-control col-md-7 col-xs-12">
               </div>
             </div>
 
             <div class="form-group">
-              <label class="control-label col-md-3 col-sm-3 col-xs-12">Ad Image <span class="required">*</span>
+              <label class="control-label col-md-5 col-sm-5 col-xs-12">Ad Image <span class="required">*</span>
               </label>
-              <div class="col-md-6 col-sm-6 col-xs-12">
+              <div class="col-md-7 col-sm-7 col-xs-12">
                 <div class="upload-fav">
                     <div class="item" style="width: 65%;">
                       <div class="dropzone editImgFrm" id="editImgFrm">
@@ -289,9 +289,9 @@
 
 
             <div class="form-group">
-              <label class="control-label col-md-3 col-sm-3 col-xs-12" for="status">Status <span class="required">*</span>
+              <label class="control-label col-md-5 col-sm-5 col-xs-12" for="status">Status <span class="required">*</span>
               </label>
-              <div class="col-md-6 col-sm-6 col-xs-12">
+              <div class="col-md-7 col-sm-7 col-xs-12">
                 <select class="form-control" id="editStatus" aria-label="Status" name="status" required="required" >
                     <option value="" selected>Choose Status</option>
                     {% for obj in status_list %}
@@ -304,10 +304,10 @@
             </div>
 
             <div class="clearfix">
-              <div class="col-md-3 col-sm-3 col-xs-12">
+              <div class="col-md-5 col-sm-5 col-xs-12">
                 &nbsp;
               </div>
-              <div class="col-md-6 col-sm-6 col-xs-12">
+              <div class="col-md-7 col-sm-7 col-xs-12">
                 <button type="submit" class="btn btn-primary">Save Changes</button>
                 <button type="button" class="btn btn-primary-bdr" data-dismiss="modal">Close</button>
               </div>

@@ -18,6 +18,7 @@ urlpatterns = [
         #  lookup object status management
         path('lookup-object-status/', views.lookup_object_status, name="admin-lookup-object-status"),
         path('ajax-lookup-object-status/', views.ajax_lookup_object_status, name="akax-admin-lookup-object-status"),
+        path('ajax-lookup-object-new-status/', views.ajax_lookup_object_new_status, name="akax-admin-lookup-object-new-status"),
         path('active-inactive-object-status/', views.active_inactive_object_status, name="admin-lookup-object-status-change"), 
        
         #  plan type management
@@ -57,7 +58,7 @@ urlpatterns = [
         # path('active-inactive-blog-category/', views.active_inactive_blog_category, name="admin-blog-categories-status-change"), 
 
         # address type management
-        path('address-types/', views.address_type, name="admin-address-type"),   
+        # path('address-types/', views.address_type, name="admin-address-type"),   
         path('active-inactive-address-type/', views.active_inactive_address_type, name="admin-address-type-status-change"), 
 
         # event type management
@@ -65,7 +66,7 @@ urlpatterns = [
         path('active-inactive-event-type/', views.active_inactive_event_type, name="admin-event-type-status-change"),
 
         # upload steps management
-        path('upload-steps/', views.upload_step, name="admin-upload-step"),   
+        # path('upload-steps/', views.upload_step, name="admin-upload-step"),   
         path('active-inactive-upload-step/', views.active_inactive_upload_step, name="admin-upload-step-status-change"), 
 
         # site settings management
@@ -73,7 +74,7 @@ urlpatterns = [
         path('active-inactive-site-settings/', views.active_inactive_site_setting, name="admin-site-setting-status-change"), 
 
         # time zone management
-        path('time-zones/', views.time_zones, name="admin-time-zones"), 
+        # path('time-zones/', views.time_zones, name="admin-time-zones"), 
         path('ajax-time-zones/', views.ajax_time_zone, name="ajax-admin-time-zones"),   
         path('active-inactive-time-zone/', views.active_inactive_time_zone, name="admin-time-zones-status-change"), 
 

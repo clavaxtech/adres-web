@@ -13,25 +13,28 @@
 {% load tz %}
 {% load humanize %}
 <div class="dashboard-body">
-    <div class="row">
-      <div class="col-md-9">
-        <div class="form-group">
-          <label class=" " for="lookup_object">Choose Lookup Object To View/Manage </label>
-          <select class="select form-control input-sm" aria-label="Choose Lookup Object To View/Manage" name="lookup_object" id="lookup_object" required="required">
+    <div class="listing-top">
+      <div class="block">
+        <label class=" " for="lookup_object">Choose Lookup Object To View/Manage </label>
+      </div>
+      <div class="block filters">
+        <ul>
+          <li>
+            <div class="width300">
+              <select class="select form-control input-sm" aria-label="Choose Lookup Object To View/Manage" name="lookup_object" id="lookup_object" required="required">
                 <option value="" disabled selected>select</option>
                 {% for item in object_list %}
                 {% if item.is_active %}
                 <option value="{{item.id}}">{{item.object_name}}</option>
                 {% endif %}
                 {% endfor %}
-          </select>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="form-group">
-          <label style="visibility:hidden">.</label>
-            <a href="{% url 'admin-lookup-objects' %}#add-object" target="_blank" type="button" class="btn btn-primary btn-full btn-md"><i class="fa fa-external-link" aria-hidden="true" role="presentation"></i> Add Object</a>
-        </div>
+              </select>
+            </div>
+          </li>
+          <li>
+            <a href="{% url 'admin-lookup-objects' %}#add-object" target="_blank" type="button" class="btn btn-primary btn-xs"><i class="fa fa-external-link" aria-hidden="true" role="presentation"></i> Add Object</a>
+          </li>
+        </ul>
       </div>
     </div>
     

@@ -93,6 +93,7 @@
         }
 
         .menu-icon {
+          position: relative;
           font-size: 1.1em;
           width: 30px;
           min-width: 30px;
@@ -111,6 +112,16 @@
           i {
             display: inline-block;
           }
+          .circle-dot {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 5px;
+            height: 5px;
+            background-color: $redD;
+            @include border-radius (3px);
+          }
         }
 
         .menu-title {
@@ -120,6 +131,18 @@
           white-space: nowrap;
           flex-grow: 1;
           transition: color 0.3s;
+          position: relative;
+
+          .circle {
+            position: absolute;
+            right: 0;
+            top: 0;
+            line-height: normal;
+            padding: 0 5px;
+            color: $white;
+            background-color: $redD;
+            @include border-radius (3px);
+          }
         }
 
         .menu-prefix,
@@ -201,7 +224,7 @@
     }
 
     >ul>.sub-menu>.sub-menu-list {
-      background-color: #e1eef7;
+      background-color: $lightpink;
     }
 
     &.icon-shape-circle,

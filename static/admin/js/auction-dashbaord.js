@@ -1,4 +1,21 @@
+var recordPerpage = 10;
 $(document).ready(function () {
+    $('.convert_to_local_date_time_milis, .convert_to_local_date_time').each(function(){
+        try{
+            var added_on = $(this).attr('data-value');
+            if(added_on.trim() != "" && added_on.trim() != "None"){
+                // var local_date = getLocalDateMilisCST(added_on.trim(), 'mm-dd-yyyy','ampm');
+                var local_date = getLocalDateFromUTC(added_on.trim(), 'mm-dd-yyyy','ampm');
+                // actual_date = local_date.split(" ");
+                // actual_date = actual_date[0]+' <span>'+actual_date[1]+' '+actual_date[2]+'</span>';
+                $(this).html(local_date);
+            }else{
+                $(this).html('-');
+            }
+        }catch(ex){
+            // console.log(ex);
+        }
+    });
 
     $.validator.addMethod("greaterThan",
     function(value, element, params) {
@@ -46,6 +63,7 @@ $(document).ready(function () {
         $('#reservePriceValue' + property_id).val(bidIncrementValue)
         $("#propertyReservePrice" + property_id).show();
         $("#reservePriceText" + property_id).hide();
+        $('#reservePriceUpdate' + property_id ).prop('disabled', true);					
     })
 
     .on("click", ".show-bid-text", function (e) {
@@ -138,6 +156,15 @@ $(document).ready(function () {
         }
     })
 
+    .on('input keyup change', '.reservePrice', function() {
+        listing_id = $(this).attr("data-id");
+        if (Number($(this).val())){
+            $('#reservePriceUpdate' + listing_id ).prop('disabled', false)
+        } else {
+            $('#reservePriceUpdate' + listing_id ).prop('disabled', true)
+        }
+    })
+
     .on("click", ".stop-auction-details", function (e) {
         e.preventDefault();
         e.stopPropagation();
@@ -151,11 +178,13 @@ $(document).ready(function () {
     .on("click", '#stopAuctionForm #stopAuctionSubmit', function(e){
         e.preventDefault();
         e.stopPropagation();
+        e.stopImmediatePropagation();
         var listing_id = $('#stopBidListingId').val();
         var auction_id = $('#auctionList').find(`[data-property='${listing_id}']`).attr('data-auction')
         $.ajax({
             url: "/admin/start-stop-bid-auction/",
             type: "post",
+            headers: { 'X-CSRFToken': getCookie('csrftoken') },
             dataType: "json",
             cache: false,
             data: { listing_id: listing_id },
@@ -174,19 +203,21 @@ $(document).ready(function () {
                     if ($('#startStopAuctionIcon' + listing_id).hasClass('fa-play')) {
                         $('#startStopAuctionIcon' + listing_id).removeClass('fa-play').addClass('fa-circle')
                         $('#startStopAuctionTooltip' + listing_id).html('Stop Auction')
-                        $('#stopAuctionDetails' + listing_id).attr('data-text', 'Stop Auction?')
+                        $('#stopAuctionDetails' + listing_id).attr('data-text', 'Stop Auction');
+                        $('#stopAuctionDetails' + listing_id).attr('title', 'Stop Auction')
                     } else {
                         $('#startStopAuctionIcon' + listing_id).addClass('fa-play').removeClass('fa-circle')
                         $('#startStopAuctionTooltip' + listing_id).html('Start Auction')
-                        $('#stopAuctionDetails' + listing_id).attr('data-text', 'Start Auction?')
+                        $('#stopAuctionDetails' + listing_id).attr('data-text', 'Start Auction');
+                        $('#stopAuctionDetails' + listing_id).attr('title', 'Start Auction')
                     }
                     window.setTimeout(function () {
-                        $.growl.notice({title: "Auction Stop", message: "Auction Status Updated Successfully", size: 'large'});
+                        $.growl.notice({title: "Auction Status", message: "Auction Status Updated Successfully", size: 'large'});
                     }, 0);
                 } else {
                     $("#stopbiddingModal").modal("show");
                     window.setTimeout(function () {
-                        $.growl.error({title: "Auction Stop", message: response.msg, size: 'large'});
+                        $.growl.error({title: "Auction Status", message: response.msg, size: 'large'});
                     }, 0);
                 }
             }
@@ -232,47 +263,48 @@ $(document).ready(function () {
         }
     })
 
-    .on("click", '#emailAllUsersForm #emailAllSubmit', function(e){
-        e.preventDefault();
-        var listing_id = $('#emailPropertyid').val()
-            subject = $('#subject').val().trim()
-            message = $('#message').val().trim()
-            emailFor = $('#emailForObject').val()
+    // .on("click", '#emailAllUsersForm #emailAllSubmit', function(e){
+    //     e.preventDefault();
+    //     // e.stopPropagation();
+    //     var listing_id = $('#emailPropertyid').val()
+    //         subject = $('#subject').val().trim()
+    //         message = $('#message').val().trim()
+    //         emailFor = $('#emailForObject').val()
 
-        if(!subject || !message){
-            return false;
-        }
+    //     if(!subject || !message){
+    //         return false;
+    //     }
 
-        $.ajax({
-            url: "/admin/email-all-users/",
-            type: "post",
-            dataType: "json",
-            cache: false,
-            data: { listing_id: listing_id, subject: subject, message: message, email_for: emailFor },
-            beforeSend: function () {
-                // $(".overlay").show();
-                $('#emailAllSubmit').prop('disabled', true).html('Please wait...')
-            },
-            complete: function(){
-                // $(".overlay").hide();
-                $('#emailAllSubmit').prop('disabled', false).html('Send')
-            },
-            success: function (response) {
-                if (response.error == 0 || response.status == 200) {
-                    $("#emailrecordModal").modal("hide");
-                    $('#subject, #message').val('')
-                    window.setTimeout(function () {
-                        $.growl.notice({title: "Email Users", message: "Email Sent Successfully", size: 'large'});
-                    }, 0);
-                } else {
-                    $("#emailrecordModal").modal("show");
-                    window.setTimeout(function () {
-                        $.growl.error({title: "Email Users", message: response.msg, size: 'large'});
-                    }, 0);
-                }
-            }
-        });
-    })
+    //     $.ajax({
+    //         url: "/admin/email-all-users/",
+    //         type: "post",
+    //         dataType: "json",
+    //         cache: false,
+    //         data: { listing_id: listing_id, subject: subject, message: message, email_for: emailFor },
+    //         beforeSend: function () {
+    //             // $(".overlay").show();
+    //             $('#emailAllSubmit').prop('disabled', true).html('Please wait...')
+    //         },
+    //         complete: function(){
+    //             // $(".overlay").hide();
+    //             $('#emailAllSubmit').prop('disabled', false).html('Send')
+    //         },
+    //         success: function (response) {
+    //             if (response.error == 0 || response.status == 200) {
+    //                 $("#emailrecordModal").modal("hide");
+    //                 $('#subject, #message').val('')
+    //                 window.setTimeout(function () {
+    //                     $.growl.notice({title: "Email Users", message: "Email Sent Successfully", size: 'large'});
+    //                 }, 0);
+    //             } else {
+    //                 $("#emailrecordModal").modal("show");
+    //                 window.setTimeout(function () {
+    //                     $.growl.error({title: "Email Users", message: response.msg, size: 'large'});
+    //                 }, 0);
+    //             }
+    //         }
+    //     });
+    // })
 
     .on("click", ".listing-broker-info", function (e) {
         e.preventDefault();
@@ -313,6 +345,7 @@ $(document).ready(function () {
             $.ajax({
                 url: '/admin/auction-search-suggestion/',
                 type: 'post',
+                headers: { 'X-CSRFToken': getCookie('csrftoken') },
                 dataType: 'json',
                 cache: false,
                 data: {'search': search},
@@ -330,6 +363,7 @@ $(document).ready(function () {
     .on('click', '#reservePriceForm .reservepriceupdate', function(e){
         e.preventDefault();
         e.stopPropagation();
+        e.stopImmediatePropagation();
         var listing_id = $(this).attr("data-id");
         var auction_id = $(this).closest('div[class^="block-item"]').attr('data-auction')
         var newReservePrice = $('#reservePriceValue' + listing_id).val().trim().replaceAll(',','').replace('$','')
@@ -339,6 +373,7 @@ $(document).ready(function () {
         $.ajax({
             url: "/admin/update-reserve-price/",
             type: "post",
+            headers: { 'X-CSRFToken': getCookie('csrftoken') },
             dataType: "json",
             cache: false,
             data: { listing_id: listing_id, new_price:newReservePrice },
@@ -354,7 +389,7 @@ $(document).ready(function () {
                 if (response.error == 0 || response.status == 200) {
                     socket.emit("checkBid", {"user_id":user_id, "property_id": listing_id, "auction_id": auction_id, "domain_id": site_id});
                     // change reserve text
-                    $('#reservePriceText' + listing_id + ' span').html(numberWithCommas('$'+newReservePrice))
+                    $('#reservePriceText' + listing_id + ' span').html(numberWithCommas('AED '+newReservePrice))
                     // hide reserve form and show updated reserve text
                     $("#propertyReservePrice" + listing_id).hide();
                     $("#reservePriceText" + listing_id).show();
@@ -374,6 +409,7 @@ $(document).ready(function () {
     .on('click', '#bidIncremementForm .bidincrementupdate', function(e){
         e.preventDefault();
         e.stopPropagation();
+        e.stopImmediatePropagation();
         var listing_id = $(this).attr("data-id");
         var auction_id = $(this).closest('div[class^="block-item"]').attr('data-auction')
         var newBidIncrement = $('#bidIncremementValue' + listing_id).val()
@@ -383,6 +419,7 @@ $(document).ready(function () {
         $.ajax({
             url: "/admin/update-bid-increment/",
             type: "post",
+            headers: { 'X-CSRFToken': getCookie('csrftoken') },
             dataType: "json",
             cache: false,
             data: { listing_id: listing_id, new_price:newBidIncrement },
@@ -398,7 +435,7 @@ $(document).ready(function () {
                 if (response.error == 0 || response.status == 200) {
                     socket.emit("checkBid", {"user_id":user_id, "property_id": listing_id, "auction_id": auction_id, "domain_id": site_id});
                     // change bid incr. text
-                    $('#bidIncText' + listing_id + ' span').html(numberWithCommas('$'+newBidIncrement))
+                    $('#bidIncText' + listing_id + ' span').html(numberWithCommas('AED '+newBidIncrement))
                     // hide reserve form and show updated reserve text
                     $("#propertyIncBid" + property_id).hide();
                     $("#bidIncText" + property_id).show();
@@ -430,7 +467,8 @@ $(document).ready(function () {
 
     .on('click', '.show-bidder-info', function(e){
         e.preventDefault();
-        e.stopPropagation();
+        // e.stopPropagation();
+        e.stopImmediatePropagation();
         user_id = $(this).attr("data-id");
         element = $("#showBidderinfoBidder" + user_id)
         if (element.is(":visible")){
@@ -451,6 +489,7 @@ $(document).ready(function () {
         $.ajax({
             url: '/admin/new-bid-checked/',
             type: 'post',
+            headers: { 'X-CSRFToken': getCookie('csrftoken') },
             dataType: 'json',
             cache: false,
             data: {'property_id': propertyId},
@@ -600,6 +639,7 @@ function auctionListingSearch(current_page) {
     $.ajax({
         url: "/admin/auction-dashboard/",
         type: "post",
+        headers: { 'X-CSRFToken': getCookie('csrftoken') },
         dataType: "json",
         cache: false,
         data: {
@@ -716,6 +756,7 @@ function propertyBidHistorySearch(e, property_id, current_page){
     $.ajax({
         url: '/admin/fetch-auction-bids/',
         type: 'post',
+        headers: { 'X-CSRFToken': getCookie('csrftoken') },
         dataType: 'json',
         cache: false,
         data: {'page': currpage, 'property_id': property_id},
@@ -734,8 +775,9 @@ function propertyBidHistorySearch(e, property_id, current_page){
             }else {
                 $("#bidHistoryPropertyImage").attr('src', '/static/admin/images/property-default-img.png');
             }
-            if(response.property_address != ""){
-                $('#bidHistoryPropertyName').html('<a href="/asset-details/?property_id='+property_id+'" id="bidHistoryPropertyLink" target="_blank">'+response.property_address+'</a> <span><i class="fas fa-map-marker-alt"></i> '+response.property_city+', '+response.property_state+' '+response.property_postal_code+'</span>');
+            if(response.property_name != ""){
+                // $('#bidHistoryPropertyName').html('<a href="/asset-details/?property_id='+property_id+'" id="bidHistoryPropertyLink" target="_blank">'+response.property_name+'</a> <span><i class="fas fa-map-marker-alt"></i> '+response.property_state+', '+response.community+'</span>');
+                $('#bidHistoryPropertyName').html(response.property_name+'<span><i class="fas fa-map-marker-alt"></i> '+response.property_state+', '+response.community+'</span>');
             }
             if(response.error == 0){
                 $("#bidHistoryList").html(response.bid_history_html);
@@ -827,6 +869,7 @@ function propertyBidderListingSearch(e, property_id, current_page){
     $.ajax({
         url: '/admin/fetch-auction-bidders/',
         type: 'post',
+        headers: { 'X-CSRFToken': getCookie('csrftoken') },
         dataType: 'json',
         cache: false,
         data: {'page': currpage, 'property_id': property_id},
@@ -847,8 +890,9 @@ function propertyBidderListingSearch(e, property_id, current_page){
             }else {
                 $("#bidderHistoryPropertyImage").attr('src', '/static/admin/images/property-default-img.png');
             }
-            if(response.property_address != ""){
-                $('#bidderHistoryPropertyName').html('<a href="/asset-details/?property_id='+property_id+'" id="bidderHistoryPropertyLink" target="_blank">'+response.property_address+'</a> <span><i class="fas fa-map-marker-alt"></i> '+response.property_city+', '+response.property_state+' '+response.property_postal_code+'</span>');
+            if(response.property_name != ""){
+                // $('#bidderHistoryPropertyName').html('<a href="/asset-details/?property_id='+property_id+'" id="bidderHistoryPropertyLink" target="_blank">'+response.property_name+'</a> <span><i class="fas fa-map-marker-alt"></i> '+response.property_state+', '+response.property_community+' '+response.property_postal_code+'</span>');
+                $('#bidderHistoryPropertyName').html(response.property_name+'<span><i class="fas fa-map-marker-alt"></i> '+response.property_state+', '+response.community+'</span>');
             }
             if(response.error == 0){
                 $("#bidderHistoryList").html(response.bidder_history_html);
@@ -883,8 +927,8 @@ function exportAuctionBids(property_id,current_page){
     var d = new Date();
     var timezone = d.getTimezoneOffset();
     var currpage = current_page;
+    var recordPerpage = 10;
     var page_size = recordPerpage;
-
     window.location.href = '/admin/export-auction-bids/?page='+currpage+'&page_size='+recordPerpage+'&property='+property_id+'&timezone='+timezone;
 }
 function exportWatcherList(property_id,current_page){
@@ -894,4 +938,46 @@ function exportWatcherList(property_id,current_page){
     var page_size = recordPerpage;
 
     window.location.href = '/admin/export-watchers/?page='+currpage+'&page_size='+recordPerpage+'&property='+property_id+'&timezone='+timezone;
+}
+
+
+function sendEmailToBidder(){
+    var listing_id = $('#emailPropertyid').val()
+    var subject = $('#subject').val().trim()
+    var message = $('#message').val().trim()
+    var emailFor = $('#emailForObject').val()
+
+    if(!subject || !message){
+        return false;
+    }
+    $.ajax({
+        url: "/admin/email-all-users/",
+        type: "post",
+        headers: { 'X-CSRFToken': getCookie('csrftoken') },
+        dataType: "json",
+        cache: false,
+        data: { listing_id: listing_id, subject: subject, message: message, email_for: emailFor },
+        beforeSend: function () {
+            // $(".overlay").show();
+            $('#emailAllSubmit').prop('disabled', true).html('Please wait...')
+        },
+        complete: function(){
+            // $(".overlay").hide();
+            $('#emailAllSubmit').prop('disabled', false).html('Send')
+        },
+        success: function (response) {
+            if (response.error == 0 || response.status == 200) {
+                $("#emailrecordModal").modal("hide");
+                $('#subject, #message').val('')
+                window.setTimeout(function () {
+                    $.growl.notice({title: "Email Users", message: "Email Sent Successfully", size: 'large'});
+                }, 0);
+            } else {
+                $("#emailrecordModal").modal("show");
+                window.setTimeout(function () {
+                    $.growl.error({title: "Email Users", message: response.msg, size: 'large'});
+                }, 0);
+            }
+        }
+    });
 }
